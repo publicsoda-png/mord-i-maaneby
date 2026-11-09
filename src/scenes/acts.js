@@ -267,7 +267,7 @@ register({
     await cutBlack(3000); // total silence
     while (jumpSilent()) { await sleep(100); } // black holds until the player clicks or types
     save.flags.phone = true; save.flags.jumped = true; touch(); persist(true);
-    goto('hub', { back: false, afterJump: true }, { black: 0 });
+    showCursor(true); goto('hub', { back: false, afterJump: true }, { black: 0 });
   },
   bg(g) {
     if (!this.show) { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); return; }
