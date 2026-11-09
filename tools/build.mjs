@@ -24,6 +24,11 @@ function copy(rel) {
 for (const rel of ['index.html', 'style.css', 'src', 'assets']) if (fs.existsSync(path.join(root, rel))) copy(rel);
 // .nojekyll so Pages serves everything as-is
 fs.writeFileSync(path.join(dist, '.nojekyll'), '');
+if (artifact) {
+  // demo flag: the false ending becomes the end of the demo, with a link to the full game
+  const ix = path.join(dist, 'index.html');
+  fs.writeFileSync(ix, fs.readFileSync(ix, 'utf8').replace('<script type="module"', '<script>window.MB_DEMO = "https://publicsoda-png.github.io/mord-i-maaneby/";</script>\n  <script type="module"'));
+}
 const byDir = {};
 for (const [rel, size] of rows) { const d = rel.split('/').slice(0, 2).join('/'); byDir[d] = (byDir[d] || 0) + size; }
 const report = Object.entries(byDir).sort((a, b) => b[1] - a[1]).map(([d, s]) => `${(s / 1048576).toFixed(2).padStart(7)} MB  ${d}`).join('\n');

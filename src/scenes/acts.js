@@ -34,6 +34,12 @@ register({
     if (this.clicks < 3) return; // "kan ikke lukkes"
     if (this.gone) return; this.gone = true;
     lock(true);
+    if (window.MB_DEMO) {
+      // artifact demo = akt 1 only
+      stopMusic(0.5); const os = document.getElementById('os'); showOS(true); os.style.background = 'transparent'; os.innerHTML = '';
+      await msgBox({ title: 'Regn med Måneby', icon: 'info', w: 340, parent: os, msg: 'Demoen slutter her.\n\nResten af spillet (og natten) ligger på:\n' + window.MB_DEMO, buttons: [{ label: 'Åbn', value: 'open', def: true }, { label: 'Luk', value: 'x' }] }).then((r) => { if (r === 'open') window.open(window.MB_DEMO, '_blank'); });
+      showOS(false); this.gone = false; lock(false); this.clicks = 0; return;
+    }
     stopMusic(0.05);
     // the logo letters fall and land crooked — 2 frames — then CRT off → night
     this.fall = 1; await sleep(90); this.fall = 2; await sleep(90);
