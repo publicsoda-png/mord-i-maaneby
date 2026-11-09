@@ -149,6 +149,10 @@ async function runBot() {
     await p.mouse.move(x, y); await sleep(160); // cursor-sprite + hover-label skal være faldet til ro før baseline
     const st = await state();
     const scene = st.scene || (st.osOn ? 'desktop' : '?');
+    if (kind === 'field-o') { // sprites i minispil kan flytte sig (kasser der falder) mellem scan og klik — er målet væk nu, er klikket passivt, ikke dødt
+      const still = await p.evaluate((x, y) => { const el = document.elementFromPoint(x, y); return !!(el && el.closest('#field .o') && el.closest('#field .o').style.pointerEvents === 'auto'); }, x, y);
+      if (!still) { kind = 'passive'; label += ' (målet flyttede sig før klik)'; }
+    }
     const base = await p.screenshot({ clip: { x: 0, y: 0, width: 640, height: 480 } });
     await differ.setBase(base);
     const nDown = await p.evaluate(() => window.__downLog.length);
@@ -246,9 +250,20 @@ async function runBot() {
     const other = icons.filter((i) => !/REGN/.test(i.label));
     if (other.length) { const ic = other[Math.floor(rnd() * other.length)]; await click(ic.x, ic.y, 'desk-single', ic.label); } // nybegynder: ét forkert enkeltklik først (krom, kræver dobbeltklik → informativt)
     const cd = icons.find((i) => /REGN/.test(i.label));
-    if (!cd) throw new Error('cd-ikon ikke fundet på skrivebordet');
-    await click(cd.x, cd.y, 'desk-icon', 'cd dobbeltklik', { dbl: true });
-    note('dobbeltklik på cd');
+    if (cd) {
+      await click(cd.x, cd.y, 'desk-icon', 'cd dobbeltklik', { dbl: true });
+      note('dobbeltklik på cd');
+    } else {
+      // Retning 09-11: intet skrivebord — ident (3 s) → loader (~3 s) → "Klik for at begynde". Nybegynderen klikker én gang for tidligt (dødt, informativt), venter, klikker igen.
+      note('ident (intet skrivebord)');
+      await sleep(1200 + rnd() * 800);
+      await click(320, 240, 'passive', 'klik under ident');
+      const t0 = Date.now();
+      while (Date.now() - t0 < 15000) { const st = await state(); if (st.scene === 'ident' && !st.wait && !st.osOn) break; await sleep(150); } // loader-boksen (#os) væk + cursor ikke wait = "Klik for at begynde"
+      await sleep(400 + rnd() * 600);
+      await click(320, 300, 'passive', 'Klik for at begynde (krom, chime før title)');
+      note('klik for at begynde');
+    }
     await waitScene('title', 20000);
     note('title nået');
     await readDialogs(3000);
