@@ -31,7 +31,7 @@ try {
     const out = { ctxState: null, phases: [], badSfx: [], badMusic: [], badIr: [] };
     const ctx = A.ensureAudio(); await ctx.resume(); out.ctxState = ctx.state;
     // every phase row resolves and applies without throwing
-    const probes = [{ min: 5 }, { min: 46 }, { min: 60, night: true }, { min: 70, night: true }, { min: 80, flags: { scene: 'feber1' } }, { min: 80, flags: { scene: 'feber2' } }, { min: 80, flags: { scene: 'feber3' } }, { min: 82, flags: { scene: 'logrum' } }, { min: 85, flags: { ending: 'morgen' } }, { min: 89, flags: { scene: 'credits' } }];
+    const probes = [{ min: 5 }, { min: 46 }, { min: 60, night: true }, { min: 70, night: true, flags: { phone: true } }, { min: 80, flags: { scene: 'feber1' } }, { min: 80, flags: { scene: 'feber2' } }, { min: 80, flags: { scene: 'feber3' } }, { min: 82, flags: { scene: 'logrum' } }, { min: 85, flags: { ending: 'morgen' } }, { min: 89, flags: { scene: 'credits' } }];
     for (const pr of probes) { const ph = M.applyMix(pr); out.phases.push(ph && ph.id); await new Promise((r) => setTimeout(r, 60)); }
     // every sfx decodes and plays
     for (const n of sfxNames) { const s = await A.play(n, { gain: 0.1 }); if (!s) out.badSfx.push(n); }

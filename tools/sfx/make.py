@@ -50,6 +50,11 @@ def at(x, dur_total, start):
 def norm(x, peak=0.9): return x / (np.abs(x).max() + 1e-9) * peak
 def seq(*items):
     end = max(s + len(a) / SR for s, a in items); return mix(*[at(a, end, s) for s, a in items])
+def warm(x, s=1.0):
+    """Drop the first s seconds: a butter filter starts from zero state, so a filtered periodic signal has a warm-up ramp
+    that would otherwise sit at the loop point (QC 10-11: amb_crt/amb_edb seam jump 0.3)."""
+    return x[int(SR * s):]
+
 def loopable(x, xf=0.5):
     """Crossfade the tail into the head so the loop point is seamless."""
     n = int(SR * xf); head, tail = x[:n].copy(), x[-n:].copy()
@@ -188,12 +193,12 @@ def _():
 def _(): return norm(loopable(bp(brown(14.0), 60, 200), 1.0), 0.5)
 @snd('amb_ventilation')
 def _():
-    x = bp(white(16.0), 200, 600); lfo = 0.8 + 0.2 * np.sin(2 * np.pi * 0.07 * t_(16.0))
-    return norm(loopable(x * lfo, 1.5), 0.6)
+    L = 16.0; xf = 1.5; x = bp(white(L), 200, 600); lfo = 0.8 + 0.2 * np.sin(2 * np.pi * (1 / (L - xf)) * t_(L))  # LFO-periode = loop-længde, så niveauet er ens ved sømmen
+    return norm(loopable(x * lfo, xf), 0.6)
 @snd('amb_crt')
 def _():
-    x = lp(saw(50, 12.0), 900) * 0.6 + 0.08 * sine(7812.5, 12.0) + 0.05 * lp(white(12.0), 300)
-    return norm(loopable(x, 0.5), 0.5)
+    x = warm(lp(saw(50, 13.5), 900)) * 0.6 + 0.08 * sine(7812.5, 12.5) + 0.05 * warm(lp(white(13.5), 300))
+    return norm(loopable(x, 0.5), 0.5)  # 12.5 − 0.5 s crossfade = 12.0 s = 600 hele 50 Hz-perioder
 @snd('amb_kridt')
 def _():
     out = np.zeros(int(SR * 14.0))
@@ -203,7 +208,7 @@ def _():
     return norm(loopable(out, 0.3), 0.45)
 @snd('amb_edb')
 def _():
-    vent = bp(white(15.0), 150, 700) * 0.7; whine = 0.12 * sine(15625 / 2, 15.0); hum = 0.25 * lp(saw(50, 15.0), 400)
+    vent = bp(white(15.0), 150, 700) * 0.7; whine = 0.12 * sine(15625 / 2, 15.0); hum = 0.25 * warm(lp(saw(50, 16.0), 400))  # 15 − 1 s = 14.0 s = 700 perioder
     flap = at(bp(white(0.3), 300, 2000) * decay(0.3, 10) * 0.5, 15.0, 9.2)
     return norm(loopable(mix(vent, whine, hum, flap), 1.0), 0.6)
 @snd('amb_log')
@@ -232,9 +237,16 @@ def _():
 def _(): return norm(lp(white(2.5) * decay(2.5, 2.2), 3500), 0.7)
 
 # ---------------- render ----------------
-def era(x):
-    """22 050 Hz / 8-bit round trip: decimate, quantise to 256 levels, back to float."""
-    y = np.clip(signal.resample_poly(x, 1, 2), -1, 1)
+def era(x, loop=False):
+    """22 050 Hz / 8-bit round trip: decimate, quantise to 256 levels, back to float.
+    loop=True: wrap-pad before decimating so the anti-alias filter sees a continuous signal across the loop point
+    (QC 10-11: the filter's edge ramp made amb_crt/amb_edb click every loop)."""
+    if loop:
+        pad = 4096; xp = np.concatenate([x[-pad:], x, x[:pad]])
+        y = signal.resample_poly(xp, 1, 2)[pad // 2: -(pad // 2)]
+    else:
+        y = signal.resample_poly(x, 1, 2)
+    y = np.clip(y, -1, 1)
     q = np.round((y + 1) * 127.5).astype(np.uint8)
     return q.astype(np.float32) / 127.5 - 1.0
 
@@ -246,9 +258,11 @@ def main():
         if n in IR:
             y = signal.resample_poly(IR[n](), 1, 2).astype(np.float32)
             wavfile.write(os.path.join(OUT, n + '.wav'), OUT_SR, y); print(f'{n:22s} ir  {len(y) / OUT_SR:.2f}s'); continue
-        y = era(S[n]())
-        w = os.path.join(wav_dir, n + '.wav'); wavfile.write(w, OUT_SR, (y * 32767).astype(np.int16))
         loop = n.startswith('amb_')
+        y = era(S[n](), loop)
+        if loop:  # 1 s wrap-padding on both sides: opus/aac damage the first/last ~30 ms, so audio.js loops loopStart=1 … duration−1
+            P = OUT_SR; y = np.concatenate([y[-P:], y, y[:P]])
+        w = os.path.join(wav_dir, n + '.wav'); wavfile.write(w, OUT_SR, (y * 32767).astype(np.int16))
         for ext, codec in [('ogg', ['-c:a', 'libopus', '-b:a', '32k' if loop else '40k', '-application', 'audio']), ('m4a', ['-c:a', 'aac', '-b:a', '48k'])]:
             subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', w, *codec, os.path.join(OUT, f'{n}.{ext}')], check=True)
         kb = os.path.getsize(os.path.join(OUT, n + '.ogg')) // 1024; total += kb
