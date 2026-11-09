@@ -9,3 +9,4 @@ tools/test/qc/
 .gh-pages-wt/
 dist-artifact/
 tools/voice/tmp/
+tools/test/qc-sync/

@@ -3,7 +3,7 @@ import { register, goto, button, lock } from '../core/scene.js';
 import { ctx, W, H, drawText, preload } from '../core/stage.js';
 import { showOS, desktop, progressBox, fakeProgress, msgBox, sleep } from '../core/os.js';
 import { ensureAudio, sfx, music } from '../core/audio.js';
-import { save, meta, persist, persistMeta } from '../core/state.js';
+import { save, meta, persist, persistMeta, resetSave } from '../core/state.js';
 import { bg } from '../art/placeholder.js';
 import { showCursor } from '../core/cursor.js';
 
@@ -101,8 +101,8 @@ register({
     }
     button('OK', 300, 330, () => {
       const name = inp.value.trim() || 'Bygmester';
+      if (meta.ending) { resetSave(); save.night = true; save.flags.hall_open = true; save.flags.nightStartMin = 0; } // second playthrough: clean save, starts at 15:40 in the night
       save.name = name; save.grade = grade;
-      if (meta.ending) { save.night = true; save.flags.hall_open = true; } // second playthrough starts at 15:40, in the night
       if (!meta.firstName) meta.firstName = name;
       if (!meta.names.includes(name)) meta.names.push(name);
       persistMeta(); persist(true);

@@ -42,8 +42,8 @@ export function opg(type, grade, r = Math.random) {
 /** The school task whose answer is always 7 (the key that is missing). */
 export function sevenTask(grade, r = Math.random) {
   const list = grade < 3
-    ? [['3 + 4 = ?'], ['10 − 3 = ?'], ['Hvor mange dage har en uge?']]
-    : grade < 5 ? [['42 : 6 = ?'], ['3 + 4 = ?'], ['Hvor mange Fnugger står tilbage?']] : [['49 : 7 = ?'], ['2³ − 1 = ?'], ['√49 = ?']];
+    ? [['3 + 4 = ?'], ['5 + 2 = ?'], ['Hvor mange dage har en uge?']]
+    : grade < 5 ? [['42 : 6 = ?'], ['3 + 4 = ?'], ['Hvor mange Fnugger står tilbage?']] : [['49 : 7 = ?'], ['√49 = ?'], ['1 + 2 + 4 = ?']]; // never a minus sign before the Logroom
   const q = list[ri(r, 0, list.length - 1)][0];
   return { q, a: 7 };
 }

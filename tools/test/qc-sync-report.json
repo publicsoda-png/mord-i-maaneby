@@ -1,0 +1,117 @@
+{
+  "when": "2026-11-09T04:03:08.196Z",
+  "git": "62fa9b1+dirty",
+  "gates": {
+    "cps_min": 24,
+    "cps_max": 32,
+    "sfx_sync_tolerance_ms": 83,
+    "mouth_tolerance_ms": 100,
+    "mouth_open_during_voice_min_pct": 30,
+    "helper_frames_per_s_max": 13,
+    "json_rms_agreement_min": 0.85,
+    "voice_lufs": -16,
+    "music_lufs": -18,
+    "lufs_tolerance": 1.5,
+    "true_peak_max_dbfs": -1
+  },
+  "tests": {
+    "mouth_json_vs_rms": {
+      "clips": 36,
+      "min_agreement": 0.959,
+      "failing": []
+    },
+    "loudness": {
+      "voice_n": 36,
+      "voice_I_range": [
+        null,
+        null
+      ],
+      "music_n": 22,
+      "music_I_range": [
+        null,
+        null
+      ],
+      "voice_failing": [],
+      "music_failing": []
+    },
+    "mouth_vs_voice": {
+      "voice_found": true,
+      "voice_start": 1794196996.541,
+      "voice_dur": 5.8100226757369615,
+      "frames": 534,
+      "open_outside_voice_frames": 0,
+      "open_during_voice_pct": 0,
+      "helper_changes_per_s": 4.6,
+      "mouth_first_open_ms_after_voice": null,
+      "mouth_last_open_ms_after_voice_end": null,
+      "audio_events": [
+        {
+          "url": "assets/voice/intro1.ogg",
+          "dur": 5.81
+        }
+      ]
+    },
+    "text_cps": {
+      "chars": 66,
+      "visible_changes": 44,
+      "typing_s": 3.02,
+      "pauses_s": 0.38,
+      "cps_measured": 16.3,
+      "note": "screencast fanger ikke nødvendigvis hvert tegn ved 60 Hz → cps er en nedre grænse hvis visible_changes < chars"
+    },
+    "pling_vs_swap": {
+      "swap_frame": 42,
+      "swap_t": 1794197037.920047,
+      "pling_found": true,
+      "pling_url": "assets/sfx/ui_bygning_op1.ogg",
+      "delta_ms": -40,
+      "black_frames": 17
+    }
+  },
+  "pass": {
+    "A6_mouth_json": true,
+    "A6_loudness_voice": true,
+    "A6_loudness_music": true,
+    "A6_mouth_only_during_voice": true,
+    "A6_mouth_moves_during_voice": false,
+    "A6_helper_steprate": true,
+    "A6_cps_visual": false,
+    "A6_pling_sync": true
+  },
+  "notes": [],
+  "G3": [
+    {
+      "gate": "A6_mouth_json",
+      "pass": true
+    },
+    {
+      "gate": "A6_loudness_voice",
+      "pass": true
+    },
+    {
+      "gate": "A6_loudness_music",
+      "pass": true
+    },
+    {
+      "gate": "A6_mouth_only_during_voice",
+      "pass": true
+    },
+    {
+      "gate": "A6_mouth_moves_during_voice",
+      "pass": false
+    },
+    {
+      "gate": "A6_helper_steprate",
+      "pass": true
+    },
+    {
+      "gate": "A6_cps_visual",
+      "pass": false
+    },
+    {
+      "gate": "A6_pling_sync",
+      "pass": true
+    }
+  ],
+  "G3_pass": false
+}

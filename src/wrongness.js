@@ -25,8 +25,8 @@ export async function checkWrongness(ctx) {
 }
 
 // ---------------- Akt 1 (0–30 min): decoration + first off-notes ----------------
-ev({ id: 'counter_11', min: 0, phase: 1, deniable: 'tæller-fejl', run: (c) => c.hud({ fnug: 12, shown: 11 }) });
 ev({ id: 'klaret_klaret', min: 15, phase: 1, deniable: 'typo', run: (c) => c.flagText('klaret_klaret') });
+ev({ id: 'scope_face', min: 17, phase: 1, deniable: 'tilfældigt mønster', run: (c) => c.flagText('scope_face') });
 ev({ id: 'fnug_fringe', min: 16, phase: 1, deniable: 'alpha', run: (c) => c.flagText('fnug_fringe') });
 ev({ id: 'name_B', min: 18, phase: 1, deniable: 'variabel-fejl', run: (c) => c.flagText('name_B') });
 ev({ id: 'bench_gone', min: 28, phase: 1, deniable: 'preload-hak', run: (c) => { c.flagText('bench_gone'); c.musicDelay(20000); } });
@@ -39,7 +39,8 @@ ev({ id: 'cd2', min: 40, phase: 2, shock: true, deniable: '2-disc-fejl', run: (c
 ev({ id: 'director_err', min: 43, phase: 2, deniable: 'lingo-fejl', run: (c) => c.directorError('traekFra') });
 ev({ id: 'knows_time', min: 45, phase: 2, deniable: 'ur-bug', run: (c) => c.knowsTime() });
 ev({ id: 'photo1', min: 47, phase: 2, shock: true, deniable: 'scannet placeholder', requires: () => true, run: (c) => c.photo('edb') });
-ev({ id: 'peeked', min: 48, phase: 2, deniable: 'random-sprite', requires: () => !!meta.peeked.teacher, run: (c) => c.flagText('peeked') });
+ev({ id: 'seven_missing', min: 35, phase: 2, deniable: 'manglende tast', run: (c) => c.flagText('seven_missing') });
+ev({ id: 'peeked', min: 48, phase: 2, deniable: 'random-sprite', requires: () => !!(meta.peeked.teacher || meta.peeked.elev07), run: (c) => c.flagText('peeked') });
 ev({ id: 'false_end', min: 50, phase: 2, shock: true, requires: () => Object.values(save.buildings).filter((v) => v >= 2).length >= 5, run: (c) => c.falseEnding() });
 
 // ---------------- Akt 3 (55–90): night, silence, jump, revelation, choice ----------------

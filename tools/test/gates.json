@@ -1,20 +1,108 @@
 {
   "_": "QUALITY-PLAN §3A. Ejes af Frederik — bygge-agenten ændrer ikke tærskler her. Målt på det rigtige spil (docs/research/REF-NOTER.md).",
   "scenes": [
-    { "id": "title", "q": "dev&scene=title&name=Test", "liveness": false },
-    { "id": "setup", "q": "dev&scene=setup&name=Test", "liveness": false },
-    { "id": "hub", "q": "dev&scene=hub&name=Test", "liveness": true },
-    { "id": "hub_nat", "q": "dev&scene=hub&nat&name=Test", "liveness": false },
-    { "id": "task_landing", "q": "dev&scene=task&plot=landing&name=Test", "liveness": false },
-    { "id": "task_school", "q": "dev&scene=task&plot=school&name=Test", "liveness": false, "ware": true },
-    { "id": "task_bakery", "q": "dev&scene=task&plot=bakery&name=Test", "liveness": false, "ware": true },
-    { "id": "task_quarry", "q": "dev&scene=task&plot=quarry&name=Test", "liveness": false, "ware": true }
+    {
+      "id": "title",
+      "q": "dev&scene=title&name=Test",
+      "liveness": false
+    },
+    {
+      "id": "setup",
+      "q": "dev&scene=setup&name=Test",
+      "liveness": false
+    },
+    {
+      "id": "hub",
+      "q": "dev&scene=hub&name=Test",
+      "liveness": true
+    },
+    {
+      "id": "hub_nat",
+      "q": "dev&scene=hub&nat&name=Test",
+      "liveness": false
+    },
+    {
+      "id": "task_landing",
+      "q": "dev&scene=task&plot=landing&name=Test",
+      "liveness": false
+    },
+    {
+      "id": "task_school",
+      "q": "dev&scene=task&plot=school&name=Test",
+      "liveness": false,
+      "ware": true
+    },
+    {
+      "id": "task_bakery",
+      "q": "dev&scene=task&plot=bakery&name=Test",
+      "liveness": false,
+      "ware": true
+    },
+    {
+      "id": "task_quarry",
+      "q": "dev&scene=task&plot=quarry&name=Test",
+      "liveness": false,
+      "ware": true
+    }
   ],
-  "A1_motion": { "window_ms": 250, "frames": 40, "fuzz_pct": 8, "max_change_pct": 0.8, "liveness_min_change_pct": 0.005, "liveness_window_s": 10, "unique_frames_per_s_max": 12 },
-  "A2_transition": { "black_luma_max_255": 8, "black_min_ms": 200, "black_max_ms": 500, "blend_frames_max": 0, "blend_diff_pct": 5, "black_override_allowlist": ["src/scenes/acts.js"] },
-  "A3_palette": { "max_unique_colors": 256, "assets_png8_required": true },
-  "A4_text_aa": { "device_scale_factor": 2, "max_subpixel_diff_pct": 1.0 },
-  "A5_placeholder": { "enforced_from_phase": 4, "max_proc_calls_in_scenes": 0 },
-  "A6_timing": { "cps_min": 24, "cps_max": 32, "sfx_sync_tolerance_ms": 83 },
-  "A7_grep": { "css_forbidden": ["transition", "ease", "cubic-bezier", "blur("], "sin_time_regex": "Math\\.sin\\(\\s*\\(?\\s*(t|tm|time|now|performance\\.now\\(\\)|Date\\.now\\(\\))\\s*[\\/\\*\\-\\+]", "sin_scope": "src/scenes + src/core (minispil fra fase 4)", "sin_allowlist": ["src/core/audio.js", "src/art/placeholder.js", "src/art/portrait.js"] }
+  "A1_motion": {
+    "window_ms": 250,
+    "frames": 40,
+    "fuzz_pct": 8,
+    "max_change_pct": 0.8,
+    "liveness_min_change_pct": 0.005,
+    "liveness_window_s": 10,
+    "unique_frames_per_s_max": 12
+  },
+  "A2_transition": {
+    "black_luma_max_255": 8,
+    "black_min_ms": 200,
+    "black_max_ms": 500,
+    "blend_frames_max": 0,
+    "blend_diff_pct": 5,
+    "black_override_allowlist": [
+      "src/scenes/acts.js"
+    ]
+  },
+  "A3_palette": {
+    "max_unique_colors": 256,
+    "assets_png8_required": true
+  },
+  "A4_text_aa": {
+    "device_scale_factor": 2,
+    "max_subpixel_diff_pct": 1.0
+  },
+  "A5_placeholder": {
+    "enforced_from_phase": 4,
+    "max_proc_calls_in_scenes": 0
+  },
+  "A6_timing": {
+    "cps_min": 24,
+    "cps_max": 32,
+    "sfx_sync_tolerance_ms": 83,
+    "mouth_tolerance_ms": 100,
+    "mouth_open_during_voice_min_pct": 30,
+    "helper_frames_per_s_max": 13,
+    "json_rms_agreement_min": 0.85,
+    "voice_lufs": -16,
+    "music_lufs": -18,
+    "lufs_tolerance": 1.5,
+    "true_peak_max_dbfs": -1.0,
+    "mouth_open_min_px": 10
+  },
+  "A7_grep": {
+    "css_forbidden": [
+      "transition",
+      "ease",
+      "cubic-bezier",
+      "blur("
+    ],
+    "sin_time_regex": "Math\\.sin\\(\\s*\\(?\\s*(t|tm|time|now|performance\\.now\\(\\)|Date\\.now\\(\\))\\s*[\\/\\*\\-\\+]",
+    "sin_scope": "src/scenes + src/core (minispil fra fase 4)",
+    "sin_allowlist": [
+      "src/core/audio.js",
+      "src/art/placeholder.js",
+      "src/art/portrait.js"
+    ]
+  }
 }

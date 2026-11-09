@@ -52,7 +52,7 @@ export function installEggs() {
   });
   addEventListener('keydown', () => (lastInput = performance.now()));
   setInterval(() => {
-    if (performance.now() - lastInput > 120000 && inHub() && !save.flags.morning) { lastInput = performance.now(); say(save.night ? 'Er du der stadig? Det er jeg.' : 'Er du der stadig?', { auto: 2200 }); }
+    if (performance.now() - lastInput > 120000 && inHub() && !save.flags.morning) { lastInput = performance.now(); say(save.night ? 'Er du der stadig?' : 'Er du der stadig?', { auto: 2200 }); }
   }, 5000);
 
   // window too small → "Det hjælper ikke."

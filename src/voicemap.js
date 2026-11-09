@@ -35,6 +35,7 @@ export const VOICE = {
   'Der mangler én. Nogen har … jeg kender ikke ordet.': 'mangler_en',
   'Udmærket.': 'udmaerket',
   '…vi går videre.': 'videre',
+  '… Vi går videre.': 'videre',
 };
 export function voiceFor(text) {
   const id = VOICE[text];
