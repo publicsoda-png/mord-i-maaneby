@@ -41,11 +41,21 @@ function animateHelper(mouthFn) {
   const loop = () => { helper.mouth = mouthFn ? mouthFn() : 0; drawHelper(); raf = requestAnimationFrame(loop); };
   loop();
 }
+// WP8: the empty rocking chair (same chair, same pixel position as frame 0) when the helper is gone at night
+const chairImg = new Image(); let chairOk = false;
+chairImg.onload = () => { chairOk = true; drawHelper(); }; chairImg.src = 'assets/sprites/helper_chair.png';
 export function drawHelper() {
   pc.clearRect(0, 0, 130, 250);
   hc.classList.toggle('hidden', !helper.visible);
   if (!helper.visible) return;
   const im = sprite('helper');
+  if (im && !helper.present && chairOk) {
+    const fw = im.width / Math.max(1, Math.round(im.width / (im.height / 2)));
+    const k = Math.min(130 / fw, 250 / im.height), w = Math.round(chairImg.width * k), h = Math.round(chairImg.height * k);
+    pc.save(); if (helper.night) pc.filter = 'brightness(.5) saturate(.5)';
+    pc.imageSmoothingEnabled = false; pc.drawImage(chairImg, Math.round((130 - w) / 2), 250 - h, w, h); pc.restore();
+    return;
+  }
   if (im && helper.present) {
     // rendered full-body helper: sheet of mouth frames side by side (frames ~1:2), contained in 130×250, bottom-anchored
     const n = Math.max(1, Math.round(im.width / (im.height / 2))), fw = im.width / n, f = Math.min(n - 1, helper.mouth || 0);
