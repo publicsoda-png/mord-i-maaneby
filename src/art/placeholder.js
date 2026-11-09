@@ -95,16 +95,19 @@ export function loadSprites(names) {
   })));
 }
 export const sprite = (name) => SPR.get(name);
-export function drawFnug(g, x, y, s = 1, { frame = 0, back = false, fringe = false, night = false } = {}) {
-  const im = SPR.get(back ? 'fnug_back' : 'fnug') || SPR.get('fnug');
+/** Fnug = one of a flock of different retro aliens: assets/sprites/aliens.png is a grid (3×3 per sheet, several sheets stacked
+ *  vertically or side by side); `id` picks the species. frame 1 = step (1 px up), frame 2 = look (flipped). */
+export function drawFnug(g, x, y, s = 1, { frame = 0, back = false, fringe = false, night = false, id = 0 } = {}) {
+  const im = SPR.get('aliens');
   if (im) {
-    // sheet: N frames across; a Fnug is ~44 px tall at s=1 (feet at y, top at y-44)
-    const n = Math.max(1, Math.round(im.width / im.height)), fw = im.width / n, fh = im.height, f = frame % n;
-    const h = 44 * s, w = h * fw / fh;
+    // sheet is always 3 columns of square cells, any number of rows (sheets stacked vertically by tools/art/aliens.py)
+    const cols = 3, cw = im.width / cols, rows = Math.max(1, Math.round(im.height / cw)), ch = im.height / rows, cells = cols * rows;
+    const c = ((id % cells) + cells) % cells, sx = (c % cols) * cw, sy = Math.floor(c / cols) * ch;
+    const h = 48 * s, w = h * cw / ch, dy = frame === 1 ? -1 : 0;
     g.save();
     if (night) g.filter = 'brightness(.45) saturate(.6)';
-    if (back && !SPR.get('fnug_back')) { g.translate(x, y); g.scale(-1, 1); g.translate(-x, -y); }
-    g.drawImage(im, f * fw, 0, fw, fh, Math.round(x - w / 2), Math.round(y - h), Math.round(w), Math.round(h));
+    if (back || frame === 2) { g.translate(x, y); g.scale(-1, 1); g.translate(-x, -y); }
+    g.drawImage(im, sx, sy, cw, ch, Math.round(x - w / 2), Math.round(y - h) + dy, Math.round(w), Math.round(h));
     g.restore();
     if (fringe) { g.strokeStyle = '#ff00ff'; g.lineWidth = 1; g.strokeRect(Math.round(x - w / 2) + 0.5, Math.round(y - h) + 0.5, Math.round(w) - 1, Math.round(h) - 1); }
     return;

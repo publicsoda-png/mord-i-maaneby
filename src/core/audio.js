@@ -16,7 +16,7 @@ export function ensureAudio() {
   chain.clipper = ctx.createWaveShaper(); chain.clipper.curve = tanhCurve(1.6); chain.clipper.oversample = 'none';
   bus.master.connect(chain.clipper).connect(ctx.destination);
   for (const n of ['music', 'voice', 'sfx', 'amb']) bus[n] = ctx.createGain();
-  bus.music.gain.value = 0.55; bus.voice.gain.value = 1; bus.sfx.gain.value = 0.8; bus.amb.gain.value = 0.6;
+  bus.music.gain.value = 1; bus.voice.gain.value = 1; bus.sfx.gain.value = 0.79; bus.amb.gain.value = 1; // = mix.js 'dag' row, so title → hub makes no level jump
   bus.music.connect(bus.master); bus.amb.connect(bus.master);
   // voice: crusher (8-bit) → [phone BP, bypassed] → lowpass 6800 → dry/room → master
   chain.voiceCrush = ctx.createWaveShaper(); chain.voiceCrush.curve = crushCurve(8);
@@ -120,8 +120,9 @@ export async function ambientLayers(list, fade = 2) {
   list.forEach(({ src, gain }, i) => {
     const buf = bufs[i]; if (!buf) return;
     const node = ctx.createBufferSource(); node.buffer = buf; node.loop = true;
+    if (/\/amb_/.test(src)) { node.loopStart = 1; node.loopEnd = buf.duration - 1; } // make.py wrap-pads loops by 1 s; codec edge damage stays outside the loop
     const g = ctx.createGain(); g.gain.value = 0;
-    node.connect(g).connect(bus.amb); node.start();
+    node.connect(g).connect(bus.amb); node.start(0, 1);
     g.gain.setTargetAtTime(gain, ctx.currentTime, tau);
     ambLayers.push({ src, node, gain: g });
   });
@@ -297,7 +298,7 @@ export const sfx = {
   good: () => { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => blip(f, 0.14, 0.11, 'triangle'), i * 90)); },
   /** "Godt klaret klaret": good twice, 90 ms apart (min 15). */
   goodGood: () => { sfx.good(); setTimeout(sfx.good, 90); },
-  bad: () => { blip(300, 0.2, 0.1, 'sawtooth', 120); },
+  bad: () => { blip(659, 0.1, 0.1, 'triangle'); setTimeout(() => blip(523, 0.16, 0.1, 'triangle'), 100); }, // dur-terts nedad, aldrig farlig (LYDPLAN §4 B)
   pop: () => blip(500, 0.05, 0.1, 'sine', 900),
   thud: () => blip(110, 0.15, 0.16, 'triangle', 50),
   sticker: () => { blip(1300, 0.05, 0.08, 'square'); setTimeout(() => blip(1800, 0.09, 0.08, 'square'), 60); },

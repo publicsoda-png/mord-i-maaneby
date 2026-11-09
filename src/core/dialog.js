@@ -60,13 +60,13 @@ export function hideDialog() { box.hidden = true; cancelAnimationFrame(raf); dra
 
 /** say(text, opts): voice, mouth, cps, hold, auto, noPortrait, pauseAt, keep */
 export async function say(text, opts = {}) {
-  if (!opts.voice && !opts.noPortrait && !opts.silent) { const v = voiceFor(text); if (v) opts = { ...opts, ...v }; }
+  if (!opts.voice && !opts.noPortrait) { const v = voiceFor(text); if (v) opts = { ...opts, ...v }; }
   box.hidden = false;
   renderText('');
   more.style.visibility = 'hidden';
   skipping = false;
   let v = null;
-  if (opts.voice) v = await playVoice(opts.voice, opts.mouth);
+  if (opts.voice) v = await playVoice(opts.voice, opts.mouth, { silent: !!opts.silent }); // silent = real mouth data, no sound (min 60)
   const msPerChar = 1000 / (opts.cps ?? 28);
   const pace = v && v.dur ? Math.max(msPerChar, (v.dur * 1000) / Math.max(1, text.length)) : msPerChar;
   const talking = !opts.noPortrait && helper.present;

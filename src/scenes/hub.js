@@ -4,7 +4,7 @@ import { drawText } from '../core/stage.js';
 import { bg, drawFnug, drawBuilding } from '../art/placeholder.js';
 import { say, helper, countHelpClick, hideDialog, sleep, showHelper } from '../core/dialog.js';
 import { save, meta, persist, persistMeta, touch } from '../core/state.js';
-import { music, sfx, crtHum } from '../core/audio.js';
+import { music, sfx, crtHum, play } from '../core/audio.js';
 import { applyMix } from '../core/mix.js';
 import { msgBox, showOS } from '../core/os.js';
 import { t } from '../script.js';
@@ -44,7 +44,8 @@ register({
     showHelper(true); applyMix();
     music(save.night ? null : `assets/music/${save.flags.bench_gone ? 'byen_11' : 'byen'}.ogg`, { fade: 1.5, startDelay: (save.flags.musicDelayMs || 0) / 1000 });
     save.flags.musicDelayMs = 0;
-    button('Gem', 8, 8, async () => { sfx.click(); persist(true); await say(save.flags.save_lies ? 'Gemt!' : 'Dit byggeri er gemt.', { auto: 900, noPortrait: true }); }, { w: 60 });
+    if (save.flags.justBuilt) { const jb = save.flags.justBuilt; delete save.flags.justBuilt; touch(); play(`ui_bygning_op${Math.min(3, Math.max(1, jb.stage))}`); }
+    button('Gem', 8, 8, async () => { (save.flags.save_lies ? sfx.okFlat : sfx.ok)(); persist(true); await say(save.flags.save_lies ? 'Gemt!' : 'Dit byggeri er gemt.', { auto: 900, noPortrait: true }); }, { w: 60 });
     const luk = async () => {
       sfx.click();
       const os = document.getElementById('os'); showOS(true); os.style.background = 'transparent'; os.innerHTML = '';
@@ -92,11 +93,12 @@ register({
       if (built >= 5 && !save.night) { sfx.click(); goto('falseEnd'); return; }
       await say('Fyrværkeriet venter, til byen er færdig.', { auto: 1500 }); return;
     }
-    sfx.click();
+    play('ui_hub_klik');
     goto('task', p);
   },
   async help() {
     const n = countHelpClick();
+    if (save.night && !save.flags.jumped) { sfx.tick(); return; } // the chair is empty: nobody answers
     sfx.click();
     await say(n === 400 ? 'Fire hundrede gange. Det var også det, hun nåede.' : t('help'));
   },
@@ -110,7 +112,7 @@ register({
     // fnugger stand STILL (era rule) — one of them takes a single step every few seconds
     const stepper = Math.floor(tm / 3200) % FNUG_POS.length, stepPhase = (tm % 3200) < 400 ? 1 : 0;
     FNUG_POS.forEach(([x, y], i) => {
-      drawFnug(g, x, y, 1, { frame: i === stepper ? stepPhase : 0, back: save.flags.fnug_fringe && i === 4, fringe: save.flags.fnug_fringe && i === 4, night: save.night });
+      drawFnug(g, x, y, 1, { id: i, frame: i === stepper ? stepPhase : 0, back: save.flags.fnug_fringe && i === 4, fringe: save.flags.fnug_fringe && i === 4, night: save.night });
       if (save.flags.peeked && i === 6) { g.fillStyle = '#111'; g.fillRect(x - 4, y - 16, 3, 3); g.fillRect(x + 3, y - 16, 3, 3); } // one of them looks into the camera
       if (save.flags.season === 'jul') { g.fillStyle = '#c22'; g.beginPath(); g.moveTo(x - 8, y - 20); g.lineTo(x + 8, y - 20); g.lineTo(x + 2, y - 32); g.closePath(); g.fill(); g.fillStyle = '#fff'; g.fillRect(x + 1, y - 34, 3, 3); }
     });

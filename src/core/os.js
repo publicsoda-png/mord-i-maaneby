@@ -1,4 +1,5 @@
 // Fake Windows 2000 layer: desktop, windows, message boxes, progress dialogs, Director script-error box.
+import { play } from './audio.js';
 const os = document.getElementById('os');
 export const osEl = os;
 let z = 10;
@@ -46,7 +47,8 @@ export function win({ title = '', x = 160, y = 140, w = 300, body = '', closable
  * Message box. icon: warn|err|info. buttons: [{label, value, disabled, def}].
  * opts.lockMs: buttons stay disabled for that long (the "Indsæt CD 2" trick). Resolves with value.
  */
-export function msgBox({ title, msg, icon = 'warn', buttons = [{ label: 'OK', value: 'ok', def: true }], x = 190, y = 170, w = 280, lockMs = 0, parent = os }) {
+export function msgBox({ title, msg, icon = 'warn', buttons = [{ label: 'OK', value: 'ok', def: true }], x = 190, y = 170, w = 280, lockMs = 0, parent = os, silent = false }) {
+  if (!silent) play(icon === 'err' || icon === 'warn' ? 'os_ding_fejl' : 'os_ding_info'); // the one "normal" sound left in act 3
   return new Promise((res) => {
     const iconHtml = icon === 'err' ? '<div class="ico err">×</div>' : icon === 'info' ? '<div class="ico info">i</div>' : '<div class="ico warn"></div>';
     const b = `<div class="body">${iconHtml}<div class="msg">${msg}</div></div><div class="btns">${buttons.map((bt, i) => `<button class="wbtn${bt.def ? ' def' : ''}" data-i="${i}" ${bt.disabled || lockMs ? 'disabled' : ''}>${bt.label}</button>`).join('')}</div>`;

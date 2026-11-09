@@ -54,7 +54,7 @@ register({
   bg(g, dt, t) {
     g.drawImage(this.bgc, 0, 0);
     for (const p of PLOTS) if (!p.special) drawBuilding(g, p.x, p.y, Math.max(2, save.buildings[p.id] || 2), p.kind);
-    const r = rng(7); for (let i = 0; i < 11; i++) drawFnug(g, 60 + r() * 520, 300 + r() * 150, 1, { frame: Math.floor(t / 250) % 2 });
+    const r = rng(7); for (let i = 0; i < 11; i++) drawFnug(g, 60 + r() * 520, 300 + r() * 150, 1, { id: i, frame: Math.floor(t / 250) % 2 });
     // fireworks: step-based bursts (4 frames)
     for (const k of this.rockets) {
       const age = (t - k.t) / 1000; if (age > 2.4) continue;
@@ -116,7 +116,7 @@ register({
       if (f.gone) continue;
       g.fillStyle = '#1b3a26'; g.fillRect(f.x - 22, f.y - 70, 44, 30); g.strokeStyle = '#8b6b3a'; g.lineWidth = 2; g.strokeRect(f.x - 22, f.y - 70, 44, 30);
       drawText('?', f.x, f.y - 66, { align: 'center', font: '700 18px "Comic Neue",sans-serif', color: '#fff' });
-      drawFnug(g, f.x + (f.look ? (cur.x - f.x) * 0.01 : 0), f.y, 1, { frame: 0, night: true });
+      drawFnug(g, f.x + (f.look ? (cur.x - f.x) * 0.01 : 0), f.y, 1, { id: this.fn.indexOf(f), frame: 0, night: true });
       if (f.look) { g.fillStyle = '#111'; g.fillRect(f.x - 4 + Math.sign(cur.x - f.x) * 1.5, f.y - 15, 2, 2); g.fillRect(f.x + 4 + Math.sign(cur.x - f.x) * 1.5, f.y - 15, 2, 2); }
     }
     drawText(`Hvor mange bor her?`, 320, 180, { align: 'center', font: KID, color: '#fff', outline: '#000' });
@@ -195,7 +195,7 @@ register({
     lock(false); stopMusic(0.3); hideDialog(); helper.present = true; helper.mood = 'calm'; showHelper(true);
     applyMix({ flags: { ...save.flags, scene: 'logrum' } });
     this.layer = 0; this.task = null; this.input = '';
-    music('assets/music/raadhus.ogg', { fade: 2, gain: 0.5 });
+    // no music until the first layer is dug (LYDPLAN: silence 55–84); each solved layer = byen with one instrument less
     await say('Her ligger det, vi ikke har talt med. Grav.', { noPortrait: false, hold: 300 });
     this.hs = [{ x: 160, y: 120, w: 440, h: 308, label: 'Grav', on: () => this.dig() }];
   },
@@ -232,6 +232,7 @@ register({
         this.layer++; this.task = null; this.input = '';
         document.getElementById('ui').querySelectorAll('.btn,.chip').forEach((b) => b.remove());
         await cutBlack(260);
+        music(`assets/music/byen_minus${Math.min(7, this.layer)}.ogg`, { fade: 0.3, restart: true });
         if (this.layer === 7) { await say('Så det var ikke mord. Det var bare … mindre.', { hold: 600 }); await this.finish(); }
         else if (this.layer === 1) await say('Nå. Så bliver der … færre. Ja.', { auto: 1800 });
       } else { sfx.bad(); this.input = ''; }
@@ -289,10 +290,10 @@ register({
       drawBuilding(g, p.x, p.y, p.id === 'hall' ? 3 : 1, p.kind);
       if (p.id === 'hall') drawText('Rådhuss', p.x, p.y - 80, { align: 'center', font: '700 13px "Comic Neue",sans-serif', color: '#fff', outline: '#000' });
     }
-    const r = rng(12); for (let i = 0; i < 12; i++) drawFnug(g, 60 + r() * 520, 300 + r() * 150, 1, { frame: 0 });
+    const r = rng(12); for (let i = 0; i < 12; i++) drawFnug(g, 60 + r() * 520, 300 + r() * 150, 1, { id: i, frame: 0 });
     // the small one with the red hat by the bench
     g.fillStyle = '#6b4a2a'; g.fillRect(400, 455, 40, 5); g.fillRect(403, 460, 4, 8); g.fillRect(433, 460, 4, 8);
-    drawFnug(g, 452, 462, 0.75, { frame: 0 }); g.fillStyle = '#d22'; g.beginPath(); g.arc(452, 446, 7, Math.PI, 2 * Math.PI); g.fill();
+    drawFnug(g, 452, 462, 0.75, { id: 6, frame: 0 }); g.fillStyle = '#d22'; g.beginPath(); g.arc(452, 446, 7, Math.PI, 2 * Math.PI); g.fill();
     if (this.rocket) { const a = (t - this.rocket) / 1000; g.fillStyle = '#ddd'; g.fillRect(318, 440 - Math.min(60, a * 80), 4, 12); }
   },
 });
