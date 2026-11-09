@@ -1,6 +1,7 @@
 // Kraterbageriet: opskrift. "Hver Fnug skal have A boller, der er B Fnugger" → klik boller ind i bakken (venstre = 1,
 // højre = 5) og tryk "Bag". Nat: tre ingredienser → bakken bliver til en håndskrevet madpakkeseddel (fever:'madpakke').
 import { opg, seeded } from '../../opg.js';
+import { hasBg } from '../../art/placeholder.js';
 
 const KID = '"Comic Neue","Comic Sans MS",sans-serif';
 let wrongIdx = 0;
@@ -21,12 +22,14 @@ export default {
     const r = seeded(a.opts.seed ?? 1);
     const night = a.opts.night === true;
     const grade = a.opts.grade ?? 3;
+    const R = hasBg('bakery'); // rendered bakery: the counting tray sits on the render's own tray spot, smaller buns
 
     // ---------- shared drawing ----------
-    const bolle = (g, x, y, baked) => {
-      g.fillStyle = baked ? '#6b3a12' : '#8a5a2a'; g.fillRect(x + 2, y + 3, 12, 10);          // hard shadow
-      g.fillStyle = baked ? '#b8742a' : '#e9b65f'; g.fillRect(x, y, 12, 10);
-      g.fillStyle = baked ? '#e3a24e' : '#f7d58d'; g.fillRect(x + 2, y, 8, 3);                   // 2-step highlight
+    const bolle = (g, x, y, baked, s = 1) => {
+      const w = Math.round(12 * s), h = Math.round(10 * s);
+      g.fillStyle = baked ? '#6b3a12' : '#8a5a2a'; g.fillRect(x + 2, y + 3, w, h);          // hard shadow
+      g.fillStyle = baked ? '#b8742a' : '#e9b65f'; g.fillRect(x, y, w, h);
+      g.fillStyle = baked ? '#e3a24e' : '#f7d58d'; g.fillRect(x + 2, y, w - 4, 3);           // 2-step highlight
     };
     const trayBase = (g, w, h) => {
       g.fillStyle = night ? '#141210' : '#4a2c12'; g.fillRect(6, 6, w - 6, h - 6);              // shadow
@@ -60,12 +63,12 @@ export default {
           g.fillStyle = used ? '#2b2724' : '#3d3733'; g.fillRect(10, 20, 80, 36);
           g.fillStyle = used ? '#2b2724' : ing.dark; g.fillRect(16, 14, 68, 10);
           g.fillStyle = used ? '#2b2724' : ing.col; g.fillRect(16, 10, 68, 8);
-          g.fillStyle = '#e4e0d4'; g.font = '700 13px ' + KID; g.textAlign = 'center'; g.fillText(ing.name, 50, 50);
+          a.draw(g, ing.name, 50, 44, { size: 13, color: '#e4e0d4', align: 'center' });
         });
         a.on(b, () => {
           if (b.used || added.length >= 3) return;
           b.used = true; b.redraw(true); added.push(i); tray.redraw();
-          a.sfx.thud();
+          a.play('dej_klask', { gain: 0.8, pan: a.pan(120) });
           if (added.length === 3) a.after(700, becomeNote);
         });
         return b;
@@ -78,13 +81,12 @@ export default {
         for (let x = 16; x < w - 8; x += 16) g.fillRect(x, 0, 1, h - 8);
         for (let y = 16; y < h - 8; y += 16) g.fillRect(0, y, w - 8, 1);
         g.fillStyle = '#d98a8a'; g.fillRect(40, 0, 2, h - 8);
-        g.fillStyle = '#3b3f55'; g.font = 'italic 700 17px ' + KID; g.textAlign = 'left';
-        ['madpakke', '1 rugbrød', '1 æble', '1 …'].forEach((s, i) => g.fillText(s, 52, 30 + i * 28));
+        ['madpakke', '1 rugbrød', '1 æble', '1 …'].forEach((s, i) => a.draw(g, s, 52, 14 + i * 28, { font: 'italic 700 17px ' + KID, color: '#3b3f55' }));
       }
       function becomeNote() {
         bowls.forEach((b) => (b.style.visibility = 'hidden'));
         tray.redraw('note');
-        tray.style.transform = 'rotate(-3deg)';
+        
         a.after(2800, () => a.done({ ok: true, fever: 'madpakke', night: true }));
       }
       return;
@@ -112,13 +114,13 @@ export default {
       }
     });
 
-    const TW = 300, TH = 150, COLS = 17, ROWS = 8;
-    const tray = a.spr(400, 290, TW, TH, (g, baked) => {
+    const TW = R ? 250 : 300, TH = R ? 90 : 150, PITCH = R ? 10 : 16, BS = R ? 0.6 : 1, COLS = Math.floor((TW - 18) / PITCH), ROWS = Math.floor((TH - 18) / PITCH);
+    const tray = a.spr(R ? 365 : 400, R ? 328 : 290, TW, TH, (g, baked) => {
       trayBase(g, TW, TH);
       const shown = Math.min(count, COLS * ROWS);
-      for (let i = 0; i < shown; i++) bolle(g, 12 + (i % COLS) * 16, 12 + Math.floor(i / COLS) * 16, baked);
+      for (let i = 0; i < shown; i++) bolle(g, 10 + (i % COLS) * PITCH, 10 + Math.floor(i / COLS) * PITCH, baked, BS);
     });
-    const counter = a.text('Boller i bakken: 0', 256, 376, { fontSize: '17px' });
+    const counter = a.text('Boller i bakken: 0', R ? 240 : 256, R ? 380 : 376, { fontSize: '17px' });
     const setCount = (c) => { count = Math.max(0, c); counter.textContent = `Boller i bakken: ${count}`; tray.redraw(false); };
 
     // dough bowl: left click = 1, right click = 5 (five quick klasks)
@@ -130,28 +132,28 @@ export default {
       g.fillStyle = '#c99a5a'; g.fillRect(24, 26 + dy, 76, 34 - dy);
       g.fillStyle = '#f2d9a8'; g.fillRect(20, 20 + dy, 76, 34 - dy);
       g.fillStyle = '#fbeccb'; g.fillRect(28, 20 + dy, 40, 6);
-      g.fillStyle = '#fff'; g.font = '700 13px ' + KID; g.textAlign = 'center'; g.fillText('DEJ', 60, 90);
+      a.draw(g, 'DEJ', 60, 82, { size: 13, color: '#fff', align: 'center' });
     });
     a.text('Klik: 1  ·  Højreklik: 5', 72, 358, { fontSize: '13px', color: '#ffe9b0' });
-    const klask = () => { a.sfx.thud(); bowl.redraw(true); a.after(80, () => bowl.redraw(false)); };
+    const klask = () => { a.play('dej_klask', { gain: 0.8, pan: a.pan(130) }); bowl.redraw(true); a.after(a.STEP, () => bowl.redraw(false)); };
     a.on(bowl, (e, p, button) => {
       if (locked) return;
-      if (button === 2) { for (let i = 0; i < 5; i++) a.after(i * 60, () => { klask(); setCount(count + 1); }); }
+      if (button === 2) { for (let i = 0; i < 5; i++) a.after(i * a.STEP, () => { klask(); setCount(count + 1); }); }
       else { klask(); setCount(count + 1); }
     });
 
-    a.btn('Tøm bakken', 262, 414, () => { if (locked) return; a.sfx.click(); setCount(0); });
+    a.btn('Tøm bakken', 262, 414, () => { if (locked) return; setCount(0); });
     a.btn('Bag', 470, 414, () => {
       if (locked) return;
       locked = true;
       if (count === target) {
-        a.sfx.ok(); // ovn-ding
+        a.play('ovn_ding', { gain: 0.9, pan: a.pan(470) });
         tray.redraw(true);
         a.after(900, () => a.done({ ok: true, stars: 3, answer: count, target }));
       } else {
         a.sfx.bad(); a.opts.onWrong && a.opts.onWrong();
         a.after(700, () => { setCount(0); locked = false; });
       }
-    }, { padding: '6px 22px', fontSize: '15px' });
+    }, { width: '70px' });
   },
 };
