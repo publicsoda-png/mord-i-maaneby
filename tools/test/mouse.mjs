@@ -47,6 +47,15 @@ await page.mouse.click(320, 40); await sleep(1500); // advance the ok-line → b
 const hubBtn = await page.$$eval('.btn', (els) => els.map((e) => e.dataset.label));
 check(hubBtn.includes('Gem') || hubBtn.includes('Luk'), 'returned to hub after ok-line (' + hubBtn.join('/') + ')');
 
+// 3. Tilbage pressed while the intro line is still up → the minigame must NOT start on top of the hub (QC B1)
+await page.goto(base + '?dev&scene=task&plot=bakery&name=Test', { waitUntil: 'networkidle0' });
+await sleep(900);
+const tb = await page.$$eval('.btn', (els) => { const b = els.find((e) => e.dataset.label === 'Tilbage'); if (!b) return null; const r = b.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+check(!!tb, 'Tilbage button present during intro');
+if (tb) { await page.mouse.click(tb.x, tb.y); await sleep(3500); }
+const st3 = await page.evaluate(() => ({ field: document.querySelectorAll('#field .o').length, btns: [...document.querySelectorAll('.btn')].map((b) => b.dataset.label) }));
+check(st3.field === 0 && st3.btns.includes('Gem'), 'no minigame UI over the hub after early Tilbage (' + JSON.stringify(st3) + ')');
+
 console.log(errs.length ? errs.join('\n') : 'no errors');
 await browser.close();
 process.exit(fails || errs.length ? 1 : 0);
