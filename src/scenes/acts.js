@@ -161,7 +161,7 @@ register({
   id: 'jump',
   async enter() {
     lock(true); hideDialog(); stopMusic(0.01); crtHum(false);
-    const img = new Image(); img.src = 'assets/raw/jump/jump_1.png'; await new Promise((r) => { img.onload = r; img.onerror = r; });
+    const img = new Image(); img.src = 'assets/photos/jump.png'; await new Promise((r) => { img.onload = r; img.onerror = r; });
     // ≤300 ms: pencil drawing + the one clipped knæk (audio.js jump: master stays muted until the player acts)
     jumpSfx(3000);
     this.img = img.naturalWidth ? img : null; this.show = true;
