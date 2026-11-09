@@ -40,6 +40,13 @@ function hit(p) {
   }
   return null;
 }
+function sameHot(a, b) {
+  if (a === b) return true;
+  if (a.id != null || b.id != null) return a.id === b.id;
+  if (a.label !== b.label) return false;
+  if (a.poly || b.poly) return JSON.stringify(a.poly) === JSON.stringify(b.poly);
+  return a.x === b.x && a.y === b.y && a.w === b.w && a.h === b.h;
+}
 function inPoly(p, poly) {
   let c = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
@@ -66,7 +73,8 @@ app.addEventListener('pointerup', (e) => {
   if (locked) return;
   if (e.target.closest('#dialog, .btn, .input, .chip, #field .o, .win')) return;
   const p = toStage(e), now = hit(p);
-  if (h) { if (now === h && h.on) { e.preventDefault(); h.on(e.button, p); } }
+  // hotspots() may build fresh objects per call → compare by identity OR by key (id/label + geometry), not identity alone
+  if (h) { if (now && sameHot(now, h) && h.on) { e.preventDefault(); h.on(e.button, p); } }
   else if (free && !now && current && current.click) current.click(p, e.button);
 });
 app.addEventListener('pointercancel', () => { pressHot = null; pressFree = false; });
