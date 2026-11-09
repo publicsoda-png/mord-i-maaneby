@@ -32,10 +32,11 @@ Ingen prompts nævner eksisterende spil eller figurer; alle prompts bad om "no t
 - `box_deco_1.png` — bld:box-deco — rent.
 - `pit_scaffold_1.png` — bld:pit-scaffold — rent (løst rækværk svæver øverst — beskær).
 - `pit_plain_1.png` — bld:pit-plain — rent.
+- `pit_deco_1.png` — bld:pit-deco (genkørsel) — blå rund grube med flag + lyskæder; en løs dublet-talje svæver øverst (beskær væk, baggrund er ren grøn).
 - `rejected/hall_deco_1.png` — bld:hall-deco — AFVIST: grå baggrund + andre bygninger i billedet.
+- `hall_deco_1.png` — bld:hall-deco (genkørsel, "ONLY this single building … green edge to edge") — rent, lang rød hal med flag/lys, isometrisk.
 - `hall_scaffold_1.png` — bld:hall-scaffold — rent.
 - `hall_plain_1.png` — bld:hall-plain — rent.
-- (pit_deco + ny hall_deco: genkørsel i gang, se nederst)
 
 ## helper/ (hjælpere)
 - `moonman_1.png` / `moonman_2.png` — helper:moonman — 4:3 enkeltfigur, tidlige tests.
@@ -68,14 +69,23 @@ Ingen prompts nævner eksisterende spil eller figurer; alle prompts bad om "no t
 ## jump/ (jump scares)
 - `jump_1.png` / `jump_2.png` / `jump_3.png` — jump2 — blyantstegning af halvmåne-gammel mand med ét stort øje; jump_2 ligger på træbord (dårligere).
 - `jump_smile_1.png` / `jump_smile_2.png` — jump — tidlig smil-tegning (oprindelig batch F).
-- `rejected/hall_1.png` — hall:1 — AFVIST: "ADVENTURE TOWN"-skilt + tegnet musepil.
-- (hall_1..3 genkøres med "no UI/no cursor/no text", se nederst)
+- `rejected/hall_1.png` — hall:1 (første prompt) — AFVIST: "ADVENTURE TOWN"-skilt + tegnet musepil.
+- `hall_1.png` — hall:1 + "no UI/title bar/cursor/text" — variant 1 halvt indemuret, blå uldfnug i stenvæg, rent, ingen UI.
+- `hall_2.png` — hall:2 + no-UI — variant 2 kun hovedet ud, rødblå fnug, rent.
+- `hall_3.png` — hall:3 + no-UI — variant 3 (prompt "næsten fri"), lilla fnug med varmt dørlys fra venstre; rent — men væsnet sidder stadig i væggen.
+- `hall_4.png` — hall:2 (første prompt, uden no-UI-sætning) — kun hovedet, lyserød fnug, rent (ingen UI opstod).
+- `hall_5.png` — hall:3 (første prompt) — næsten fri, orange fnug med krop synlig; rent, bedste "fri"-variant.
 
 ## photo/ og photos/
 - `photo/photo_1.png` — photo — 2005-kompaktkamera-stil; ren.
 - `photo/photo_2.png` — photo — har kameradato-stempel.
 - `photos/edb_1.png` / `edb_2.png` — edb — dansk skole-edb-lokale 2005; rene.
 - `photos/edb_3.png` — edb — kameradato-stempel.
+
+## Fejlede/manglende
+- Første pit-deco-submit (04:23 UTC) kom aldrig i galleriet (droppet af serveren); genkørsel lykkedes.
+- Natversioner (hub/skole) ikke genereret.
+- Ingen credits brugt: alle 129 submits var på UNLIMITED.
 
 ## title/
 - `title_1.png` / `title_2.png` — title — titelskærm-baggrund uden tekst; begge rene.
