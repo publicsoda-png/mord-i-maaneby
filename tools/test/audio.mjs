@@ -41,7 +41,10 @@ try {
     bufs.forEach((bf, i) => { if (!bf) out.badMusic.push(musicNames[i]); });
     A.loopHak(); A.stereoTicks(6, 200); A.phone(true); A.phone(false); A.duck(false); A.duck(true);
     await A.jump(100);
-    await new Promise((r) => setTimeout(r, 400));
+    await new Promise((r) => setTimeout(r, 500));
+    out.jumpHeld = A.jumpSilent();                       // still muted: nothing clicked yet
+    window.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    out.jumpReleased = !A.jumpSilent();                  // first click after the minimum silence releases it
     out.durations = Object.fromEntries(musicNames.map((n, i) => [n, bufs[i] ? +bufs[i].duration.toFixed(2) : null]));
     return out;
   }, { sfxNames, musicNames });
@@ -52,6 +55,7 @@ try {
   if (result.badSfx.length) errors.push('sfx failed to decode: ' + result.badSfx.join());
   if (result.badMusic.length) errors.push('music failed to decode: ' + result.badMusic.join());
   if (result.badIr.length) errors.push('ir: ' + result.badIr.join());
+  if (!result.jumpHeld || !result.jumpReleased) errors.push('jump gate: held=' + result.jumpHeld + ' released=' + result.jumpReleased);
   await p.close();
 } finally { await b.close(); srv.kill(); }
 console.log(errors.length ? 'ERRORS\n' + errors.join('\n') : 'audio: no errors');

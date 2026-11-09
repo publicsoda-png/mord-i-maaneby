@@ -205,8 +205,21 @@ export async function jump(silenceMs = 3000) {
   const t = ctx.currentTime;
   if (buf) { const s = ctx.createBufferSource(); s.buffer = buf; const g = ctx.createGain(); g.gain.value = 1.0; s.connect(g).connect(ctx.destination); s.start(t); }
   bus.master.gain.setValueAtTime(0, t + 0.3);
-  bus.master.gain.setValueAtTime(1, t + 0.3 + silenceMs / 1000);
+  // Council 10-11 (alle tre dommere): lyden kommer IKKE tilbage af sig selv. Master forbliver mutet, indtil
+  // spilleren selv gør noget (klik/tast) efter minimum-stilheden — one-shot gate; klik under stilheden ignoreres.
+  jumpGate = true;
+  const minUntil = Date.now() + 300 + silenceMs;
+  const release = () => {
+    if (!jumpGate || Date.now() < minUntil) return;
+    jumpGate = false;
+    window.removeEventListener('pointerdown', release, true); window.removeEventListener('keydown', release, true);
+    bus.master.gain.setTargetAtTime(1, ctx.currentTime, 0.6);
+  };
+  window.addEventListener('pointerdown', release, true); window.addEventListener('keydown', release, true);
 }
+let jumpGate = false;
+/** True while the post-jump-scare silence holds (scenes may draw the black frame meanwhile). */
+export function jumpSilent() { return jumpGate; }
 /** 144 Fnugger: text ticks from everywhere — the first time the game uses stereo. */
 export function stereoTicks(n = 24, spreadMs = 1800) {
   if (!ready()) return;

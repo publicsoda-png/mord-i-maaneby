@@ -74,7 +74,7 @@ Kildeformat for samples: syntetiseret i Python/ffmpeg eller Web Audio runtime (s
 | 55 | nat | `crtOff` → 3 s sort → `crtHum` + ventilation fader ind over 8 s |
 | 60 | mund uden stemme | mund-data fra ægte replik afspilles, `voice`-bus −∞ |
 | 65 | tælleren dirrer 30 s | kun hum; hvert klik = ingenting (ikke engang `click`) |
-| **68** | jump scare | ≤300 ms: hvid støj + 1 kHz firkant, hård clip, 22 kHz-alias; derefter **alt** muted 3 s inkl. hum |
+| **68** | jump scare | ≤300 ms: hvid støj + 1 kHz firkant, hård clip, 22 kHz-alias; derefter **alt** muted inkl. hum — mindst 3 s, og lyden kommer først tilbage ved spillerens næste klik/tast (council 10-11: ingen automatisk fade-in) |
 | 68+ | telefon-hjælper | `voice` → telefonfilter; `tick` bliver til telefon-knitren |
 | 72 | Skole-IT-popup | `ding_info` korrekt — den *eneste* lyd i akt 3 der lyder helt normal |
 | 75 | fyrtårn S-Y-V | morse 800 Hz, 3 gentagelser, så stilhed |
