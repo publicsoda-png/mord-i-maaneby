@@ -4,7 +4,7 @@ import { drawText } from '../core/stage.js';
 import { bg, drawFnug, drawBuilding } from '../art/placeholder.js';
 import { say, helper, countHelpClick, hideDialog, sleep, showHelper } from '../core/dialog.js';
 import { save, meta, persist, persistMeta, touch } from '../core/state.js';
-import { music, sfx, crtHum } from '../core/audio.js';
+import { music, sfx, crtHum, play } from '../core/audio.js';
 import { applyMix } from '../core/mix.js';
 import { msgBox, showOS } from '../core/os.js';
 import { t } from '../script.js';
@@ -44,7 +44,8 @@ register({
     showHelper(true); applyMix();
     music(save.night ? null : `assets/music/${save.flags.bench_gone ? 'byen_11' : 'byen'}.ogg`, { fade: 1.5, startDelay: (save.flags.musicDelayMs || 0) / 1000 });
     save.flags.musicDelayMs = 0;
-    button('Gem', 8, 8, async () => { sfx.click(); persist(true); await say(save.flags.save_lies ? 'Gemt!' : 'Dit byggeri er gemt.', { auto: 900, noPortrait: true }); }, { w: 60 });
+    if (save.flags.justBuilt) { const jb = save.flags.justBuilt; delete save.flags.justBuilt; touch(); play(`ui_bygning_op${Math.min(3, Math.max(1, jb.stage))}`); }
+    button('Gem', 8, 8, async () => { (save.flags.save_lies ? sfx.okFlat : sfx.ok)(); persist(true); await say(save.flags.save_lies ? 'Gemt!' : 'Dit byggeri er gemt.', { auto: 900, noPortrait: true }); }, { w: 60 });
     const luk = async () => {
       sfx.click();
       const os = document.getElementById('os'); showOS(true); os.style.background = 'transparent'; os.innerHTML = '';
@@ -92,11 +93,12 @@ register({
       if (built >= 5 && !save.night) { sfx.click(); goto('falseEnd'); return; }
       await say('Fyrværkeriet venter, til byen er færdig.', { auto: 1500 }); return;
     }
-    sfx.click();
+    play('ui_hub_klik');
     goto('task', p);
   },
   async help() {
     const n = countHelpClick();
+    if (save.night && !save.flags.jumped) { sfx.tick(); return; } // the chair is empty: nobody answers
     sfx.click();
     await say(n === 400 ? 'Fire hundrede gange. Det var også det, hun nåede.' : t('help'));
   },

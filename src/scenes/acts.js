@@ -195,7 +195,7 @@ register({
     lock(false); stopMusic(0.3); hideDialog(); helper.present = true; helper.mood = 'calm'; showHelper(true);
     applyMix({ flags: { ...save.flags, scene: 'logrum' } });
     this.layer = 0; this.task = null; this.input = '';
-    music('assets/music/raadhus.ogg', { fade: 2, gain: 0.5 });
+    // no music until the first layer is dug (LYDPLAN: silence 55–84); each solved layer = byen with one instrument less
     await say('Her ligger det, vi ikke har talt med. Grav.', { noPortrait: false, hold: 300 });
     this.hs = [{ x: 160, y: 120, w: 440, h: 308, label: 'Grav', on: () => this.dig() }];
   },
@@ -232,6 +232,7 @@ register({
         this.layer++; this.task = null; this.input = '';
         document.getElementById('ui').querySelectorAll('.btn,.chip').forEach((b) => b.remove());
         await cutBlack(260);
+        music(`assets/music/byen_minus${Math.min(7, this.layer)}.ogg`, { fade: 0.3, restart: true });
         if (this.layer === 7) { await say('Så det var ikke mord. Det var bare … mindre.', { hold: 600 }); await this.finish(); }
         else if (this.layer === 1) await say('Nå. Så bliver der … færre. Ja.', { auto: 1800 });
       } else { sfx.bad(); this.input = ''; }

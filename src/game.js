@@ -4,7 +4,7 @@ import { say, helper } from './core/dialog.js';
 import { msgBox, directorError as dirErr, sleep, showOS } from './core/os.js';
 import { paletteFlash, ctx, W, H } from './core/stage.js';
 import { cur } from './core/cursor.js';
-import { sfx, stopMusic, music } from './core/audio.js';
+import { sfx, stopMusic, music, play } from './core/audio.js';
 import { goto } from './core/scene.js';
 
 const osLayer = document.getElementById('os');
@@ -15,10 +15,10 @@ export const gameApi = {
   musicDelay(ms) { save.flags.musicDelayMs = ms; touch(); },
   async cd2() {
     showOS(true); osLayer.style.background = 'transparent'; osLayer.innerHTML = '';
-    sfx.cdSpin(1.6);
-    const r = await msgBox({ title: 'Regn med Måneby', icon: 'warn', msg: 'Indsæt CD 2, og tryk på Gentag.', buttons: [{ label: 'Gentag', value: 'retry', def: true }, { label: 'Annuller', value: 'cancel' }], lockMs: 10000, parent: osLayer });
+    sfx.cdSpin(1.6); await sleep(2100); play('os_ding_fejl');
+    const r = await msgBox({ title: 'Regn med Måneby', icon: 'warn', msg: 'Indsæt CD 2, og tryk på Gentag.', buttons: [{ label: 'Gentag', value: 'retry', def: true }, { label: 'Annuller', value: 'cancel' }], lockMs: 10000, parent: osLayer, silent: true });
     showOS(false);
-    if (r === 'retry') { sfx.bzzt(); await paletteFlash(2, 'rot'); }
+    if (r === 'retry') { play('wr_palette_knaek'); await paletteFlash(2, 'rot'); }
   },
   async directorError(handler) {
     showOS(true); osLayer.style.background = 'transparent'; osLayer.innerHTML = '';
@@ -28,7 +28,7 @@ export const gameApi = {
   async knowsTime() {
     const days = ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag'];
     const d = new Date();
-    await say(`Det er ${days[d.getDay()]}. Klokken er 15:40. Det var den også dengang.`, { hold: 800 });
+    await say(`Det er ${days[d.getDay()]}. Klokken er 15:40. Det var den også dengang.`, { hold: 800, voice: 'assets/voice/knows_time.ogg', mouth: 'assets/voice/knows_time.json' });
   },
   async photo(which) {
     // Material break: a "real" 2005 compact-camera photo. Placeholder = dark room with date stamp until the render lands.

@@ -15,7 +15,7 @@ ffmpeg -y -loglevel error -i "tmp/$ID.aiff" -af "$AF" -ac 1 "tmp/$ID.pre.wav"
 M=$(ffmpeg -hide_banner -nostats -i "tmp/$ID.pre.wav" -af "loudnorm=I=-16:TP=-1:LRA=7:print_format=json" -f null - 2>&1 | sed -n '/{/,/}/p')
 II=$(echo "$M" | sed -n 's/.*"input_i" *: *"\([^"]*\)".*/\1/p'); TP=$(echo "$M" | sed -n 's/.*"input_tp" *: *"\([^"]*\)".*/\1/p')
 LRA=$(echo "$M" | sed -n 's/.*"input_lra" *: *"\([^"]*\)".*/\1/p'); TH=$(echo "$M" | sed -n 's/.*"input_thresh" *: *"\([^"]*\)".*/\1/p'); OFF=$(echo "$M" | sed -n 's/.*"target_offset" *: *"\([^"]*\)".*/\1/p')
-LN="loudnorm=I=-16:TP=-1:LRA=7:measured_I=$II:measured_TP=$TP:measured_LRA=$LRA:measured_thresh=$TH:offset=$OFF:linear=true"
+LN="loudnorm=I=-16:TP=-1.5:LRA=7:measured_I=$II:measured_TP=$TP:measured_LRA=$LRA:measured_thresh=$TH:offset=$OFF:linear=true,alimiter=limit=-1.5dB:level=false"
 ffmpeg -y -loglevel error -i "tmp/$ID.pre.wav" -af "$LN,aresample=22050" -ac 1 -c:a pcm_u8 "tmp/$ID.wav"
 ffmpeg -y -loglevel error -i "tmp/$ID.wav" -c:a libopus -b:a 24k "$OUT/$ID.ogg"
 ffmpeg -y -loglevel error -i "tmp/$ID.wav" -c:a aac -b:a 32k "$OUT/$ID.m4a"

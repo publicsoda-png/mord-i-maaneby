@@ -2,8 +2,9 @@
 import { register, goto, lock, button } from '../core/scene.js';
 import { bg } from '../art/placeholder.js';
 import { say, sleep } from '../core/dialog.js';
-import { save, touch, persist } from '../core/state.js';
-import { music, sfx } from '../core/audio.js';
+import { save, touch, persist, playMin } from '../core/state.js';
+import { music, sfx, loopHak, musicDetune } from '../core/audio.js';
+import { gameApi } from '../game.js';
 import { progressBox, fakeProgress, showOS } from '../core/os.js';
 import { applyMix } from '../core/mix.js';
 import { t } from '../script.js';
@@ -25,9 +26,12 @@ register({
   async enter(p) {
     this.p = p;
     this.bgc = bg(p.id, save.night);
-    applyMix();
+    applyMix({ scene: p.id });
     const cursed = save.night && p.id === 'quarry';
     music(`assets/music/${MUSIC[p.id] || 'plads_a'}${cursed ? '_cursed' : ''}.ogg`, { fade: 1 });
+    const m = gameApi.devMin ?? playMin();
+    if (m >= 30 && m < 50 && !save.night) { clearTimeout(this.hak); this.hak = setTimeout(() => loopHak(), 15000 + Math.random() * 20000); } // one loop stutter per visit (deniable)
+    if (m >= 30 && (p.id === 'ice' || p.id === 'scope')) setTimeout(() => musicDetune(-3), 1200);
     button('Tilbage', 8, 448, () => { stopGame(); sfx.click(); goto('hub', { back: true }); }, { w: 90 });
     const G = GAMES[p.id];
     if (save.flags.progress_back && !save.flags.progress_back_shown) {
@@ -47,10 +51,10 @@ register({
     if (res.morse) { save.flags.morse_seen = true; touch(); goto('hub', { back: true }); return; }
     const stage = Math.max(1, 3 - Math.min(2, wrong));
     const prev = save.buildings[p.id] || 0;
-    if (stage > prev) save.buildings[p.id] = stage;
+    if (stage > prev) { save.buildings[p.id] = stage; save.flags.justBuilt = { id: p.id, stage }; } // hub plays ui_bygning_opN on the swap frame
     touch(); persist(true);
     lock(true);
-    sfx.good();
+    (save.flags.klaret_klaret ? sfx.goodGood : sfx.good)();
     await say(line(G, p.id + '_ok', 'Godt klaret!'));
     if (stage === 3 && !save.stickers.includes(p.id)) { save.stickers.push(p.id); sfx.sticker(); await say(t('sticker')); }
     lock(false);

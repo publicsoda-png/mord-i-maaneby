@@ -34,7 +34,6 @@ ev({ id: 'bench_gone', min: 28, phase: 1, deniable: 'preload-hak', run: (c) => {
 // ---------------- Akt 2 (30–55): UI vakler, fake errors, the game knows you ----------------
 ev({ id: 'save_lies', min: 30, phase: 2, deniable: 'save-bug', run: (c) => c.flagText('save_lies') });
 ev({ id: 'progress_back', min: 33, phase: 2, deniable: 'progress-bug', run: (c) => c.flagText('progress_back') });
-ev({ id: 'volume_dead', min: 38, phase: 2, deniable: 'director-lydkanal', run: (c) => c.flagText('volume_dead') });
 ev({ id: 'english_line', min: 38, phase: 2, deniable: 'lokaliseringsrest', run: (c) => c.flagText('english_line') });
 ev({ id: 'cd2', min: 40, phase: 2, shock: true, deniable: '2-disc-fejl', run: (c) => c.cd2() });
 ev({ id: 'director_err', min: 43, phase: 2, deniable: 'lingo-fejl', run: (c) => c.directorError('traekFra') });
