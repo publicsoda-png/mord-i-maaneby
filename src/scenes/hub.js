@@ -110,7 +110,7 @@ register({
     // fnugger stand STILL (era rule) — one of them takes a single step every few seconds
     const stepper = Math.floor(tm / 3200) % FNUG_POS.length, stepPhase = (tm % 3200) < 400 ? 1 : 0;
     FNUG_POS.forEach(([x, y], i) => {
-      drawFnug(g, x, y, 1, { frame: i === stepper ? stepPhase : 0, back: save.flags.fnug_fringe && i === 4, fringe: save.flags.fnug_fringe && i === 4, night: save.night });
+      drawFnug(g, x, y, 1, { id: i, frame: i === stepper ? stepPhase : 0, back: save.flags.fnug_fringe && i === 4, fringe: save.flags.fnug_fringe && i === 4, night: save.night });
       if (save.flags.peeked && i === 6) { g.fillStyle = '#111'; g.fillRect(x - 4, y - 16, 3, 3); g.fillRect(x + 3, y - 16, 3, 3); } // one of them looks into the camera
       if (save.flags.season === 'jul') { g.fillStyle = '#c22'; g.beginPath(); g.moveTo(x - 8, y - 20); g.lineTo(x + 8, y - 20); g.lineTo(x + 2, y - 32); g.closePath(); g.fill(); g.fillStyle = '#fff'; g.fillRect(x + 1, y - 34, 3, 3); }
     });
