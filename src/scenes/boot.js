@@ -113,7 +113,10 @@ register({
   },
   bg(g) {
     g.drawImage(this.bgc, 0, 0);
-    g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(150, 100, 340, 280);
+    // opaque Director-style panel (no alpha blend over the render → stays inside a 256-colour budget)
+    g.fillStyle = '#1a1230'; g.fillRect(150, 100, 340, 280);
+    g.fillStyle = '#4a3f70'; g.fillRect(150, 100, 340, 2); g.fillRect(150, 100, 2, 280);
+    g.fillStyle = '#0b0818'; g.fillRect(150, 378, 340, 2); g.fillRect(488, 100, 2, 280);
     drawText('Skriv dit navn:', 220, 124, { font: '700 16px "Comic Neue","Comic Sans MS",sans-serif', color: '#fff' });
     drawText('Hvilken klasse går du i?', 220, 212, { font: '700 16px "Comic Neue","Comic Sans MS",sans-serif', color: '#fff' });
   },
