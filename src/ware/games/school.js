@@ -3,6 +3,7 @@
 // after 5 s of silence the helper says "… Vi går videre." and the game ends {ok, skipped}. Night: the 7-key exists but
 // pressing it only prints "Handler not defined" (plain text, no dialog).
 import { opg, sevenTask, seeded } from '../../opg.js';
+import { hasBg } from '../../art/placeholder.js';
 
 const FONT = '"Comic Neue","Comic Sans MS","Chalkboard SE",cursive';
 const pick = (r, arr) => arr[Math.floor(r() * arr.length)];
@@ -12,7 +13,7 @@ export default {
   id: 'school',
   lines: {
     school_intro: 'Velkommen i Kraterskolen. Jeg spørger, du svarer. Tryk tallene på stenene, og tryk Svar.',
-    school_ok: 'Fem rigtige rækker. Fnuggerne bygger skolen færdig.',
+    school_ok: 'Fem spørgsmål. Fnuggerne bygger skolen færdig.',
     school_wrong: () => wrongLines[Math.floor(Math.random() * wrongLines.length)],
   },
   setup(a) {
@@ -20,6 +21,7 @@ export default {
     const grade = a.opts.grade ?? 3;
     const night = a.opts.night === true;
     const sevenMissing = !night && !!(a.opts.save && a.opts.save.flags && a.opts.save.flags.seven_missing);
+    const minusKnown = a.opts?.save?.flags?.minus_known === true; // 2nd playthrough: a dead "−" key appears left of the 6, the 7 is normal
     const N = 5;
 
     // ---- questions (deterministic). When the 7-key is dead (night) or missing, questions 1–4 avoid answers with a 7.
@@ -32,34 +34,28 @@ export default {
       qs.push(t);
     }
 
-    // ---- chalkboard + notice board panels (readable on any render; the rendered room has its own board elsewhere)
-    a.add('', '', { left: '60px', top: '150px', width: '320px', height: '150px', background: night ? '#0a2a1a' : '#234d2b', border: night ? '8px solid #4a3a1a' : '8px solid #8b6b3a', boxSizing: 'border-box', boxShadow: '4px 6px 0 rgba(0,0,0,.45)' });
-    a.add('', '', { left: '420px', top: '160px', width: '190px', height: '130px', background: night ? '#141414' : '#c7b89a', border: '4px solid ' + (night ? '#2a2420' : '#6a4a2a'), boxSizing: 'border-box', boxShadow: '4px 6px 0 rgba(0,0,0,.45)' });
-    // ---- chalkboard texts (board is 60..380 × 150..300)
-    const qText = a.text('', 80, 168, { fontSize: '24px', color: '#f3f0e0', textShadow: '1px 1px 0 #0a1a0e', width: '280px', whiteSpace: 'normal', lineHeight: '1.15', fontFamily: FONT });
-    const ansText = a.text('', 80, 236, { fontSize: '28px', color: '#ffe9a8', textShadow: '1px 1px 0 #0a1a0e', fontFamily: FONT });
-    // notice board (420..610 × 160..290)
-    const progress = a.text('', 432, 170, { fontSize: '15px', color: '#2b2418', textShadow: 'none', fontFamily: FONT });
-    const score = a.text('', 432, 194, { fontSize: '15px', color: '#2b2418', textShadow: 'none', fontFamily: FONT });
-    const hint = a.text('', 432, 232, { fontSize: '13px', color: '#5a4a30', textShadow: 'none', width: '170px', whiteSpace: 'normal', lineHeight: '1.2', fontFamily: FONT });
-    hint.textContent = 'Tastaturet virker også.';
+    // ---- texts go on the room's OWN chalkboard and notice board (render: board ≈ 340..528 × 130..233, cork ≈ 205..285 × 140..215;
+    // procedural fallback: board 60..380 × 150..300, notice 420..610 × 160..290). Only the UI layer is drawn — never a second board.
+    const R = hasBg('school');
+    const ink = night ? '#cfd3e0' : '#f3f0e0', gold = night ? '#e8e2c0' : '#ffe9a8', paper = night ? '#cfd3e0' : '#2b2418';
+    if (R) a.spr(434, 176, 180, 72, (g) => { g.fillStyle = night ? '#021a01' : '#043701'; g.fillRect(0, 0, 180, 72); }); // clean patch of the render's board (its own green) under the chalk text
+    const qText = a.text('', R ? 350 : 80, R ? 144 : 168, { fontSize: R ? '19px' : '24px', color: ink, textShadow: 'none', width: R ? '170px' : '280px', whiteSpace: 'normal', lineHeight: '1.15', fontFamily: FONT });
+    const ansText = a.text('', R ? 350 : 80, R ? 180 : 236, { fontSize: R ? '22px' : '28px', color: gold, textShadow: 'none', fontFamily: FONT });
+    const progress = a.text('', R ? 210 : 432, R ? 148 : 170, { fontSize: R ? '12px' : '15px', color: paper, outline: R && !night ? '#e8dcc0' : undefined, textShadow: R ? undefined : 'none', fontFamily: FONT });
+    const score = a.text('', R ? 210 : 432, R ? 166 : 194, { fontSize: R ? '12px' : '15px', color: paper, outline: R && !night ? '#e8dcc0' : undefined, textShadow: R ? undefined : 'none', fontFamily: FONT });
+    const hint = a.text('', R ? 136 : 432, R ? 316 : 232, { fontSize: R ? '11px' : '13px', color: R ? '#fff' : '#5a4a30', textShadow: R ? undefined : 'none', width: R ? '300px' : '170px', whiteSpace: 'normal', lineHeight: '1.2', fontFamily: FONT });
+    hint.textContent = 'Dagens tælling: 12 · Tastaturet virker også.'; // the town counts twelve Fnugger (Én…Tolv) — the number the story keeps coming back to
 
     // ---- stone keyboard: rows "1 2 3 4 5" / "6 7 8 9 0", 44×44 keys, 8 px gap; Slet/Svar to the right
     const KX = 136, KY = 334, KS = 44, GAP = 8;
-    const drawKey = (g, pressed, dead) => {
+    const drawKey = (g, pressed, dead, label) => {
       const w = KS, h = KS;
       g.fillStyle = '#5e5a52'; g.fillRect(0, 0, w, h);                 // hard shadow (bottom/right)
       g.fillStyle = pressed ? '#b9b3a4' : '#f4f1ea'; g.fillRect(0, 0, w - 3, h - 3); // highlight face
       g.fillStyle = pressed ? '#cfc9ba' : (dead ? '#a9a39a' : '#d9d3c4'); g.fillRect(3, 3, w - 6, h - 6); // stone
       g.fillStyle = pressed ? '#bdb7a8' : '#e9e4d6'; g.fillRect(6, 6, 10, 4); // chip highlight
       g.fillStyle = '#8c877c'; g.fillRect(w - 12, h - 10, 6, 3);        // chip shadow
-    };
-    const keyLabel = (node, label, color = '#111') => {
-      const t = document.createElement('div');
-      t.textContent = label;
-      t.style.cssText = `position:absolute;left:0;top:0;width:${KS - 3}px;height:${KS - 3}px;display:flex;align-items:center;justify-content:center;font:700 22px ${FONT};color:${color};pointer-events:none;user-select:none`;
-      node.appendChild(t);
-      return t;
+      if (label) a.draw(g, label, (w - 3) / 2 + (pressed ? 1 : 0), (h - 3) / 2 + (pressed ? 1 : 0), { size: 22, fontFamily: FONT, color: dead ? '#3c3a36' : '#111', align: 'center', valign: 'middle' });
     };
     const keys = {};
     let root = null;
@@ -68,20 +64,25 @@ export default {
       const cx = KX + ci * (KS + GAP) + KS / 2, cy = KY + ri * (KS + GAP) + KS / 2;
       if (d === '7' && sevenMissing) {
         // the hole where the 7-key should be: darker floor, a little dust
-        const hole = a.spr(cx, cy, KS, KS, (g) => { g.fillStyle = 'rgba(0,0,0,.22)'; g.fillRect(2, 2, KS - 5, KS - 5); g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(2, 2, KS - 5, 3); g.fillRect(2, 2, 3, KS - 5); g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(10, KS - 12, 14, 2); g.fillRect(28, 14, 6, 2); });
+        const hole = a.spr(cx, cy, KS, KS, (g) => { g.fillStyle = '#4a4740'; g.fillRect(2, 2, KS - 5, KS - 5); g.fillStyle = '#2e2c28'; g.fillRect(2, 2, KS - 5, 3); g.fillRect(2, 2, 3, KS - 5); g.fillStyle = '#8c877c'; g.fillRect(10, KS - 12, 14, 2); g.fillRect(28, 14, 6, 2); });
         if (!root) root = hole;
         return;
       }
       const dead = night && d === '7';
-      const k = a.spr(cx, cy, KS, KS, (g, p) => drawKey(g, p === 1, dead));
+      const k = a.spr(cx, cy, KS, KS, (g, p) => drawKey(g, p === 1, dead, d));
       if (!root) root = k;
-      keyLabel(k, d, dead ? '#3c3a36' : '#111');
       keys[d] = k;
       a.on(k, () => press(d));
     }));
+    if (minusKnown) {
+      // the minus key nobody asked for: stone like the others, label "−", does nothing but click
+      const cx = KX - (KS + GAP) + KS / 2, cy = KY + (KS + GAP) + KS / 2;
+      const k = a.spr(cx, cy, KS, KS, (g, p) => drawKey(g, p === 1, true, '−'));
+      a.on(k, () => { if (locked || ended) return; flash(k); a.play('tast_klik', { gain: 0.9 }); });
+    }
     const bx = KX + 5 * (KS + GAP) + 10;
-    const bSlet = a.btn('Slet', bx, KY + 8, () => press('Backspace'), { width: '84px', textAlign: 'center', fontSize: '14px', padding: '6px 0' });
-    const bSvar = a.btn('Svar', bx, KY + KS + GAP + 8, () => press('Enter'), { width: '84px', textAlign: 'center', fontSize: '14px', padding: '6px 0' });
+    const bSlet = a.btn('Slet', bx, KY + 8, () => press('Backspace'), { width: '84px', silent: true });
+    const bSvar = a.btn('Svar', bx, KY + KS + GAP + 8, () => press('Enter'), { width: '84px', silent: true });
 
     // ---- state
     let qi = 0, typed = '', correct = 0, wrongs = 0, locked = false, lastInput = performance.now(), skipped = false, ended = false;
@@ -89,7 +90,7 @@ export default {
       const t = qs[qi];
       qText.textContent = t.q;
       ansText.textContent = typed.length ? '= ' + typed : '= _';
-      progress.textContent = `Spørgsmål ${qi + 1} af ${N}`;
+      progress.textContent = R ? `${qi + 1} af ${N}` : `Spørgsmål ${qi + 1} af ${N}`;
       score.textContent = `Rigtige: ${correct}`;
     };
     const flash = (k) => { if (!k) return; k.redraw(1); a.after(110, () => k.redraw(0)); };
@@ -105,7 +106,7 @@ export default {
       // Night: the 7-key has no handler. Plain Director-style error text, no OS dialog.
       a.sfx.bzzt();
       if (errNote) errNote.remove();
-      errNote = a.add('', 'Handler not defined', { left: KX + 'px', top: (KY - 26) + 'px', font: '11px Tahoma, "DejaVu Sans", Verdana, sans-serif', color: '#fff', background: '#000', padding: '2px 6px', whiteSpace: 'nowrap' });
+      errNote = a.text('Handler not defined', KX, KY - 26, { font: '11px Tahoma, "DejaVu Sans", Verdana, sans-serif', color: '#fff', textShadow: 'none', background: '#000', padding: '2px 6px' });
       a.after(1500, () => { if (errNote) { errNote.remove(); errNote = null; } });
     };
 
@@ -118,20 +119,20 @@ export default {
         if (typed.length >= 6) return;
         typed = typed === '0' ? d : typed + d;
         flash(keys[d]);
-        a.sfx.click(); if (!night) a.sfx.tick();            // key click + a little chalk
+        a.play('tast_klik', { gain: 0.9 }); if (!night) a.play('kridt', { gain: 0.5, pan: 0.3 }); // stone key + a little chalk
         show();
         return;
       }
-      if (d === 'Backspace') { typed = typed.slice(0, -1); a.sfx.click(); show(); return; }
+      if (d === 'Backspace') { typed = typed.slice(0, -1); a.play('tast_klik', { gain: 0.9 }); show(); return; }
       if (d === 'Enter') {
-        if (!typed.length) { a.sfx.click(); return; }
+        if (!typed.length) { a.play('tast_klik', { gain: 0.9 }); return; }
         const t = qs[qi];
         if (+typed === t.a) {
           correct++; a.sfx.ok(); locked = true;
           ansText.textContent = '= ' + typed + '  ✓';
           a.after(650, () => {
             locked = false; typed = ''; qi++;
-            if (qi >= N) { end({ ok: true, correct, wrongs }); return; }
+            if (qi >= N) { a.play('skoleklokke', { gain: 0.8 }); end({ ok: true, correct, wrongs }); return; }
             show(); lastInput = performance.now();
           });
         } else {
@@ -154,7 +155,7 @@ export default {
         if (qi !== N - 1 || locked || skipped || ended) return;
         if (performance.now() - lastInput < 5000) return;
         skipped = true; locked = true;
-        bSvar.style.opacity = bSlet.style.opacity = '.5';
+        bSvar.disable(); bSlet.disable();
         a.opts.say('… Vi går videre.', { auto: 1400 });
         a.after(2200, () => end({ ok: true, correct, wrongs, skipped: true }));
       });

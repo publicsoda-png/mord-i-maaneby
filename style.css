@@ -35,17 +35,18 @@ body { font-family: var(--ui-font); -webkit-font-smoothing: none; font-smooth: n
 
 #hud { display: none !important; }
 
-/* Stone-slab buttons: 3 states = cursor change (hover), inverted bevel + 1 px text shift (active) */
+/* Stone-slab buttons: 3 states = rest / hover = cursor hand only / pressed (.down, set by scene.js pressable(): sound on
+   pointerdown, action on pointerup) = inverted bevel + 1 px text shift. Hard states, no CSS motion. */
 .btn {
   pointer-events: auto; position: absolute; height: 24px; padding: 0 10px; display: flex; align-items: center; justify-content: center;
   color: #111; background: #c9c3b3; border: 2px solid; border-color: #f4f1ea #5e5a52 #5e5a52 #f4f1ea; box-shadow: 1px 1px 0 #2a2824;
   user-select: none;
 }
 .btn canvas { image-rendering: pixelated; display: block; }
-.btn:active { border-color: #5e5a52 #f4f1ea #f4f1ea #5e5a52; }
-.btn:active canvas { transform: translate(1px, 1px); }
+.btn.down { border-color: #5e5a52 #f4f1ea #f4f1ea #5e5a52; }
+.btn.down canvas { transform: translate(1px, 1px); }
 
-/* Custom cursor sprite */
+/* Custom cursor sprite: PNG8 32×32 (arrow/hand/wait); cursor.js injects data-URL fallbacks only if a PNG fails to load */
 #cursor { position: absolute; left: 0; top: 0; width: 32px; height: 32px; pointer-events: none; z-index: 50;
   background: url(assets/cursor-arrow.png) no-repeat; background-size: 32px 32px; image-rendering: pixelated; }
 #cursor.hand { background-image: url(assets/cursor-hand.png); margin-left: -6px; }
@@ -71,7 +72,7 @@ body { font-family: var(--ui-font); -webkit-font-smoothing: none; font-smooth: n
 .win .msg { padding-top: 4px; line-height: 1.4; min-width: 220px; white-space: pre-line; }
 .win .btns { display: flex; justify-content: center; gap: 6px; padding: 0 12px 12px; }
 .wbtn { min-width: 75px; height: 23px; font: 11px var(--ui-font); background: var(--win); border: 2px solid; border-color: #fff #404040 #404040 #fff; box-shadow: 0 0 0 1px #000; padding: 0 8px; }
-.wbtn:active { border-color: #404040 #fff #fff #404040; }
+.wbtn:active, .wbtn.down { border-color: #404040 #fff #fff #404040; } /* .down = pressable() in scene.js (os.js may adopt it) */
 .wbtn:disabled { color: #808080; text-shadow: 1px 1px 0 #fff; }
 .wbtn.def { outline: 1px dotted #000; outline-offset: -4px; }
 .ico.warn { background: conic-gradient(#000 0 0) no-repeat; clip-path: polygon(50% 0,100% 100%,0 100%); background: #ffd800; }

@@ -2,7 +2,9 @@
 // Task: hit every crystal whose number "går op i" T (divides T). Wrong crystal → onWrong, ball keeps going.
 // Night (cursed): hit the WRONG ones instead; hitting a correct crystal turns it into a small grey Fnug silhouette
 // that stays standing along the bottom. Max 60 s per round; a lost ball respawns after 1.5 s.
+// Nothing moves before the first click in the quarry (A1 'før første input'): the ball rests on the paddle, the clock waits.
 import { seeded } from '../../opg.js';
+import { hasBg } from '../../art/placeholder.js';
 
 const FONT = '"Comic Neue","Comic Sans MS","Chalkboard SE",cursive';
 const wrongLines = ['Den gik ikke op. Lad bolden flyve videre.', 'Hov, den passede ikke. Videre.', 'Ikke den krystal. Prøv en anden.'];
@@ -37,10 +39,13 @@ export default {
     // ---- arena
     const X0 = 100, X1 = 540, Y0 = 100, Y1 = 436;
     const AW = X1 - X0, AH = Y1 - Y0;
+    const HAS_BG = hasBg('quarry') /* the night fallback darkens the same render */;
     a.spr((X0 + X1) / 2, (Y0 + Y1) / 2, AW, AH, (g) => {
-      g.fillStyle = night ? '#171a24' : '#c9c3b2'; g.fillRect(0, 0, AW, AH);            // chalk floor
+      // with the rendered quarry only a chalk frame is drawn — the crater itself is the floor; the procedural fallback gets a flat floor
+      if (!HAS_BG) { g.fillStyle = night ? '#171a24' : '#c9c3b2'; g.fillRect(0, 0, AW, AH); }
       g.fillStyle = night ? '#0c0e15' : '#8f8976'; g.fillRect(0, 0, AW, 4); g.fillRect(0, 0, 4, AH); // wall shadow
       g.fillStyle = night ? '#2a2e3c' : '#ebe6d8'; g.fillRect(AW - 4, 0, 4, AH); g.fillRect(0, AH - 4, AW, 4);
+      if (HAS_BG) return;
       g.fillStyle = night ? '#1f2330' : '#b7b09e';
       for (let i = 0; i < 26; i++) g.fillRect(12 + ((i * 97) % (AW - 30)), 60 + ((i * 53) % (AH - 90)), 6, 3); // chalk flecks
     });
@@ -60,11 +65,8 @@ export default {
         g.fillStyle = dark; g.beginPath(); g.moveTo(4, 14); g.lineTo(16, 3); g.lineTo(CW - 6, 3); g.lineTo(CW - 1, 14); g.lineTo(CW - 1, CH - 1); g.lineTo(4, CH - 1); g.closePath(); g.fill();
         g.fillStyle = face; g.beginPath(); g.moveTo(1, 12); g.lineTo(13, 1); g.lineTo(CW - 9, 1); g.lineTo(CW - 4, 12); g.lineTo(CW - 4, CH - 4); g.lineTo(1, CH - 4); g.closePath(); g.fill();
         g.fillStyle = light; g.fillRect(6, 6, 8, 3); g.fillRect(6, 9, 3, 8);
+        a.draw(g, String(c.n), CW / 2 - 1, CH / 2 - 1, { size: 20, fontFamily: FONT, color: night ? '#cfd3e0' : '#111', align: 'center', valign: 'middle' });
       });
-      const t = document.createElement('div');
-      t.textContent = String(c.n);
-      t.style.cssText = `position:absolute;left:0;top:0;width:${CW}px;height:${CH}px;display:flex;align-items:center;justify-content:center;font:700 20px ${FONT};color:${night ? '#cfd3e0' : '#111'};text-shadow:${night ? 'none' : '1px 1px 0 rgba(255,255,255,.6)'};pointer-events:none;user-select:none`;
-      s.appendChild(t);
       return { ...c, x: cx, y: cy, w: CW, h: CH, node: s, alive: true };
     });
     const targetsLeft = () => crystals.filter((c) => c.alive && isTarget(c)).length;
@@ -88,7 +90,8 @@ export default {
       g.fillStyle = night ? '#d0d4e0' : '#fff'; g.fillRect(c - 4, c - 4, 3, 3);
       g.fillStyle = night ? '#6a7088' : '#d4d0c8'; g.fillRect(c + 1, c + 2, 3, 2);
     });
-    let bx = px, by = PY - 20, vx = 0, vy = 0, live = false, respawnAt = 0, lost = false;
+    let bx = px, by = PY - 20, vx = 0, vy = 0, live = false, respawnAt = 0, lost = false, started = false;
+    const hint = a.text('Klik i gruben for at skyde bolden', 0, 300, { width: '640px', textAlign: 'center', fontSize: '15px', fontFamily: FONT });
     const launch = () => {
       bx = px; by = PY - 20;
       const ang = (-90 + (r() < 0.5 ? -1 : 1) * (25 + r() * 25)) * Math.PI / 180;
@@ -96,6 +99,8 @@ export default {
       ball.style.visibility = 'visible';
     };
     a.move((e, p) => { px = Math.max(X0 + PW / 2 + 2, Math.min(X1 - PW / 2 - 2, p.x)); }, true);
+    // first input = a click inside the quarry: starts ball and clock (the dialog clicks at the top never reach here)
+    a.tap((e, p) => { if (started || p.x < X0 || p.x > X1 || p.y < Y0 || p.y > Y1) return; started = true; hint.remove(); launch(); });
 
     // ---- Fnug silhouettes (night): grey tufts standing along the bottom wall
     let ghosts = 0;
@@ -103,7 +108,7 @@ export default {
       const gx = X0 + 18 + ghosts * 26; ghosts++;
       a.spr(gx, Y1 - 14, 22, 24, (g) => {
         g.fillStyle = '#3b3e48';
-        for (let i = 0; i < 7; i++) { const t = (i / 7) * Math.PI * 2; g.fillRect(8 + Math.round(Math.cos(t) * 5), 9 + Math.round(Math.sin(t) * 5), 6, 6); }
+        for (let i = 0; i < 7; i++) { const ang = (i / 7) * Math.PI * 2; g.fillRect(8 + Math.round(Math.cos(ang) * 5), 9 + Math.round(Math.sin(ang) * 5), 6, 6); }
         g.fillRect(6, 6, 10, 10); g.fillRect(5, 2, 12, 3); g.fillRect(6, 18, 3, 5); g.fillRect(13, 18, 3, 5);
       });
     };
@@ -115,18 +120,19 @@ export default {
       a.after(600, () => a.done({ ok: true, hits, wrongs, cursed: night, timeout: how === 'time', T }));
     };
     a.every(1000, () => {
-      if (over) return;
+      if (over || !started) return;
       tLeft--; clock.textContent = String(Math.max(0, tLeft));
       if (tLeft <= 0) {
         // time is up: the remaining target crystals crumble by themselves so the round always ends
         crystals.forEach((c) => { if (c.alive && isTarget(c)) { c.alive = false; c.node.style.visibility = 'hidden'; } });
-        updateLeft(); a.sfx.thud(); finish('time');
+        updateLeft(); a.play('blok_dunk', { gain: 0.8 }); finish('time');
       }
     });
 
     const hit = (c) => {
       c.alive = false; c.node.style.visibility = 'hidden';
-      if (isTarget(c)) { hits++; if (!night) a.sfx.pop(); else a.sfx.tick(); }
+      a.play('krystal_knaek', { gain: night ? 0.5 : 0.9, pan: a.pan(c.x) });
+      if (isTarget(c)) { hits++; }
       else {
         wrongs++;
         if (night) { ghost(); a.sfx.bzzt(); }
@@ -142,22 +148,22 @@ export default {
       paddle.at(px, PY);
       if (over) return;
       if (!live) {
-        if (!lost) { bx = px; by = PY - 20; ball.at(bx, by); if (t > 0.9) launch(); } // rest on paddle, launch after a beat
-        else if (t >= respawnAt) launch();
+        if (!started) { bx = px; by = PY - 20; ball.at(bx, by); } // rest on the paddle until the first click
+        else if (lost && t >= respawnAt) launch();
         return;
       }
       bx += vx * dt; by += vy * dt;
       // walls
-      if (bx - R < X0 + 4) { bx = X0 + 4 + R; vx = Math.abs(vx); a.sfx.tick(); }
-      if (bx + R > X1 - 4) { bx = X1 - 4 - R; vx = -Math.abs(vx); a.sfx.tick(); }
-      if (by - R < Y0 + 4) { by = Y0 + 4 + R; vy = Math.abs(vy); a.sfx.tick(); }
+      if (bx - R < X0 + 4) { bx = X0 + 4 + R; vx = Math.abs(vx); a.play('blok_dunk', { gain: 0.35, pan: -0.5 }); }
+      if (bx + R > X1 - 4) { bx = X1 - 4 - R; vx = -Math.abs(vx); a.play('blok_dunk', { gain: 0.35, pan: 0.5 }); }
+      if (by - R < Y0 + 4) { by = Y0 + 4 + R; vy = Math.abs(vy); a.play('blok_dunk', { gain: 0.35, pan: a.pan(bx) }); }
       // paddle
       if (vy > 0 && by + R >= PY - PH / 2 && by - R <= PY + PH / 2 && Math.abs(bx - px) <= PW / 2 + R) {
         by = PY - PH / 2 - R;
         const off = (bx - px) / (PW / 2);                   // -1..1 → angle
         const ang = (-90 + off * 55) * Math.PI / 180;
         vx = Math.cos(ang) * SPEED; vy = Math.sin(ang) * SPEED;
-        a.sfx.thud();
+        a.play('bold_boing', { gain: 0.8, pan: a.pan(bx) });
       }
       // crystals
       for (const c of crystals) {
@@ -174,7 +180,7 @@ export default {
       // never let the ball crawl sideways forever
       if (Math.abs(vy) < SPEED * 0.3) { vy = (vy < 0 ? -1 : 1) * SPEED * 0.3; const k = SPEED / Math.hypot(vx, vy); vx *= k; vy *= k; }
       // lost
-      if (by - R > Y1) { live = false; lost = true; respawnAt = t + 1.5; ball.style.visibility = 'hidden'; a.sfx.thud(); return; }
+      if (by - R > Y1) { live = false; lost = true; respawnAt = t + 1.5; ball.style.visibility = 'hidden'; a.play('blok_dunk', { gain: 0.6, pan: a.pan(bx) }); return; }
       ball.at(Math.round(bx), Math.round(by));
     });
   },

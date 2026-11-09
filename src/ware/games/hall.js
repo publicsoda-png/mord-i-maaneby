@@ -1,5 +1,5 @@
 // Rådhuset (act 3 only): one slider 0–20 and one bar. "Hvor mange Fnugger bor i Måneby?" There are no wrong answers.
-// 12 → the helper says nothing. 11 → "Ja. Elleve." Only one sound: the slider rattle (blip 200 Hz per step).
+// 12 → the helper says nothing. 11 → "Ja. Elleve." Only one sound: the slider rattle (mg_slider_rasle per step); buttons are silent.
 // Night: the same.
 const FONT = '"Comic Neue","Comic Sans MS","Chalkboard SE",cursive';
 let lastAnswer = null;
@@ -31,7 +31,7 @@ export default {
       g.fillStyle = night ? '#4a4f60' : '#c9352b'; g.fillRect(bx, BASE - PY - h, bw, h);
       g.fillStyle = night ? '#6a7088' : '#e86a5a'; g.fillRect(bx, BASE - PY - h, 10, h);
     });
-    // axis labels (DOM text, crisp)
+    // axis labels (1-bit canvas text)
     for (let i = 0; i <= MAX; i += 4) a.text(String(i), PX + 14, BASE - (i / MAX) * (BASE - TOP) - 9, { fontSize: '12px', color: night ? '#9aa0b8' : '#111', textShadow: 'none', width: '22px', textAlign: 'right', fontFamily: FONT });
     const value = a.text('0', PX + 120, TOP - 26, { fontSize: '26px', color: night ? '#e0e3ee' : '#111', textShadow: 'none', width: '72px', textAlign: 'center', fontFamily: FONT });
     a.text('Fnugger', PX + 180, BASE - 2, { fontSize: '13px', color: night ? '#9aa0b8' : '#333', textShadow: 'none', fontFamily: FONT });
@@ -65,12 +65,12 @@ export default {
       cur = v; input.value = String(v);
       value.textContent = String(v); paper.redraw(v);
       // the one sound: slider rattle, one tick per step (capped so a fast drag doesn't buzz)
-      for (let i = 0; i < Math.min(steps, 4); i++) setTimeout(() => a.sfx.blip(200, 0.02, 0.05, 'square'), i * 18);
+      for (let i = 0; i < Math.min(steps, 4); i++) a.after(i * 18, () => a.play('slider_rasle', { gain: 0.6, pan: a.pan(SX + (v / MAX) * SW) }));
     };
     input.addEventListener('input', () => setVal(+input.value));
     // small stone arrows as a clickable alternative to dragging
-    a.btn('◄', SX - 44, SY - 2, () => setVal(cur - 1), { width: '32px', textAlign: 'center', padding: '4px 0' });
-    a.btn('►', SX + SW + 20, SY - 2, () => setVal(cur + 1), { width: '32px', textAlign: 'center', padding: '4px 0' });
+    a.btn('◄', SX - 44, SY - 2, () => setVal(cur - 1), { width: '32px', silent: true });
+    a.btn('►', SX + SW + 20, SY - 2, () => setVal(cur + 1), { width: '32px', silent: true });
 
     let done = false;
     a.btn('Svar', 486, 300, () => {
@@ -79,6 +79,6 @@ export default {
       input.disabled = true;
       // no ok-sound of our own; the helper's reply (or silence) comes from lines.hall_ok
       a.after(cur === 12 ? 900 : 300, () => a.done({ ok: true, answer: cur, silent: cur === 12 }));
-    }, { width: '110px', textAlign: 'center', fontSize: '16px', padding: '8px 0' });
+    }, { width: '110px', silent: true });
   },
 };

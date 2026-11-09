@@ -2,6 +2,7 @@
 // billede tegnes med linjer. "Vakler" (save.flags.scope_face) og nat: de fire stjerner danner et ansigt; nat: pupiller
 // følger cursoren.
 import { opg, seeded } from '../../opg.js';
+import { hasBg } from '../../art/placeholder.js';
 
 const KID = '"Comic Neue","Comic Sans MS",sans-serif';
 let wrongIdx = 0;
@@ -41,6 +42,7 @@ export default {
     const found = [];
     let locked = false;
 
+    const HAS_BG = hasBg('scope', night) || hasBg('scope'); // with a rendered observatory only the grid/stars are drawn, no sky box
     const col = { grid: night ? '#2a2e44' : '#4a4f78', axis: night ? '#6a7098' : '#9aa0d0', star: night ? '#cfd3e0' : '#fff', gold: night ? '#e8e2c0' : '#ffd34a', line: night ? '#cfd3e0' : '#ffe9a0', label: night ? '#a9aec6' : '#dfe3ff' };
 
     // grid + all stars + constellation lines, one canvas; redraw()
@@ -48,16 +50,13 @@ export default {
     const grid = a.spr(gx0 + GW / 2, gy0 + GH / 2, GW + PAD * 2, GH + PAD * 2, (g) => {
       const lx = (x) => PAD + (x - minX) * cw, ly = (y) => PAD + (maxY - y) * ch;
       // kikkert-felt: flad mørk himmel bag gitteret med hård skygge
-      g.fillStyle = night ? '#000008' : '#0a0a2a'; g.fillRect(PAD - 10 + 5, PAD - 10 + 5, GW + 20, GH + 20);
-      g.fillStyle = night ? '#090a14' : '#1c1a3e'; g.fillRect(PAD - 10, PAD - 10, GW + 20, GH + 20);
+      if (!HAS_BG) { g.fillStyle = night ? '#000008' : '#0a0a2a'; g.fillRect(PAD - 10 + 5, PAD - 10 + 5, GW + 20, GH + 20); g.fillStyle = night ? '#090a14' : '#1c1a3e'; g.fillRect(PAD - 10, PAD - 10, GW + 20, GH + 20); }
       g.fillStyle = col.grid;
       for (let x = minX; x <= maxX; x++) g.fillRect(lx(x), PAD, 1, GH);
       for (let y = minY; y <= maxY; y++) g.fillRect(PAD, ly(y), GW, 1);
       g.fillStyle = col.axis; g.fillRect(lx(0), PAD, 2, GH); g.fillRect(PAD, ly(0), GW, 2);
-      g.font = '700 11px ' + KID; g.fillStyle = col.label; g.textAlign = 'center';
-      for (let x = minX; x <= maxX; x++) g.fillText(String(x), lx(x), PAD + GH + 16);
-      g.textAlign = 'right';
-      for (let y = minY; y <= maxY; y++) g.fillText(String(y), PAD - 8, ly(y) + 4);
+      for (let x = minX; x <= maxX; x++) a.draw(g, String(x), lx(x), PAD + GH + 6, { size: 11, color: col.label, align: 'center' });
+      for (let y = minY; y <= maxY; y++) a.draw(g, String(y), PAD - 8, ly(y), { size: 11, color: col.label, align: 'right', valign: 'middle' });
       // small stars at every node
       g.fillStyle = col.star;
       for (let x = minX; x <= maxX; x++) for (let y = minY; y <= maxY; y++) { g.fillRect(lx(x) - 1, ly(y) - 1, 3, 3); }
@@ -111,9 +110,9 @@ export default {
     ret.style.pointerEvents = 'none';
     let rx = gx0 + GW / 2, ry = gy0 + GH / 2;
     const moveRet = (x, y) => {
-      a.anim(ret, [{ transform: `translate(${rx - x}px,${ry - y}px)` }, { transform: 'translate(0,0)' }], { duration: 240, easing: 'steps(4)' });
-      ret.at(x, y); rx = x; ry = y;
-      if (!night) a.sfx.blip(220, 0.12, 0.05, 'sawtooth', 320); // servo
+      const x0 = rx, y0 = ry; rx = x; ry = y;
+      a.steps(3, (k, f) => ret.at(Math.round(x0 + (x - x0) * f), Math.round(y0 + (y - y0) * f))); // 3 steps, no tween
+      if (!night) a.play('kikkert_drej', { gain: 0.7, pan: a.pan(x) });
     };
 
     const q = a.text(targets[0] ? `Find stjernen i (${targets[0][0]}, ${targets[0][1]})` : '', 0, 86, { width: '640px', textAlign: 'center', fontSize: '18px' });
@@ -132,7 +131,7 @@ export default {
         locked = true;
         a.after(260, () => {
           found.push(t); grid.redraw();
-          a.sfx.blip(1600, 0.12, 0.08, 'sine', 2400); // stjerne-pling
+          a.play('stjerne_pling', { gain: 0.8, pan: a.pan(px(t[0])) });
           placePupils();
           if (found.length === 4) {
             q.textContent = face ? '' : 'Stjernebilledet er tegnet.';

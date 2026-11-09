@@ -14,7 +14,7 @@ const fmt = (v) => (Number.isInteger(v) ? String(v) : v.toFixed(1).replace('.', 
 export default {
   id: 'ice',
   lines: {
-    ice_intro: 'Dette er Isværket. Vandet i tanken skal ned i isformen, men kun en del af det. Drej på den ventil der giver præcis den rigtige mængde.',
+    ice_intro: 'Dette er Isværket. Vandet i tanken skal ned i isformen, men kun en del af det. Drej på den ventil, der giver præcis den rigtige mængde.',
     ice_ok: 'Lige præcis. Så fryser vi det til is, og Fnuggerne bygger videre.',
     ice_wrong: () => WRONG[wrongIdx++ % WRONG.length],
   },
@@ -54,7 +54,7 @@ export default {
       g.fillStyle = col.tank; g.fillRect(0, 0, TANK.w - 6, TANK.h - 6);
       g.fillStyle = col.water; g.fillRect(6, 16, TANK.w - 18, TANK.h - 28);
       g.fillStyle = col.waterL; g.fillRect(6, 16, TANK.w - 18, 4);
-      g.fillStyle = '#111'; g.font = '700 18px ' + KID; g.textAlign = 'center'; g.fillText(`${whole} liter`, (TANK.w - 6) / 2, TANK.h / 2 + 4);
+      a.draw(g, `${whole} liter`, (TANK.w - 6) / 2, TANK.h / 2 - 3, { size: 18, color: '#111', align: 'center', valign: 'middle' });
     });
 
     // pipes: one canvas over the whole pipe area; redraw(stage, idx, up)
@@ -94,8 +94,8 @@ export default {
       if (wh > 0) { g.fillStyle = col.water; g.fillRect(6, 6 + ih - wh, VAT.w - 18, wh); g.fillStyle = col.waterL; g.fillRect(6, 6 + ih - wh, VAT.w - 18, 3); }
       // ice cube dividers
       g.fillStyle = col.tankD; for (let i = 1; i < 6; i++) g.fillRect(6 + i * ((VAT.w - 18) / 6), 6, 2, ih);
-      g.fillStyle = '#111'; g.font = '700 18px ' + KID; g.textAlign = 'right'; g.fillText(`${fmt(l)} l`, VAT.w - 16, VAT.h - 22);
-      g.textAlign = 'left'; g.font = '700 12px ' + KID; g.fillText('ISFORM', 12, VAT.h - 22);
+      a.draw(g, `${fmt(l)} l`, VAT.w - 16, VAT.h - 40, { size: 18, color: '#111', align: 'right' });
+      a.draw(g, 'ISFORM', 12, VAT.h - 36, { size: 12, color: '#111' });
     });
 
     // valves
@@ -116,8 +116,8 @@ export default {
       a.on(v, () => {
         if (busy) return;
         busy = true;
-        a.sfx.blip(900, 0.25, 0.04, 'sawtooth', 300); // ventil-hvæs
-        for (let t = 1; t <= 4; t++) a.after(t * 90, () => v.redraw(t)); // 4-trins drej
+        a.play('ventil_hvaes', { gain: 0.8, pan: a.pan(x) });
+        a.steps(4, (t) => v.redraw(t)); // 4-step turn on the step clock
         a.after(420, () => (nameless ? flowUp(i) : flow(i)));
       });
       return v;
@@ -127,13 +127,13 @@ export default {
       let s = 0;
       const tick = () => {
         s++; pipes.redraw(s, i, false);
-        if (s % 2 === 1) a.sfx.blip(300, 0.05, 0.04, 'sine', 200); // gurgle
-        if (s < 8) a.after(110, tick); else fill();
+        if (s % 2 === 1) a.play('roer_klik', { gain: 0.6, pan: a.pan(xs[i]) }); // water knocks in the pipe
+        if (s < 8) a.after(a.STEP, tick); else { a.play('vand_gurgle', { gain: 0.8, pan: a.pan(xs[i]) }); fill(); }
       };
       const fill = () => {
         const lvl = Math.min(1, l / whole);
         let f = 0;
-        const step = () => { f++; vat.redraw((lvl * f) / 6, Math.round((l * f) / 6 * 10) / 10); if (f < 6) a.after(100, step); else a.after(500, () => check(l, i)); };
+        const step = () => { f++; vat.redraw((lvl * f) / 6, Math.round((l * f) / 6 * 10) / 10); if (f < 6) a.after(a.STEP, step); else a.after(500, () => check(l, i)); };
         step();
       };
       tick();
@@ -144,13 +144,13 @@ export default {
       // drain in steps, reset valve
       let f = 6;
       const lvl = Math.min(1, l / whole);
-      const step = () => { f--; vat.redraw((lvl * f) / 6, Math.round((l * f) / 6 * 10) / 10); if (f > 0) a.after(90, step); else { pipes.redraw(0); valves[i].redraw(0); busy = false; } };
+      const step = () => { f--; vat.redraw((lvl * f) / 6, Math.round((l * f) / 6 * 10) / 10); if (f > 0) a.after(a.STEP, step); else { pipes.redraw(0); valves[i].redraw(0); busy = false; } };
       a.after(500, step);
     }
     function flowUp(i) {
       usedUp = true;
       let s = 0;
-      const tick = () => { s++; pipes.redraw(s, i, true); if (s < 8) a.after(140, tick); else a.after(1500, () => { pipes.redraw(0); valves[i].redraw(0); busy = false; }); };
+      const tick = () => { s++; pipes.redraw(s, i, true); if (s % 2 === 1) a.play('roer_klik', { gain: 0.5, pan: a.pan(xs[i]) }); if (s < 8) a.after(a.STEP, tick); else a.after(1500, () => { pipes.redraw(0); valves[i].redraw(0); busy = false; }); };
       tick();
     }
   },
