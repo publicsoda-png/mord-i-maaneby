@@ -2,6 +2,7 @@
 // the asked angle. Three tasks from opg('angle'). A protractor arc with ticks helps reading the angle.
 // Night: nobody steers — the lamp blinks morse S-Y-V (··· —·—— ···—) with 800 Hz blips, three times, then silence.
 import { opg, seeded } from '../../opg.js';
+import { hasBg } from '../../art/placeholder.js';
 
 const FONT = '"Comic Neue","Comic Sans MS","Chalkboard SE",cursive';
 const wrongLines = ['Lyset peger et andet sted hen. Drej lidt mere.', 'Ikke helt den vinkel. Kig på stregerne.', 'Tæt på. Et par klik endnu.'];
@@ -17,10 +18,12 @@ export default {
     const r = seeded(a.opts.seed ?? Date.now());
     const grade = a.opts.grade ?? 3;
     const night = a.opts.night === true;
-    const LX = 210, LY = 230, LEN = 176; // lamp position and beam length
+    // rendered lighthouse (assets/bg/light.png): the lamp sits at ≈(248,95), so only the beam + protractor are drawn, shorter so the arc stays on screen
+    const HAS_BG = hasBg('light', night) || hasBg('light');
+    const LX = HAS_BG ? 248 : 210, LY = HAS_BG ? 95 : 230, LEN = HAS_BG ? 62 : 176; // lamp position and beam length
 
-    // ---- tower
-    a.spr(LX, 345, 72, 230, (g) => {
+    // ---- tower (procedural fallback only — the render has its own)
+    if (!HAS_BG) a.spr(LX, 345, 72, 230, (g) => {
       const W = 72, H = 230;
       const red = night ? '#3a1a1a' : '#c9352b', white = night ? '#3c3f4c' : '#efe9dc', dark = night ? '#0d0f16' : '#5a1f1a';
       // body: slightly tapered, striped
@@ -45,23 +48,27 @@ export default {
       g.beginPath(); g.arc(cx, cy, R0, Math.PI, 2 * Math.PI); g.stroke();
       g.fillStyle = night ? '#3a3f52' : '#fff';
       for (let d = 0; d <= 180; d += 15) {
-        const t = -d * Math.PI / 180, big = d % 45 === 0;
-        const x0 = cx + Math.cos(t) * R0, y0 = cy + Math.sin(t) * R0, x1 = cx + Math.cos(t) * (R0 + (big ? 12 : 6)), y1 = cy + Math.sin(t) * (R0 + (big ? 12 : 6));
+        const rad = -d * Math.PI / 180, big = d % 45 === 0;
+        const x0 = cx + Math.cos(rad) * R0, y0 = cy + Math.sin(rad) * R0, x1 = cx + Math.cos(rad) * (R0 + (big ? 12 : 6)), y1 = cy + Math.sin(rad) * (R0 + (big ? 12 : 6));
         g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
       }
     }, { top: LY - LEN - 30 + 'px' });
     if (!night) {
-      // angle labels as DOM text so they stay crisp
-      [[0, LX + LEN + 22, LY - 10], [45, LX + (LEN + 36) * 0.707 + 6, LY - (LEN + 36) * 0.707 - 16], [90, LX - 12, LY - LEN - 42], [135, LX - (LEN + 36) * 0.707 - 36, LY - (LEN + 36) * 0.707 - 16], [180, LX - LEN - 30, LY + 4]]
-        .forEach(([d, x, y]) => a.text(d + '°', x, y, { fontSize: '13px', fontFamily: FONT }));
+      // angle labels (1-bit canvas text): outside the arc; with the render the lamp sits high, so labels go INSIDE the arc to stay on screen
+      const RL = HAS_BG ? LEN - 18 : LEN + 36;
+      [0, 45, 90, 135, 180].forEach((d) => {
+        const rad = d * Math.PI / 180;
+        const x = LX + Math.cos(rad) * RL, y = LY - Math.sin(rad) * RL + (d % 180 === 0 ? (HAS_BG ? 6 : -4) : -7);
+        a.text(d + '°', Math.round(x - 20), Math.round(y), { fontSize: '13px', fontFamily: FONT, width: '40px', textAlign: 'center' });
+      });
     }
     // ---- beam (canvas line in its own sprite, redrawn per angle)
     let angle = 0, lit = false;
     const beam = a.spr(LX, LY, 2 * LEN + 8, 2 * LEN + 8, (g, mode) => {
-      const c = LEN + 4, t = -angle * Math.PI / 180;
-      const ex = c + Math.cos(t) * LEN, ey = c + Math.sin(t) * LEN;
-      const dx = -Math.sin(t), dy = Math.cos(t), hw = mode === 2 ? 22 : 12; // half-width at the far end
-      g.fillStyle = mode === 2 ? (night ? 'rgba(255,240,170,.9)' : 'rgba(255,236,150,.95)') : (night ? 'rgba(120,120,140,.45)' : 'rgba(255,236,150,.55)');
+      const c = LEN + 4, rad = -angle * Math.PI / 180;
+      const ex = c + Math.cos(rad) * LEN, ey = c + Math.sin(rad) * LEN;
+      const dx = -Math.sin(rad), dy = Math.cos(rad), hw = mode === 2 ? 22 : 12; // half-width at the far end
+      g.fillStyle = mode === 2 ? (night ? '#fff0aa' : '#ffec96') : (night ? '#4a4f60' : '#c9a84a'); // hard colours, no alpha
       g.beginPath(); g.moveTo(c, c); g.lineTo(ex + dx * hw, ey + dy * hw); g.lineTo(ex - dx * hw, ey - dy * hw); g.closePath(); g.fill();
       g.strokeStyle = night ? '#ffe9a8' : '#fff7d6'; g.lineWidth = 2;
       g.beginPath(); g.moveTo(c, c); g.lineTo(ex, ey); g.stroke();
@@ -76,7 +83,7 @@ export default {
       const letters = ['...', '-.--', '...-'];
       let t = 1200;
       const flashAt = (at, dur) => {
-        a.after(at, () => { beam.style.visibility = 'visible'; beam.redraw(2); a.sfx.blip(800, dur / 1000, 0.06, 'sine'); });
+        a.after(at, () => { beam.style.visibility = 'visible'; beam.redraw(2); a.play('morse_bip', { gain: 0.7 }); });
         a.after(at + dur, () => { beam.style.visibility = 'hidden'; });
       };
       for (let rep = 0; rep < 3; rep++) {
@@ -101,12 +108,12 @@ export default {
       if (busy) return;
       const next = Math.max(0, Math.min(180, angle + d));
       if (next === angle) { a.sfx.bzzt(); return; }
-      angle = next; a.sfx.blip(140, 0.08, 0.1, 'square', 90); // heavy metal turn
+      angle = next; a.play('lys_drej', { gain: 0.8, pan: a.pan(LX) }); // heavy metal turn
       show();
     };
-    const bl = a.btn('◄ 15°', PX, 258, () => turn(15), { width: '88px', textAlign: 'center', fontSize: '14px', padding: '7px 0' });
-    const br = a.btn('15° ►', PX + 104, 258, () => turn(-15), { width: '88px', textAlign: 'center', fontSize: '14px', padding: '7px 0' });
-    a.text('(mod venstre drejer tallet op)', PX, 292, { fontSize: '11px', color: '#ddd', fontFamily: FONT });
+    const bl = a.btn('◄ 15°', PX, 258, () => turn(15), { width: '88px', silent: true });
+    const br = a.btn('15° ►', PX + 104, 258, () => turn(-15), { width: '88px', silent: true });
+    a.text('◄ gør vinklen større, ► gør den mindre', PX, 290, { fontSize: '11px', color: '#ddd', fontFamily: FONT, width: '196px', whiteSpace: 'normal', lineHeight: '1.2' });
     const lys = a.btn('Lys', PX, 330, () => {
       if (busy) return;
       if (angle === tasks[ti].a) {
@@ -121,7 +128,7 @@ export default {
         a.after(250, () => !busy && beam.redraw(1));
         a.opts.onWrong && a.opts.onWrong();
       }
-    }, { width: '192px', textAlign: 'center', fontSize: '16px', padding: '8px 0' });
+    }, { width: '192px' });
     show();
   },
 };

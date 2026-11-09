@@ -10,3 +10,5 @@ tools/test/qc/
 dist-artifact/
 tools/voice/tmp/
 tools/test/qc-sync/
+tools/test/feel/
+tools/test/feel-key/

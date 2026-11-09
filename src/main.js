@@ -22,8 +22,12 @@ if (q.has('min')) { gameApi.devMin = +q.get('min'); globalThis.MB_DEV_MIN = game
 if (q.has('nat')) save.night = true;
 if (q.has('name')) save.name = q.get('name');
 if (q.has('reset')) { localStorage.clear(); }
+// WP4 dev: ?dev&scene=hub&built=bakery:2 → plot starts at step 1 and the buildSwap reward animation to step 2 runs at enter
+// (window.MB.devSwap() re-runs it). Hub-owner: hub.js itself calls buildSwap from justBuilt — see src/art/fx.js header.
+let devBuilt = null;
+if (q.has('built')) { const [plot, st] = q.get('built').split(':'); const step = Math.max(1, Math.min(3, +st || 1)); devBuilt = { plot, step }; save.buildings[plot] = step - 1; }
 
-window.MB = { save, gameApi, goto };
+window.MB = { save, gameApi, goto, devBuilt };
 installEggs();
 if (q.has('dev') && q.get('scene')) {
   // Dev: spring identen over — første klik tænder lyden
@@ -31,5 +35,13 @@ if (q.has('dev') && q.get('scene')) {
   addEventListener('pointerdown', () => ensureAudio(), { once: true });
   const { PLOTS } = await import('./scenes/hub.js');
   const plot = q.get('plot') && PLOTS.find((p) => p.id === q.get('plot'));
-  goto(q.get('scene'), plot || { first: q.has('first') });
+  if (q.get('scene') !== 'desktop' && q.get('scene') !== 'ident') { const { showOS } = await import('./core/os.js'); showOS(false); } // #os ligger over #app (z 40) og slås normalt fra af boot.js — ved dev-start direkte i en scene dækkede det hele spillet med blåt
+  await goto(q.get('scene'), plot || { first: q.has('first') });
+  if (devBuilt) {
+    const { buildSwap } = await import('./art/fx.js');
+    const { bg } = await import('./art/placeholder.js');
+    const p = PLOTS.find((x) => x.id === devBuilt.plot);
+    window.MB.devSwap = async () => { if (!p) return; save.buildings[p.id] = devBuilt.step - 1; await buildSwap(p, devBuilt.step - 1, devBuilt.step, { night: save.night, bg: bg('hub', save.night), onShow: () => { save.buildings[p.id] = devBuilt.step; } }); };
+    if (q.get('scene') === 'hub') window.MB.devSwap();
+  }
 } else goto('ident');
