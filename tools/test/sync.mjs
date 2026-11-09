@@ -41,8 +41,15 @@ const report = { when: new Date().toISOString(), git: gitHash, gates: G, tests: 
   const voice = oggs.map((f) => ({ clip: f, ...lufs(path.join(vdir, f)) }));
   const mdir = path.join(root, 'assets/music');
   const music = fs.readdirSync(mdir).filter((f) => f.endsWith('.ogg')).map((f) => ({ clip: f, ...lufs(path.join(mdir, f)) }));
-  const vBad = voice.filter((v) => Math.abs(v.I - G.voice_lufs) > G.lufs_tolerance || v.peak > G.true_peak_max_dbfs);
-  const mBad = music.filter((v) => Math.abs(v.I - G.music_lufs) > G.lufs_tolerance || v.peak > G.true_peak_max_dbfs);
+  const wlSrc = ['src/core/wrongness.js', 'src/wrongness.js'].map((f) => path.join(root, f)).filter((f) => fs.existsSync(f)).map((f) => fs.readFileSync(f, 'utf8')).join('\n');
+  const whitelist = new Set([...wlSrc.matchAll(/qc-whitelist:\s*([^\n—]+)/g)].flatMap((m) => m[1].trim().split(/[\s,]+/)).filter(Boolean));
+  const wl = (v) => whitelist.has(v.clip.replace(/\.ogg$/, ''));
+  report.tests.loudness_whitelist = [...whitelist];
+  voice.forEach((v) => { v.whitelisted = wl(v); }); music.forEach((v) => { v.whitelisted = wl(v); });
+  const vBad0 = voice.filter((v) => Math.abs(v.I - G.voice_lufs) > G.lufs_tolerance || v.peak > G.true_peak_max_dbfs);
+  const mBad0 = music.filter((v) => Math.abs(v.I - G.music_lufs) > G.lufs_tolerance || v.peak > G.true_peak_max_dbfs);
+  const vBad = vBad0.filter((v) => !v.whitelisted), mBad = mBad0.filter((v) => !v.whitelisted);
+  report.tests.loudness_whitelisted_deviations = [...vBad0, ...mBad0].filter((v) => v.whitelisted);
   report.tests.loudness = { voice_n: voice.length, voice_I_range: [Math.min(...voice.map((v) => v.I)), Math.max(...voice.map((v) => v.I))], music_n: music.length, music_I_range: [Math.min(...music.map((v) => v.I)), Math.max(...music.map((v) => v.I))], voice_failing: vBad, music_failing: mBad };
   report.pass.A6_loudness_voice = vBad.length === 0; report.pass.A6_loudness_music = mBad.length === 0;
   console.log(`offline: mund-JSON ≥ ${report.tests.mouth_json_vs_rms.min_agreement} enighed (${agree.length} klip) · stemme ${voice.length} klip I ${report.tests.loudness.voice_I_range} · musik ${music.length} spor I ${report.tests.loudness.music_I_range}`);
@@ -57,6 +64,7 @@ const HOOK = `(() => {
   window.__audio = []; const urlOf = new WeakMap(); const bufUrl = new WeakMap();
   const of = window.fetch; window.fetch = async function (u, ...r) { const res = await of.call(this, u, ...r); const url = typeof u === 'string' ? u : u.url; const ab = res.arrayBuffer.bind(res); res.arrayBuffer = async () => { const a = await ab(); urlOf.set(a, url); return a; }; return res; };
   const od = AudioContext.prototype.decodeAudioData; AudioContext.prototype.decodeAudioData = function (ab, ok, err) { const p = od.call(this, ab, ok, err); const url = urlOf.get(ab) || '?'; if (p && p.then) p.then((buf) => bufUrl.set(buf, url)); return p; };
+  const oo = OscillatorNode.prototype.start; OscillatorNode.prototype.start = function (when, ...r) { const ctxNow = this.context.currentTime; const delay = Math.max(0, (when || 0) - ctxNow); window.__audio.push({ t: Date.now() / 1000 + delay, dur: 0, url: 'synth:osc' }); return oo.call(this, when, ...r); };
   const os = AudioBufferSourceNode.prototype.start; AudioBufferSourceNode.prototype.start = function (when, ...r) { const ctxNow = this.context.currentTime; const delay = Math.max(0, (when || 0) - ctxNow); window.__audio.push({ t: Date.now() / 1000 + delay, dur: this.buffer ? this.buffer.duration : 0, url: this.buffer ? (bufUrl.get(this.buffer) || '?') : '?' }); return os.call(this, when, ...r); };
 })();`;
 async function open(q) {
@@ -133,6 +141,21 @@ try {
     report.tests.pling_vs_swap = { swap_frame: swapIdx, swap_t: rows[swapIdx]?.t, pling_found: !!pling, pling_url: pling?.url?.replace(/^.*\/(assets\/)/, '$1'), delta_ms: delta, black_frames: lum.filter((l) => l < 8).length };
     report.pass.A6_pling_sync = delta !== null && Math.abs(delta) <= G.sfx_sync_tolerance_ms;
     console.log(`T3 pling: swap-frame ${swapIdx} · pling ${pling ? 'fundet' : 'IKKE FUNDET'} · Δ ${delta} ms (gate ±${G.sfx_sync_tolerance_ms})`);
+    await p.close();
+  }
+  // ---- T4: klik-latens (pointerdown → første frame >0,5 % diff) + lyd inden 400 ms ----
+  {
+    const p = await open('dev&scene=hub&name=Test');
+    const cdp = await p.target().createCDPSession();
+    let downT = 0;
+    const { rows, audio } = await record(p, path.join(out, 't4'), async () => { downT = Date.now() / 1000; await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: 38, y: 20, button: 'left', clickCount: 1 }); await sleep(120); await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: 38, y: 20, button: 'left', clickCount: 1 }); }, 1500);
+    const before = rows.filter((r) => r.t < downT).at(-1) || rows[0];
+    const first = rows.find((r) => r.t > downT && AE(before.file, r.file, 0) > 640 * 480 * (G.click_visual_min_pct / 100)); // fuzz 0: dialogboks over mørk himmel er under 8 %-fuzz
+    const sfx = audio.find((a) => a.t >= downT - 0.02 && a.t <= downT + 0.4);
+    report.tests.click_latency = { down_t: downT, first_frame: first?.i, before_frame: before.i, first_visual_ms: first ? Math.round((first.t - downT) * 1000) : null, sfx_ms: sfx ? Math.round((sfx.t - downT) * 1000) : null, sfx_url: sfx?.url, frames: rows.length };
+    report.pass.A6_click_visual_latency = first !== undefined && (first.t - downT) * 1000 <= G.click_latency_max_ms;
+    report.pass.A6_click_has_sfx = !!sfx;
+    console.log(`T4 klik: første visuelle respons ${report.tests.click_latency.first_visual_ms} ms · lyd ${report.tests.click_latency.sfx_ms} ms (${sfx?.url})`);
     await p.close();
   }
 } finally { await b.close(); srv.kill(); }

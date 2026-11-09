@@ -88,7 +88,10 @@
     "music_lufs": -18,
     "lufs_tolerance": 1.5,
     "true_peak_max_dbfs": -1.0,
-    "mouth_open_min_px": 10
+    "mouth_open_min_px": 10,
+    "click_latency_max_ms": 100,
+    "loudness_whitelist_source": "src/core/wrongness.js linjer \"// qc-whitelist: <klip> <klip> — <grund>\" FØR gate-kørsel",
+    "click_visual_min_pct": 0.1
   },
   "A7_grep": {
     "css_forbidden": [

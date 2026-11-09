@@ -18,6 +18,7 @@ const FONT = '700 15px "Comic Neue","Comic Sans MS",sans-serif';
 export const helper = { present: true, mood: 'calm', night: false, mouth: 0, silentMouth: false, visible: false };
 let waiting = null;
 let skipping = false;
+let sayGen = 0; // an older auto-say must never hide a newer one (QC: hourglass forever when answering during "Prøv igen")
 
 box.addEventListener('pointerdown', (e) => { e.stopPropagation(); advance(); });
 box.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -61,6 +62,8 @@ export function hideDialog() { box.hidden = true; cancelAnimationFrame(raf); dra
 /** say(text, opts): voice, mouth, cps, hold, auto, noPortrait, pauseAt, keep */
 export async function say(text, opts = {}) {
   if (!opts.voice && !opts.noPortrait) { const v = voiceFor(text); if (v) opts = { ...opts, ...v }; }
+  const gen = ++sayGen;
+  if (waiting) { const w = waiting; waiting = null; w(); } // release an older say() that is waiting for a click
   box.hidden = false;
   renderText('');
   more.style.visibility = 'hidden';
@@ -74,6 +77,7 @@ export async function say(text, opts = {}) {
   animateHelper(() => (!talking ? 0 : v ? v.mouth() : helper.silentMouth || (shown < text.length ? 1 + ((shown >> 1) % 3) : 0)));
   let lastTick = 0;
   while (shown < text.length) {
+    if (gen !== sayGen) { if (v && v.stop) v.stop(); return; } // a newer say() took over the box
     if (skipping) { shown = text.length; renderText(text); break; }
     shown++;
     renderText(text.slice(0, shown));
@@ -85,12 +89,15 @@ export async function say(text, opts = {}) {
     await sleep(d);
   }
   if (v) { if (skipping && v.stop) v.stop(); else await v.done; }
+  if (gen !== sayGen) return; // superseded while talking
   animateHelper(null);
   if (opts.hold) await sleep(opts.hold);
-  if (opts.auto) { await sleep(opts.auto); if (opts.keep !== true) hideDialog(); return; }
+  if (opts.auto) { await sleep(opts.auto); if (gen === sayGen && opts.keep !== true) hideDialog(); return; }
+  if (gen !== sayGen) return;
   more.style.visibility = 'visible';
   skipping = false;
   await new Promise((r) => (waiting = r));
+  if (gen !== sayGen) return;
   more.style.visibility = 'hidden';
   if (opts.keep !== true) hideDialog();
 }

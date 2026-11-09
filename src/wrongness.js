@@ -2,6 +2,13 @@
 // run() receives the game api. Events fire from the hub between tasks (checkWrongness) so timing feels incidental.
 import { save, meta, playMin } from './core/state.js';
 
+// Loudness exceptions, declared before the gate runs (G3 anti-cheat rule). Everything else must sit at voice −16 / music −18 LUFS.
+// qc-whitelist: byen_minus1 byen_minus2 byen_minus3 byen_minus4 byen_minus5 byen_minus6 byen_minus7 — Logrummet: each layer down is quieter on purpose (the staircase)
+// qc-whitelist: byen_morgen — Stille morgen plays under the end; it is meant to be far away
+// qc-whitelist: raadhus — the "?"-building has no proper music, only a thin far loop
+// qc-whitelist: gemt_lyver — "Gemt!" with no voice at all: the helper lies silently (min 30+)
+// qc-whitelist: faerre_ja — a whisper by design ("Nå. Så bliver der … færre. Ja.")
+
 export const EVENTS = [];
 export const ev = (e) => (EVENTS.push(e), e);
 

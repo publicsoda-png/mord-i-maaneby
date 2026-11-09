@@ -1,6 +1,6 @@
 {
-  "when": "2026-11-09T04:04:56.646Z",
-  "git": "b23b424+dirty",
+  "when": "2026-11-09T04:09:17.628Z",
+  "git": "a3f89f0+dirty",
   "gates": {
     "cps_min": 24,
     "cps_max": 32,
@@ -13,7 +13,10 @@
     "music_lufs": -18,
     "lufs_tolerance": 1.5,
     "true_peak_max_dbfs": -1,
-    "mouth_open_min_px": 10
+    "mouth_open_min_px": 10,
+    "click_latency_max_ms": 100,
+    "loudness_whitelist_source": "src/core/wrongness.js linjer \"// qc-whitelist: <klip> <klip> — <grund>\" FØR gate-kørsel",
+    "click_visual_min_pct": 0.1
   },
   "tests": {
     "mouth_json_vs_rms": {
@@ -21,322 +24,106 @@
       "min_agreement": 0.959,
       "failing": []
     },
+    "loudness_whitelist": [],
+    "loudness_whitelisted_deviations": [],
     "loudness": {
       "voice_n": 36,
       "voice_I_range": [
         -70,
-        -70
+        -15.8
       ],
       "music_n": 22,
       "music_I_range": [
-        -70,
-        -70
+        -26,
+        -17.8
       ],
       "voice_failing": [
         {
-          "clip": "det_tegn.ogg",
-          "I": -70,
-          "peak": -2.3
-        },
-        {
-          "clip": "et_sted_til.ogg",
-          "I": -70,
-          "peak": -1.1
-        },
-        {
           "clip": "faerre_ja.ogg",
-          "I": -70,
-          "peak": -1.4
-        },
-        {
-          "clip": "fyrv_venter.ogg",
-          "I": -70,
-          "peak": -3.1
-        },
-        {
-          "clip": "gemt.ogg",
-          "I": -70,
-          "peak": -2.9
+          "I": -18.4,
+          "peak": -1.4,
+          "whitelisted": false
         },
         {
           "clip": "gemt_lyver.ogg",
           "I": -70,
-          "peak": -6.5
-        },
-        {
-          "clip": "godt_faerre.ogg",
-          "I": -70,
-          "peak": -1.4
-        },
-        {
-          "clip": "grav.ogg",
-          "I": -70,
-          "peak": -1.3
-        },
-        {
-          "clip": "help1.ogg",
-          "I": -70,
-          "peak": -1.6
-        },
-        {
-          "clip": "help2.ogg",
-          "I": -70,
-          "peak": -1.3
-        },
-        {
-          "clip": "help3.ogg",
-          "I": -70,
-          "peak": -1.5
-        },
-        {
-          "clip": "hjaelp400.ogg",
-          "I": -70,
-          "peak": -2.7
-        },
-        {
-          "clip": "hub_back1.ogg",
-          "I": -70,
-          "peak": -1.4
-        },
-        {
-          "clip": "hub_back2.ogg",
-          "I": -70,
-          "peak": -3.5
-        },
-        {
-          "clip": "hub_back3.ogg",
-          "I": -70,
-          "peak": -4.4
-        },
-        {
-          "clip": "hub_first.ogg",
-          "I": -70,
-          "peak": -3.3
-        },
-        {
-          "clip": "hvor_mange.ogg",
-          "I": -70,
-          "peak": -3.9
-        },
-        {
-          "clip": "ikke_endnu.ogg",
-          "I": -70,
-          "peak": -2.2
-        },
-        {
-          "clip": "ikke_mord.ogg",
-          "I": -70,
-          "peak": -1
-        },
-        {
-          "clip": "intro1.ogg",
-          "I": -70,
-          "peak": -1.2
-        },
-        {
-          "clip": "intro2.ogg",
-          "I": -70,
-          "peak": -1.5
-        },
-        {
-          "clip": "intro3.ogg",
-          "I": -70,
-          "peak": -1.3
-        },
-        {
-          "clip": "ja_hende.ogg",
-          "I": -70,
-          "peak": -1.5
-        },
-        {
-          "clip": "knows_time.ogg",
-          "I": -70,
-          "peak": -1.5
-        },
-        {
-          "clip": "landing_intro.ogg",
-          "I": -70,
-          "peak": -2
-        },
-        {
-          "clip": "landing_ok.ogg",
-          "I": -70,
-          "peak": -2
-        },
-        {
-          "clip": "landing_ok_kk.ogg",
-          "I": -70,
-          "peak": -2.1
-        },
-        {
-          "clip": "mangler_en.ogg",
-          "I": -70,
-          "peak": -1.1
+          "peak": -6.5,
+          "whitelisted": false
         },
         {
           "clip": "name_b.ogg",
-          "I": -70,
-          "peak": -1.3
-        },
-        {
-          "clip": "pedel1.ogg",
-          "I": -70,
-          "peak": -1.3
-        },
-        {
-          "clip": "pedel2.ogg",
-          "I": -70,
-          "peak": -1.7
-        },
-        {
-          "clip": "sticker.ogg",
-          "I": -70,
-          "peak": -2.8
-        },
-        {
-          "clip": "udmaerket.ogg",
-          "I": -70,
-          "peak": -6.4
-        },
-        {
-          "clip": "videre.ogg",
-          "I": -70,
-          "peak": -4.5
-        },
-        {
-          "clip": "wrong1.ogg",
-          "I": -70,
-          "peak": -1.1
-        },
-        {
-          "clip": "wrong2.ogg",
-          "I": -70,
-          "peak": -1.1
+          "I": -18.7,
+          "peak": -1.3,
+          "whitelisted": false
         }
       ],
       "music_failing": [
         {
-          "clip": "byen.ogg",
-          "I": -70,
-          "peak": -2
-        },
-        {
-          "clip": "byen_11.ogg",
-          "I": -70,
-          "peak": -2
-        },
-        {
           "clip": "byen_minus1.ogg",
-          "I": -70,
-          "peak": -0.9
+          "I": -19,
+          "peak": -0.9,
+          "whitelisted": false
         },
         {
           "clip": "byen_minus2.ogg",
-          "I": -70,
-          "peak": -1.9
+          "I": -20,
+          "peak": -1.9,
+          "whitelisted": false
         },
         {
           "clip": "byen_minus3.ogg",
-          "I": -70,
-          "peak": -2.7
+          "I": -20.9,
+          "peak": -2.7,
+          "whitelisted": false
         },
         {
           "clip": "byen_minus4.ogg",
-          "I": -70,
-          "peak": -6.1
+          "I": -21.9,
+          "peak": -6.1,
+          "whitelisted": false
         },
         {
           "clip": "byen_minus5.ogg",
-          "I": -70,
-          "peak": -5.6
+          "I": -22.9,
+          "peak": -5.6,
+          "whitelisted": false
         },
         {
           "clip": "byen_minus6.ogg",
-          "I": -70,
-          "peak": -9.2
+          "I": -24,
+          "peak": -9.2,
+          "whitelisted": false
         },
         {
           "clip": "byen_minus7.ogg",
-          "I": -70,
-          "peak": -11.1
+          "I": -24.9,
+          "peak": -11.1,
+          "whitelisted": false
         },
         {
           "clip": "byen_morgen.ogg",
-          "I": -70,
-          "peak": -9.6
-        },
-        {
-          "clip": "credits.ogg",
-          "I": -70,
-          "peak": -1.6
-        },
-        {
-          "clip": "fyrv_loop2.ogg",
-          "I": -70,
-          "peak": -4.1
-        },
-        {
-          "clip": "fyrv_loop3.ogg",
-          "I": -70,
-          "peak": -4.1
-        },
-        {
-          "clip": "fyrvaerkeri.ogg",
-          "I": -70,
-          "peak": -5.3
-        },
-        {
-          "clip": "plads_a.ogg",
-          "I": -70,
-          "peak": -1
-        },
-        {
-          "clip": "plads_b.ogg",
-          "I": -70,
-          "peak": -3.3
-        },
-        {
-          "clip": "plads_c.ogg",
-          "I": -70,
-          "peak": -7
-        },
-        {
-          "clip": "plads_c_cursed.ogg",
-          "I": -70,
-          "peak": -2.7
+          "I": -26,
+          "peak": -9.6,
+          "whitelisted": false
         },
         {
           "clip": "raadhus.ogg",
-          "I": -70,
-          "peak": -10
-        },
-        {
-          "clip": "titel_a.ogg",
-          "I": -70,
-          "peak": -6.8
-        },
-        {
-          "clip": "titel_b.ogg",
-          "I": -70,
-          "peak": -6.7
-        },
-        {
-          "clip": "titel_nat.ogg",
-          "I": -70,
-          "peak": -2.5
+          "I": -24.1,
+          "peak": -10,
+          "whitelisted": false
         }
       ]
     },
     "mouth_vs_voice": {
       "voice_found": true,
-      "voice_start": 1794197105.067,
+      "voice_start": 1794197365.889,
       "voice_dur": 5.8100226757369615,
       "frames": 534,
       "open_outside_voice_frames": 0,
-      "open_during_voice_pct": 84.8,
+      "open_during_voice_pct": 84.2,
       "helper_changes_per_s": 4.6,
-      "mouth_first_open_ms_after_voice": 33,
-      "mouth_last_open_ms_after_voice_end": -27,
+      "mouth_first_open_ms_after_voice": 35,
+      "mouth_last_open_ms_after_voice_end": -25,
       "audio_events": [
         {
           "url": "assets/voice/intro1.ogg",
@@ -349,62 +136,71 @@
       "visible_changes": 44,
       "change_times_rel": [
         0,
-        0.25,
-        0.283,
-        0.617,
-        0.65,
+        0.267,
+        0.3,
+        0.633,
+        0.667,
         0.733,
         0.767,
         0.8,
-        0.833,
-        0.867,
+        0.85,
+        0.883,
         0.917,
         0.95,
-        0.983,
-        1.05,
+        1,
+        1.067,
         1.1,
         1.133,
-        1.167,
-        1.2,
+        1.183,
+        1.217,
         1.283,
         1.317,
-        1.35,
-        1.417,
+        1.367,
+        1.433,
         1.5,
-        1.533,
-        1.567,
-        1.6,
-        1.633,
-        1.683,
-        1.716,
-        1.866,
-        1.9,
-        1.95,
-        2.016,
-        2.05,
-        2.083,
-        2.133,
-        2.2,
-        2.233,
-        2.316,
-        2.35,
-        2.383,
-        2.416,
+        1.55,
+        1.583,
+        1.617,
+        1.65,
+        1.7,
+        1.733,
+        1.883,
+        1.933,
+        1.967,
+        2.033,
+        2.067,
+        2.117,
+        2.15,
+        2.217,
+        2.25,
+        2.333,
+        2.367,
+        2.4,
         2.45,
-        3.016
+        2.483,
+        3.05
       ],
-      "typing_s": 2.45,
+      "typing_s": 2.48,
       "pauses_s": 0.38,
-      "cps_measured": 31.4,
+      "cps_measured": 30.9,
       "note": "screencast fanger ikke nødvendigvis hvert tegn ved 60 Hz → cps er en nedre grænse hvis visible_changes < chars"
     },
     "pling_vs_swap": {
-      "swap_frame": 41,
-      "swap_t": 1794197144.429882,
+      "swap_frame": 42,
+      "swap_t": 1794197404.988951,
       "pling_found": true,
       "pling_url": "assets/sfx/ui_bygning_op1.ogg",
-      "delta_ms": -23,
+      "delta_ms": -35,
       "black_frames": 17
+    },
+    "click_latency": {
+      "down_t": 1794197413.448,
+      "first_frame": 25,
+      "before_frame": 22,
+      "first_visual_ms": 41,
+      "sfx_ms": 2,
+      "sfx_url": "synth:osc",
+      "frames": 122
     }
   },
   "pass": {
@@ -415,7 +211,9 @@
     "A6_mouth_moves_during_voice": true,
     "A6_helper_steprate": true,
     "A6_cps_visual": true,
-    "A6_pling_sync": true
+    "A6_pling_sync": true,
+    "A6_click_visual_latency": true,
+    "A6_click_has_sfx": true
   },
   "notes": [],
   "G3": [
@@ -449,6 +247,14 @@
     },
     {
       "gate": "A6_pling_sync",
+      "pass": true
+    },
+    {
+      "gate": "A6_click_visual_latency",
+      "pass": true
+    },
+    {
+      "gate": "A6_click_has_sfx",
       "pass": true
     }
   ],

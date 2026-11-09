@@ -1,5 +1,5 @@
 // Scene manager: scenes are objects {id, bg(ctx, state), hotspots:[{x,y,w,h | poly, cursor, label, on}], enter(g), exit(), tick(dt)}.
-import { ctx, W, H, drawText, text1bit } from './stage.js';
+import { ctx, W, H, drawText, text1bit, toStage } from './stage.js';
 import { cur, setCursor, tickCursor } from './cursor.js';
 import { save, tickClock } from './state.js';
 
@@ -53,9 +53,10 @@ const app = document.getElementById('app');
 app.addEventListener('pointerdown', (e) => {
   if (locked) return;
   if (e.target.closest('#dialog, .btn, .input, .chip, #field .o, .win')) return;
-  const h = hit({ x: cur.x, y: cur.y });
-  if (h && h.on) { e.preventDefault(); h.on(e.button, { x: cur.x, y: cur.y }); }
-  else if (current && current.click) current.click({ x: cur.x, y: cur.y }, e.button);
+  const p = toStage(e); // the event's own position, not last frame's cursor (fast clicks/touch landed beside the target)
+  const h = hit(p);
+  if (h && h.on) { e.preventDefault(); h.on(e.button, p); }
+  else if (current && current.click) current.click(p, e.button);
 });
 app.addEventListener('contextmenu', (e) => e.preventDefault());
 

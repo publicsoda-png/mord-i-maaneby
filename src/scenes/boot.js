@@ -73,7 +73,7 @@ register({
     const bob = 0; // era rule: no continuous motion on the title
     drawText('REGN MED', 320, 70 + bob, { align: 'center', font: '700 34px "Comic Neue","Comic Sans MS",sans-serif', color: '#ffd21f', outline: '#5a3a00' });
     drawText('MÅNEBY', 320, 108 + bob, { align: 'center', font: '700 58px "Comic Neue","Comic Sans MS",sans-serif', color: '#ffd21f', outline: '#5a3a00' });
-    drawText('Krater Multimedie ApS, Valby · 2005 · Afprøvet i 4.b', 320, 456, { align: 'center', font: '11px Tahoma, sans-serif', color: '#ccc' });
+    drawText('Krater Multimedie ApS, Valby · 2005 · Afprøvet i 4.b', 320, 468, { align: 'center', font: '11px Tahoma, sans-serif', color: '#ccc' });
     drawText('Ver. 1.3.63', 8, 464, { font: '11px Tahoma, sans-serif', color: '#aaa' });
   },
 });
@@ -86,7 +86,7 @@ register({
     inp.className = 'input'; inp.maxLength = 14; inp.style.left = '220px'; inp.style.top = '150px'; inp.style.width = '200px';
     inp.value = save.name || (meta.starts === 1 ? 'B' : ''); // first ever start: pre-filled with one letter
     ui.appendChild(inp);
-    setTimeout(() => inp.focus(), 50);
+    setTimeout(() => { inp.focus(); inp.select(); }, 50); // the pre-filled "B" is replaced when the child types, not prefixed
     const chips = [];
     let grade = save.grade || 3, sixClicks = 0;
     for (let i = 1; i <= 6; i++) {
