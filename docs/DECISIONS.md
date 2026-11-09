@@ -20,3 +20,9 @@ Fra de tabende pakker tages med som eggs (ikke slutninger): Dymo-klistermærket 
 ## Faste valg uden council
 - Referencemåling (session b8, 09-11): hubben i originalen står STILLE (0,02–0,8 % pixelændring/250 ms), alle sceneskift går gennem helt sort (0,2–0,5 s), ingen crossfades. → Ingen idle-bob på figurer; kun step-animationer; `goto()` klipper gennem sort.
 - Lyd: `docs/LYDPLAN.md` (session a0) er grundlag for fase 3.
+
+## Udgivelse 10-11-2026 (nat, uden Frederik — ordre: kør alle faser igennem)
+- Fuld version LIVE: https://publicsoda-png.github.io/mord-i-maaneby/ (repo publicsoda-png/mord-i-maaneby, gh-pages = dist/ via `tools/deploy.sh`).
+- Akt-1-demo som artifact: https://claude.ai/artifact/6sKCTCbDutE5ejoRGierRK — `build.mjs --artifact` sætter `window.MB_DEMO`, så den falske slutning bliver demoens slutning med link til Pages. Fuld titel (`document.title`-drift) kun på Pages, jf. C4.
+- Render-baggrunde: `assets/bg/<navn>.png` (PNG8, retro.py) vinder over procedurel placeholder; `<navn>_nat.png` hvis den findes, ellers mørklagt dagsrender. Hub-renders med indbagte stilladser dur ikke (bygninger tegnes af koden på PLOTS) → tom slette bestilt.
+- Udeladt med vilje: volumen-slider (ingen lyd-UI i spillet → volume_dead-eventet udgår), Comic Neue ikke linket (systemets Comic Sans/Chalkboard), knows_time uden stemme (dynamisk ugedag).
