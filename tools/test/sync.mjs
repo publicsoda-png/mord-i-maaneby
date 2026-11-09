@@ -2,7 +2,7 @@
 // Metode: CDP-screencast (billedsiden) krydses med et hook på AudioBufferSourceNode.start (lydsiden, tagget med URL via fetch→decodeAudioData).
 // Brug: node tools/test/sync.mjs   → tools/test/qc-sync/sync-report.json
 import puppeteer from 'puppeteer-core';
-import { spawn, execFileSync } from 'node:child_process';
+import { spawn, spawnSync, execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -37,7 +37,7 @@ const report = { when: new Date().toISOString(), git: gitHash, gates: G, tests: 
   report.tests.mouth_json_vs_rms = { clips: agree.length, min_agreement: Math.min(...agree.map((a) => a.agreement)), failing: bad };
   report.pass.A6_mouth_json = bad.length === 0 && agree.length > 0;
 
-  const lufs = (file) => { const o = execFileSync('ffmpeg', ['-hide_banner', '-nostats', '-i', file, '-af', 'ebur128=peak=true', '-f', 'null', '-'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }); const I = +(o.match(/I:\s+(-?[\d.]+)\s+LUFS/) || [])[1]; const P = +(o.match(/Peak:\s+(-?[\d.]+)\s+dBFS/) || [])[1]; if (Number.isNaN(I)) throw new Error('ebur128-parse fejlede for ' + file + '\n' + o.slice(-600)); return { I, peak: P }; };
+  const lufs = (file) => { const o = String(spawnSync('ffmpeg', ['-hide_banner', '-nostats', '-i', file, '-af', 'ebur128=peak=true', '-f', 'null', '-'], { encoding: 'utf8' }).stderr); const sum = o.slice(o.lastIndexOf('Summary:')); const I = +(sum.match(/I:\s+(-?[\d.]+)\s+LUFS/) || [])[1]; const P = +(sum.match(/Peak:\s+(-?[\d.]+)\s+dBFS/) || [])[1]; if (Number.isNaN(I)) throw new Error('ebur128-parse fejlede for ' + file + '\n' + o.slice(-600)); return { I, peak: P }; };
   const voice = oggs.map((f) => ({ clip: f, ...lufs(path.join(vdir, f)) }));
   const mdir = path.join(root, 'assets/music');
   const music = fs.readdirSync(mdir).filter((f) => f.endsWith('.ogg')).map((f) => ({ clip: f, ...lufs(path.join(mdir, f)) }));
