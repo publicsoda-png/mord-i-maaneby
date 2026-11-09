@@ -2,6 +2,7 @@
 // Text is rasterised 1-bit on the 640 grid (canvas), never DOM text.
 import { sfx, voice as playVoice } from './audio.js';
 import { drawPortrait } from '../art/portrait.js';
+import { sprite } from '../art/placeholder.js';
 import { meta, persistMeta } from './state.js';
 import { text1bit } from './stage.js';
 import { voiceFor } from '../voicemap.js';
@@ -42,6 +43,15 @@ export function drawHelper() {
   pc.clearRect(0, 0, 130, 250);
   hc.classList.toggle('hidden', !helper.visible);
   if (!helper.visible) return;
+  const im = sprite('helper');
+  if (im && helper.present) {
+    // rendered full-body helper: sheet of mouth frames side by side (frames ~1:2), contained in 130×250, bottom-anchored
+    const n = Math.max(1, Math.round(im.width / (im.height / 2))), fw = im.width / n, f = Math.min(n - 1, helper.mouth || 0);
+    const k = Math.min(130 / fw, 250 / im.height), w = Math.round(fw * k), h = Math.round(im.height * k);
+    pc.save(); if (helper.night) pc.filter = 'brightness(.5) saturate(.5)';
+    pc.imageSmoothingEnabled = false; pc.drawImage(im, f * fw, 0, fw, im.height, Math.round((130 - w) / 2), 250 - h, w, h); pc.restore();
+    return;
+  }
   // portrait.js draws 96×112; scale ×1.35 and sit it at the bottom of the 130×250 sprite box
   pc.save(); pc.translate(0, 98); pc.scale(1.354, 1.354); drawPortrait(pc, helper, true); pc.restore();
 }

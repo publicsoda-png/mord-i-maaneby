@@ -1,5 +1,6 @@
 // Placeholder helper portrait (procedural "Morfar Måne" — half-moon face in a rocking chair). Replaced by renders later.
 // helper = {mouth 0..3, mood, night, present}
+import { sprite } from './placeholder.js';
 export function drawPortrait(g, h, transparent = false) {
   const W = 96, H = 112;
   g.clearRect(0, 0, W, H);
@@ -9,6 +10,15 @@ export function drawPortrait(g, h, transparent = false) {
     g.strokeStyle = '#6b4a2a'; g.lineWidth = 3;
     g.beginPath(); g.moveTo(22, 100); g.quadraticCurveTo(48, 112, 74, 100); g.stroke();
     g.strokeRect(30, 56, 36, 44);
+    return;
+  }
+  // rendered helper (assets/sprites/helper.png): one frame, or a sheet of 4 mouth frames side by side
+  const im = sprite('helper');
+  if (im) {
+    const n = Math.max(1, Math.round(im.width / im.height * (H / W))), fw = im.width / n, f = Math.min(n - 1, h.mouth || 0);
+    g.save(); if (h.night) g.filter = 'brightness(.5) saturate(.5)';
+    g.imageSmoothingEnabled = false; g.drawImage(im, f * fw, 0, fw, im.height, 0, 0, W, H); g.restore();
+    if (h.mood === 'stare' || h.mood === 'off') { g.fillStyle = h.mood === 'off' ? 'rgba(0,0,0,.35)' : 'rgba(255,255,255,.08)'; g.fillRect(0, 0, W, H); }
     return;
   }
   // moon face (crescent-ish)

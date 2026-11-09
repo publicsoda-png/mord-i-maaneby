@@ -32,6 +32,9 @@ export default {
       qs.push(t);
     }
 
+    // ---- chalkboard + notice board panels (readable on any render; the rendered room has its own board elsewhere)
+    a.add('', '', { left: '60px', top: '150px', width: '320px', height: '150px', background: night ? '#0a2a1a' : '#234d2b', border: night ? '8px solid #4a3a1a' : '8px solid #8b6b3a', boxSizing: 'border-box', boxShadow: '4px 6px 0 rgba(0,0,0,.45)' });
+    a.add('', '', { left: '420px', top: '160px', width: '190px', height: '130px', background: night ? '#141414' : '#c7b89a', border: '4px solid ' + (night ? '#2a2420' : '#6a4a2a'), boxSizing: 'border-box', boxShadow: '4px 6px 0 rgba(0,0,0,.45)' });
     // ---- chalkboard texts (board is 60..380 × 150..300)
     const qText = a.text('', 80, 168, { fontSize: '24px', color: '#f3f0e0', textShadow: '1px 1px 0 #0a1a0e', width: '280px', whiteSpace: 'normal', lineHeight: '1.15', fontFamily: FONT });
     const ansText = a.text('', 80, 236, { fontSize: '28px', color: '#ffe9a8', textShadow: '1px 1px 0 #0a1a0e', fontFamily: FONT });

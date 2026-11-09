@@ -87,7 +87,28 @@ function darken(name) {
   });
 }
 /** Fnug: fluffy grey tuft with a helmet; frame 0..2 pose; back=true shows its back. */
+// Rendered sprites (assets/sprites/<name>.png, chroma-keyed PNG8 from retro.py --mode sprite). Fnug sheet = frames side by side, each frame square-ish.
+const SPR = new Map();
+export function loadSprites(names) {
+  return Promise.all(names.map((n) => new Promise((res) => {
+    const im = new Image(); im.onload = () => { SPR.set(n, im); res(true); }; im.onerror = () => res(false); im.src = `assets/sprites/${n}.png`;
+  })));
+}
+export const sprite = (name) => SPR.get(name);
 export function drawFnug(g, x, y, s = 1, { frame = 0, back = false, fringe = false, night = false } = {}) {
+  const im = SPR.get(back ? 'fnug_back' : 'fnug') || SPR.get('fnug');
+  if (im) {
+    // sheet: N frames across; a Fnug is ~44 px tall at s=1 (feet at y, top at y-44)
+    const n = Math.max(1, Math.round(im.width / im.height)), fw = im.width / n, fh = im.height, f = frame % n;
+    const h = 44 * s, w = h * fw / fh;
+    g.save();
+    if (night) g.filter = 'brightness(.45) saturate(.6)';
+    if (back && !SPR.get('fnug_back')) { g.translate(x, y); g.scale(-1, 1); g.translate(-x, -y); }
+    g.drawImage(im, f * fw, 0, fw, fh, Math.round(x - w / 2), Math.round(y - h), Math.round(w), Math.round(h));
+    g.restore();
+    if (fringe) { g.strokeStyle = '#ff00ff'; g.lineWidth = 1; g.strokeRect(Math.round(x - w / 2) + 0.5, Math.round(y - h) + 0.5, Math.round(w) - 1, Math.round(h) - 1); }
+    return;
+  }
   g.save(); g.translate(x, y); g.scale(s, s);
   if (fringe) { g.fillStyle = '#ff00ff'; g.beginPath(); g.arc(0, -14, 15, 0, 7); g.fill(); }
   g.fillStyle = night ? '#55585f' : '#b9b7ae';
