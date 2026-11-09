@@ -7,7 +7,7 @@ import { say, helper, hideDialog, showHelper } from '../core/dialog.js';
 import { save, meta, touch, persist, persistMeta, playMin } from '../core/state.js';
 import { music, stopMusic, sfx, ambient, crtHum, crtOff, blip, jump as jumpSfx, jumpSilent } from '../core/audio.js';
 import { applyMix, enterNight, stilleMorgen } from '../core/mix.js';
-import { cur } from '../core/cursor.js';
+import { cur, showCursor } from '../core/cursor.js';
 import { msgBox, showOS, sleep } from '../core/os.js';
 import { PLOTS } from './hub.js';
 
@@ -257,7 +257,7 @@ function drawHall(g) {
 register({
   id: 'jump',
   async enter() {
-    lock(true); hideDialog(); stopMusic(0.01); crtHum(false);
+    lock(true); hideDialog(); stopMusic(0.01); crtHum(false); showCursor(false); // ingen timeglas over salen
     const img = new Image(); img.src = 'assets/photos/jump_hall.png'; await new Promise((r) => { img.onload = r; img.onerror = r; });
     // ≤300 ms: the hall + the one clipped knæk (audio.js jump: master stays muted until the player acts)
     jumpSfx(3000);
