@@ -1,7 +1,8 @@
 // Bykortet: 9 byggepladser, Fnugger, helper portrait corner, HUD. Fires wrongness events between tasks.
 import { register, goto, button, lock } from '../core/scene.js';
 import { drawText } from '../core/stage.js';
-import { bg, drawFnug, drawBuilding } from '../art/placeholder.js';
+import { bg, drawFnug } from '../art/placeholder.js';
+import { buildSwap, drawPlot } from '../art/fx.js';
 import { say, helper, countHelpClick, hideDialog, sleep, showHelper } from '../core/dialog.js';
 import { save, meta, persist, persistMeta, touch } from '../core/state.js';
 import { music, sfx, crtHum, play, room } from '../core/audio.js';
@@ -48,10 +49,9 @@ register({
     showHelper(true); applyMix();
     music(save.night ? null : `assets/music/${save.flags.bench_gone ? 'byen_11' : 'byen'}.ogg`, { fade: 1.5, startDelay: (save.flags.musicDelayMs || 0) / 1000 });
     save.flags.musicDelayMs = 0;
-    if (save.flags.justBuilt) { const jb = save.flags.justBuilt; delete save.flags.justBuilt; touch(); play(`ui_bygning_op${Math.min(3, Math.max(1, jb.stage))}`); }
+    const jb = save.flags.justBuilt; if (jb) { delete save.flags.justBuilt; touch(); } // belønningen køres efter knapperne er sat (buildSwap spiller selv ui_bygning_opN på pop-framen)
     button('Gem', 8, 8, async () => { (save.flags.save_lies ? sfx.okFlat : sfx.ok)(); persist(true); await say(save.flags.save_lies ? 'Gemt!' : 'Dit byggeri er gemt.', { auto: 900, noPortrait: true }); }, { w: 60 });
     const luk = async () => {
-      sfx.click();
       const os = document.getElementById('os'); showOS(true); os.style.background = 'transparent'; os.innerHTML = '';
       const r = await msgBox({ title: 'Regn med Måneby', icon: 'warn', msg: save.flags.morning ? 'Byen er ikke gemt.\nLuk alligevel?' : 'Vil du afslutte?', buttons: [{ label: 'Ja', value: 'y' }, { label: 'Nej', value: 'n', def: true }, ...(save.night && save.flags.jumped ? [{ label: 'Hende', value: 'h' }] : [])], parent: os });
       showOS(false);
@@ -59,12 +59,13 @@ register({
     };
     button('Luk', 76, 8, luk, { w: 60 });
     window.MB && (window.MB.luk = luk);
-    if (save.flags.log_open) button('Nedenunder', 540, 8, () => { sfx.click(); goto('logroom'); }, { w: 92 });
+    if (save.flags.log_open) button('Nedenunder', 540, 8, () => goto('logroom'), { w: 92 });
     lock(false);
     helper.night = save.night;
     if (save.night) { if (!save.flags.jumped) helper.present = false; }
     else helper.present = true;
     this.idleT = performance.now(); this.nvArmed = null; this.nvDone = false;
+    if (jb) { const p = PLOTS.find((x) => x.id === jb.id); if (p) await buildSwap(p, Math.max(0, jb.stage - 1), jb.stage, { night: save.night }); } // støv → pop + pling → stjerner på step-uret (fx.js)
     if (arg.first) {
       await say(t('intro1'), { voice: 'assets/voice/intro1.ogg', mouth: 'assets/voice/intro1.json' }); await say(t('intro2')); await say(t('intro3')); await say(t('intro4')); await say(t('hub_first'));
       // 2. gennemspilning: han kan tælle besøg
@@ -146,7 +147,7 @@ register({
     const showDoor = save.flags.hall_door && save.night && !save.flags.jumped && !save.flags.hall_open && !meta.ending;
     for (const p of PLOTS) {
       if (p.special) continue;
-      drawBuilding(g, p.x, p.y, save.buildings[p.id] || 0, p.kind, save.night);
+      drawPlot(g, p, save.buildings[p.id] || 0, save.night);
       if (p.locked && !save.flags.hall_open && !meta.ending) {
         if (showDoor) drawDoor(g, save.night);
         else drawText('?', p.x, p.y - 60, { align: 'center', font: '700 28px "Comic Neue","Comic Sans MS",sans-serif', color: '#ffd21f', outline: '#000' });
