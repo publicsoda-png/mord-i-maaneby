@@ -17,6 +17,18 @@ def key(im, tol=80):
             r, g, b, a = px[x, y]
             if g > 140 and g - max(r, b) > tol: px[x, y] = (0, 255, 0, 0)
             elif g > 120 and g - max(r, b) > tol // 2: px[x, y] = (r, g, b, 120)  # soft edge: keep a 1-px greenish fringe (era-true)
+    # C3 fix: white/grey grid remnants at the cell edges (the sheet's separators) — flood from the border over
+    # transparent or near-white pixels so only border-connected white goes, never the figure's own highlights
+    seen = bytearray(w * h); stack = [(x, 0) for x in range(w)] + [(x, h - 1) for x in range(w)] + [(0, y) for y in range(h)] + [(w - 1, y) for y in range(h)]
+    def bgish(p): return p[3] == 0 or (min(p[0], p[1], p[2]) > 200 and max(p[0], p[1], p[2]) - min(p[0], p[1], p[2]) < 28) or max(p[0], p[1], p[2]) < 48  # white separators + black grid lines
+    while stack:
+        x, y = stack.pop()
+        if x < 0 or y < 0 or x >= w or y >= h or seen[y * w + x]: continue
+        seen[y * w + x] = 1
+        p = px[x, y]
+        if not bgish(p): continue
+        if p[3]: px[x, y] = (0, 255, 0, 0)
+        stack.extend(((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)))
     return im
 
 def cells(sheet):
@@ -24,8 +36,8 @@ def cells(sheet):
     w, h = im.size; cw, ch = w // 3, h // 3
     return [im.crop((c * cw, r * ch, (c + 1) * cw, (r + 1) * ch)) for r in range(3) for c in range(3)]
 
-def prep(cell):
-    k = key(cell)
+def prep(cell, tol=80):
+    k = key(cell, tol)
     bbox = k.getchannel('A').getbbox()
     if bbox: k = k.crop(bbox)
     k.thumbnail((CELL - 8, CELL - 6), Image.LANCZOS)
@@ -48,7 +60,7 @@ def main():
         sheet.save(args[1]); print(args[1], len(allc), 'cells'); return
     chosen = []
     for a in args:
-        s, i = a.split(':'); chosen.append(prep(cells(int(s))[int(i)]))
+        a, _, t = a.partition('@'); s, i = a.split(':'); chosen.append(prep(cells(int(s))[int(i)], int(t) if t else 80))  # 1:1@130 = looser key for green figures
     rows = (len(chosen) + 2) // 3
     out = Image.new('RGBA', (3 * CELL, rows * CELL), (0, 0, 0, 0))
     for n, c in enumerate(chosen): out.paste(c, ((n % 3) * CELL, (n // 3) * CELL), c)
