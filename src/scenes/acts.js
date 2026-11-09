@@ -94,7 +94,7 @@ register({
     const left = this.fn.filter((f) => !f.gone).length;
     const opts = [left, left + 1, 12, left - 1].filter((v, i, a) => v >= 0 && a.indexOf(v) === i).sort(() => 0.5 - rng(left)());
     opts.forEach((v, i) => {
-      const c = document.createElement('div'); c.className = 'chip'; c.textContent = v; c.style.left = 200 + i * 60 + 'px'; c.style.top = '220px';
+      const c = document.createElement('div'); c.className = 'chip'; c.textContent = v; c.style.left = 200 + i * 60 + 'px'; c.style.top = '424px';
       c.addEventListener('pointerdown', (e) => { e.stopPropagation(); this.answer(v, left); }); ui.appendChild(c);
     });
   },
