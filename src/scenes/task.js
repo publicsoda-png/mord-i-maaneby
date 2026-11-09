@@ -55,7 +55,8 @@ register({
     touch(); persist(true);
     lock(true);
     (save.flags.klaret_klaret ? sfx.goodGood : sfx.good)();
-    await say(line(G, p.id + '_ok', 'Godt klaret!'));
+    const okText = line(G, p.id + '_ok', 'Godt klaret!');
+    await say(save.flags.klaret_klaret ? okText.replace(/^Godt klaret!/, 'Godt klaret klaret!') : okText); // the typo repeats on every plot from min 15
     if (stage === 3 && !save.stickers.includes(p.id)) { save.stickers.push(p.id); sfx.sticker(); await say(t('sticker')); }
     lock(false);
     goto('hub', { back: true });

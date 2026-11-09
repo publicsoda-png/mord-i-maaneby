@@ -11,7 +11,7 @@ export const L = {
   help: () => pick(['Klik på en byggeplads, så fortæller jeg, hvad der skal regnes ud.', 'Rigtige svar giver flotte huse. Forkerte svar giver skæve huse. Men man kan altid prøve igen.', 'I Måneby lægger vi sammen og ganger. Det er alt, hvad man behøver.']),
   landing_intro: 'Kasserne lander ét ad gangen. Tæl dem, og klik på det rigtige tal. Du må gerne klikke på kasserne imens.',
   landing_ok: () => (save.flags.klaret_klaret ? 'Godt klaret klaret! Nu kan Fnuggerne bygge en rigtig landingsplads.' : 'Godt klaret! Nu kan Fnuggerne bygge en rigtig landingsplads.'),
-  landing_wrong: () => pick(['Hov, det går ikke. Tæl en gang til.', 'Det var ikke helt rigtigt. Prøv igen.']),
+  landing_wrong: () => pick(['Hov, det passer ikke. Tæl en gang til.', 'Det var ikke helt rigtigt. Prøv igen.']),
   sticker: 'Du har fået et klistermærke til dit byggekort!',
   name_B: 'Flot, B.',
   setup_name: 'Skriv dit navn:',

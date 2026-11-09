@@ -64,7 +64,7 @@ register({
     if (arg.first) { await say(t('intro1'), { voice: 'assets/voice/intro1.ogg', mouth: 'assets/voice/intro1.json' }); await say(t('intro2')); await say(t('intro3')); await say(t('hub_first')); }
     else if (arg.nightIntro) { await sleep(2500); /* nobody says anything */ }
     else if (arg.afterJump) { helper.present = true; await say('Der mangler én. Nogen har … jeg kender ikke ordet.', { voice: 'assets/voice/mangler_en.ogg', mouth: 'assets/voice/mangler_en.json', hold: 600 }); save.flags.hall_open = true; save.flags.hallHint = 'Rådhuset er åbent.'; touch(); }
-    else if (save.flags.hall_answer && !save.flags.fever1) { goto('fever1'); return; }
+    else if (save.flags.hall_answer !== undefined && !save.flags.fever1) { goto('fever1'); return; } // 0 is an answer too
     else if (save.flags.fever1 && !save.flags.morning) { await say('Der er ét sted til. Nedenunder.', { hold: 400 }); save.flags.log_open = true; touch(); }
     else if (save.flags.fever_madpakke && !save.flags.fever2) { save.flags.fever_madpakke = false; goto('fever2'); return; }
     else if (arg.back) {
@@ -75,6 +75,7 @@ register({
       if (save.flags.english_line && !save.flags.english_said) { save.flags.english_said = true; touch(); await say('Well done. What shall we build next?', { auto: 2000, silent: true }); }
       else if (save.flags.first_name && !save.flags.first_name_said) { save.flags.first_name_said = true; touch(); await say(`Velkommen tilbage, ${meta.firstName}.`, { hold: 500, silent: true }); }
       else if (save.flags.tts_leak && !save.flags.tts_leaked) { save.flags.tts_leaked = true; touch(); await leak('Er du der stadig? Jeg kan ikke høre dig.'); }
+      else if (save.flags.name_B && !save.flags.name_B_said) { save.flags.name_B_said = true; touch(); await say(t('name_B'), { auto: 1600 }); } // the wrong name, once, never commented on
       else await say(t('hub_back'), { auto: 1600 });
     }
   },
@@ -134,6 +135,6 @@ register({
     // counter as outlined text in the scene (no HUD bar — era rule). Sign says 12 while 11 stand on the plain.
     const n = save.flags.silence_on ? (Math.floor(tm / 180) % 2 ? 12 : 11) : (save.flags.fnugShown ?? 12);
     drawText(`Fnugger: ${n}`, 630, 458, { align: 'right', font: '700 14px "Comic Neue","Comic Sans MS",sans-serif', color: '#fff', outline: '#000' });
-    drawText(save.flags.name_B ? 'B.' : save.name, 150, 458, { font: '700 14px "Comic Neue","Comic Sans MS",sans-serif', color: '#fff', outline: '#000' });
+    drawText(save.flags.name_B && !save.flags.name_B_said ? 'B.' : save.name, 150, 458, { font: '700 14px "Comic Neue","Comic Sans MS",sans-serif', color: '#fff', outline: '#000' });
   },
 });

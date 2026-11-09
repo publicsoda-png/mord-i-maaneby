@@ -16,7 +16,7 @@ const KIDBIG = '700 34px "Comic Neue","Comic Sans MS",sans-serif';
 const osLayer = document.getElementById('os');
 
 // ------------------------------------------------------------------ falsk slutning (min ~50)
-const NAMES13 = ['Idé og manuskript: Krater Multimedie', 'Programmering: J. Krøyer', 'Grafik: Mette L. Hansen', 'Musik: Torben Vang', 'Stemme: Sara', 'Pædagogisk konsulent: Kirsten Møller', 'Testet af 4.b', 'Produktion: Valby Multimediecenter', 'Tak til Skole-IT, Teknisk Forvaltning', 'Lyd: Valby Lydstudie', 'Oversættelse (ufærdig): —', 'Bygmester: B.', 'Bygmester: '];
+const NAMES13 = ['Idé og manuskript: Krater Multimedie', 'Programmering: J. Krøyer', 'Grafik: Mette L. Hansen', 'Musik: Torben Vang', 'Stemme: Sara', 'Pædagogisk konsulent: Kirsten Møller', 'Afprøvet i 4.b', 'Produktion: Valby Multimediecenter', 'Tak til Skole-IT, Teknisk Forvaltning', 'Lyd: Valby Lydstudie', 'Oversættelse (ufærdig): —', 'Bygmester: B.', 'Bygmester: '];
 register({
   id: 'falseEnd',
   async enter() {
@@ -138,7 +138,7 @@ register({
   },
   async cmd(c) {
     sfx.tick();
-    if (c === 'SE') this.lines.push(...['> en stol er trukket ud. der ligger en madpakke på bordet.', '> på skærmen der er tændt står der: tilbage om lidt'][Math.min(1, this.seen++ || 0)] ? ['> en stol er trukket ud. der ligger en madpakke på bordet.'] : ['> på skærmen der er tændt står der: tilbage om lidt']);
+    if (c === 'SE') { this.seen = (this.seen || 0) + 1; this.lines.push(this.seen === 1 ? '> en stol er trukket ud. der ligger en madpakke på bordet.' : '> på skærmen der er tændt står der: tilbage om lidt'); }
     else if (c === 'GÅ') this.lines.push('> døren er låst. det er efter 16.');
     else if (c === 'SLUK SKÆRM') {
       lock(true); crtOff(); crtHum(false);
@@ -188,7 +188,7 @@ register({
 });
 
 // ------------------------------------------------------------------ Logrummet: lær ham minus (7 lag, baglæns)
-const LOG = ['17-11-2005 15:40  elev07 logget ind', '15:41  Rådhuset: "Rådhuss" (skrevet af bruger)', '15:44  hjælp ×38', '15:52  Landingspladsen: 12 kasser. svar: 11', '15:58  "hvor mange bor her" — intet svar', '16:03  hjælp ×400 i alt', '16:04  session afbrudt'];
+const LOG = ['17-11-2005 15:40  elev07 logget ind', '15:41  Rådhuset: "Rådhuss" (skrevet af bruger)', '15:44  hjælp ×38', '15:52  Landingspladsen: 12 kasser. svar: 11', '15:58  "hvor mange bor her" — intet svar', '16:03  hjælp ×400 i alt', '16:04  tilbage om lidt'];
 register({
   id: 'logroom',
   async enter() {
@@ -273,7 +273,7 @@ register({
     await say('Udmærket.', { voice: 'assets/voice/udmaerket.ogg', mouth: 'assets/voice/udmaerket.json', hold: 800 });
     this.said = true;
     this.hs = PLOTS.map((p) => ({ x: p.x - 34, y: p.y - 44, w: 68, h: 54, cursor: 'hand', on: () => this.look(p) }));
-    this.hs.push({ x: 560, y: 60, w: 70, h: 90, on: () => sfx.tick() });
+    this.hs.push({ x: 6, y: 226, w: 130, h: 250, on: () => sfx.tick() }); // help = tick, where the helper stands
   },
   hotspots() { return this.said ? this.hs : []; },
   async look(p) {

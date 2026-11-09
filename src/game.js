@@ -16,7 +16,7 @@ export const gameApi = {
   async cd2() {
     showOS(true); osLayer.style.background = 'transparent'; osLayer.innerHTML = '';
     sfx.cdSpin(1.6); await sleep(2100); play('os_ding_fejl');
-    const r = await msgBox({ title: 'Regn med Måneby', icon: 'warn', msg: 'Indsæt CD 2, og tryk på Gentag.', buttons: [{ label: 'Gentag', value: 'retry', def: true }, { label: 'Annuller', value: 'cancel' }], lockMs: 10000, parent: osLayer, silent: true });
+    const r = await msgBox({ title: 'Regn med Måneby', icon: 'warn', msg: 'Indsæt cd 2, og tryk på Gentag.', buttons: [{ label: 'Gentag', value: 'retry', def: true }, { label: 'Annuller', value: 'cancel' }], lockMs: 10000, parent: osLayer, silent: true });
     showOS(false);
     if (r === 'retry') { play('wr_palette_knaek'); await paletteFlash(2, 'rot'); }
   },
@@ -52,7 +52,7 @@ export const gameApi = {
   async jumpScare() { goto('jump'); },
   async skoleIT() {
     showOS(true); osLayer.style.background = 'transparent'; osLayer.innerHTML = '';
-    await msgBox({ title: 'Meddelelse fra Skole-IT', icon: 'info', msg: 'Grundet opdatering slettes elevdata den 1/12.\n\nKære elev: luk programmet.', buttons: [{ label: 'Luk', value: 'x', noop: true, def: true }, { label: 'OK', value: 'ok' }], parent: osLayer, w: 320 });
+    await msgBox({ title: 'Meddelelse fra Skole-IT', icon: 'info', msg: 'Grundet opdatering slettes elevdata den 1/12.\n\nKære elev. Luk venligst programmet.', buttons: [{ label: 'Luk', value: 'x', noop: true, def: true }, { label: 'OK', value: 'ok' }], parent: osLayer, w: 320 });
     showOS(false);
   },
 };

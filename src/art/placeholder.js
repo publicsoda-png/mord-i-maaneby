@@ -130,6 +130,14 @@ export function drawFnug(g, x, y, s = 1, { frame = 0, back = false, fringe = fal
 }
 /** Building sprite by stage 0..3 (0 = empty plot, 1 wobbly, 2 plain, 3 fine). */
 export function drawBuilding(g, x, y, stage, kind, night = false) {
+  // rendered building: assets/sprites/bld_<kind>.png = 3 stages side by side (2:3 cells), ground line at the bottom
+  const im = stage > 0 && SPR.get('bld_' + kind);
+  if (im) {
+    const fw = im.width / 3, fh = im.height, h = 72, w = Math.round(h * fw / fh), f = Math.min(2, stage - 1);
+    g.save(); if (night) g.filter = 'brightness(.4) saturate(.5)';
+    g.drawImage(im, f * fw, 0, fw, fh, Math.round(x - w / 2), y - h + 4, w, h); g.restore();
+    return;
+  }
   g.save(); g.translate(x, y);
   const base = night ? '#2c2f3a' : '#dfe1ea', dark = night ? '#15171f' : '#8d93a8', accent = night ? '#5a4610' : '#ffbf2f';
   if (stage === 0) {
