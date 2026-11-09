@@ -2,6 +2,10 @@
 # Batch 1: alle nøglereplikker. Trin 0 = baseline, trin 2 = telefonfilter (efter jump scare).
 cd "$(dirname "$0")"
 T=./tts.sh
+$T intro1 "Velkommen til Måneby, lille bygmester. Her er stille. Alt for stille, hvis du spørger mig."
+$T videre "…vi går videre."
+$T udmaerket "Udmærket."
+$T mangler_en "Der mangler én. Nogen har … jeg kender ikke ordet." 2
 $T intro2 "Fnuggerne vil så gerne bygge en by, men de kan ikke regne. Det kan du. Så hjælper I hinanden."
 $T intro3 "Klik på en byggeplads på kortet, så går vi i gang. Hvis du mangler hjælp, så klik på mig."
 $T hub_first "Lad os begynde med Landingspladsen. Der er landet en masse kasser med byggesten."

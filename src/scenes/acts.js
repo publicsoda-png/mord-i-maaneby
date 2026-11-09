@@ -5,7 +5,8 @@ import { ctx, W, H, drawText, paletteFlash, rng, proc } from '../core/stage.js';
 import { bg, drawFnug, drawBuilding } from '../art/placeholder.js';
 import { say, helper, hideDialog, showHelper } from '../core/dialog.js';
 import { save, meta, touch, persist, persistMeta, playMin } from '../core/state.js';
-import { music, stopMusic, sfx, ensureAudio, audioCtx, buses, setBus, ambient, crtHum, crtOff, blip } from '../core/audio.js';
+import { music, stopMusic, sfx, ambient, crtHum, crtOff, blip, jump as jumpSfx, jumpSilent } from '../core/audio.js';
+import { applyMix, enterNight, stilleMorgen } from '../core/mix.js';
 import { cur } from '../core/cursor.js';
 import { msgBox, showOS, sleep } from '../core/os.js';
 import { PLOTS } from './hub.js';
@@ -37,9 +38,11 @@ register({
     // the logo letters fall and land crooked — 2 frames — then CRT off → night
     this.fall = 1; await sleep(90); this.fall = 2; await sleep(90);
     crtOff();
-    save.night = true; save.act = 3; save.flags.nightStartMin = playMin(); touch(); persist(true);
+    save.act = 3; save.flags.nightStartMin = playMin(); touch();
     document.title = location.hostname.endsWith('github.io') ? 'Mord i Måneby' : document.title;
-    await cutBlack(3000);
+    const black = cutBlack(3000);
+    await enterNight(); // CRT off → 3 s nothing → hum + ventilation fade in (mix.js); sets save.night
+    await black; persist(true);
     goto('hub', { back: false, nightIntro: true }, { black: 0 });
   },
   bg(g, dt, t) {
@@ -74,7 +77,7 @@ register({
 register({
   id: 'fever1',
   async enter() {
-    lock(false); stopMusic(0.2);
+    lock(false); stopMusic(0.2); applyMix({ flags: { ...save.flags, scene: 'feber1' } });
     this.fn = Array.from({ length: 11 }, (_, i) => ({ x: 110 + (i % 6) * 90, y: 300 + Math.floor(i / 6) * 90, gone: false, look: 0 }));
     this.right = 0; this.ask();
     await say('Hvor mange bor her?', { noPortrait: true, auto: 1400 });
@@ -118,7 +121,7 @@ register({
 register({
   id: 'fever2',
   async enter() {
-    lock(false); stopMusic(0.2); crtHum(true);
+    lock(false); stopMusic(0.2); applyMix({ flags: { ...save.flags, scene: 'feber2' } });
     this.lines = ['> du er i edb-lokalet. rullegardinerne er nede.', '> der er 12 skærme. 11 er slukket.'];
     this.cmds = ['SE', 'GÅ', 'SLUK SKÆRM'];
     this.mk();
@@ -153,17 +156,13 @@ register({
   async enter() {
     lock(true); hideDialog(); stopMusic(0.01); crtHum(false);
     const img = new Image(); img.src = 'assets/raw/jump/jump_1.png'; await new Promise((r) => { img.onload = r; img.onerror = r; });
-    // ≤300 ms: pencil drawing + clipped 22 kHz knæk
-    const ac = audioCtx();
-    if (ac) {
-      const n = ac.createBuffer(1, ac.sampleRate * 0.3, ac.sampleRate), d = n.getChannelData(0);
-      for (let i = 0; i < d.length; i++) d[i] = Math.max(-1, Math.min(1, (Math.random() * 2 - 1) * 3 + Math.sign(Math.sin(i / 22)) * 0.8));
-      const s = ac.createBufferSource(); s.buffer = n; const gn = ac.createGain(); gn.gain.value = 0.9; s.connect(gn).connect(buses().master); s.start();
-    }
+    // ≤300 ms: pencil drawing + the one clipped knæk (audio.js jump: master stays muted until the player acts)
+    jumpSfx(3000);
     this.img = img.naturalWidth ? img : null; this.show = true;
     await sleep(280);
     this.show = false;
     await cutBlack(3000); // total silence
+    while (jumpSilent()) { await sleep(100); } // black holds until the player clicks or types
     save.flags.phone = true; save.flags.jumped = true; touch(); persist(true);
     goto('hub', { back: false, afterJump: true }, { black: 0 });
   },
@@ -188,7 +187,7 @@ register({
   id: 'logroom',
   async enter() {
     lock(false); stopMusic(0.3); hideDialog(); helper.present = true; helper.mood = 'calm'; showHelper(true);
-    ambient(null); crtHum(false);
+    applyMix({ flags: { ...save.flags, scene: 'logrum' } });
     this.layer = 0; this.task = null; this.input = '';
     music('assets/music/raadhus.ogg', { fade: 2, gain: 0.5 });
     await say('Her ligger det, vi ikke har talt med. Grav.', { noPortrait: false, hold: 300 });
@@ -259,9 +258,9 @@ register({
   async enter() {
     lock(false); save.night = false;
     this.bgc = bg('hub'); this.t0 = performance.now(); this.said = false; this.idle = performance.now();
-    ambient(null); crtHum(false); showHelper(true);
-    await sleep(4000); // ventilation off = real silence first
-    music('assets/music/byen_morgen.ogg', { fade: 3, gain: 0.5 });
+    showHelper(true);
+    await stilleMorgen(); // ventilation switches off audibly, 4 s of nothing, then the morning theme (mix.js)
+    music('assets/music/byen_morgen.ogg', { fade: 3 });
     await sleep(1500);
     helper.present = true; helper.mood = 'calm';
     await say('Udmærket.', { voice: 'assets/voice/udmaerket.ogg', mouth: 'assets/voice/udmaerket.json', hold: 800 });
@@ -296,7 +295,7 @@ const CREDITS = ['REGN MED MÅNEBY', '', 'Idé og manuskript: Krater Multimedie 
 register({
   id: 'credits',
   async enter() {
-    lock(true); hideDialog(); 
+    lock(true); hideDialog(); applyMix({ flags: { ...save.flags, scene: 'credits' } });
     music('assets/music/credits.ogg', { fade: 1, restart: true });
     this.t0 = performance.now();
     setTimeout(() => { lock(false); button('Luk', 290, 440, () => goto('desktop'), { w: 60 }); }, 38000);

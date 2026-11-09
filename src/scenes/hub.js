@@ -5,6 +5,7 @@ import { bg, drawFnug, drawBuilding } from '../art/placeholder.js';
 import { say, helper, countHelpClick, hideDialog, sleep, showHelper } from '../core/dialog.js';
 import { save, meta, persist, persistMeta, touch } from '../core/state.js';
 import { music, sfx, crtHum } from '../core/audio.js';
+import { applyMix } from '../core/mix.js';
 import { msgBox, showOS } from '../core/os.js';
 import { t } from '../script.js';
 import { checkWrongness } from '../wrongness.js';
@@ -40,7 +41,7 @@ register({
   id: 'hub',
   async enter(arg = {}) {
     this.bgc = bg('hub', save.night);
-    showHelper(true);
+    showHelper(true); applyMix();
     music(save.night ? null : `assets/music/${save.flags.bench_gone ? 'byen_11' : 'byen'}.ogg`, { fade: 1.5, startDelay: (save.flags.musicDelayMs || 0) / 1000 });
     save.flags.musicDelayMs = 0;
     button('Gem', 8, 8, async () => { sfx.click(); persist(true); await say(save.flags.save_lies ? 'Gemt!' : 'Dit byggeri er gemt.', { auto: 900, noPortrait: true }); }, { w: 60 });
@@ -56,8 +57,8 @@ register({
     if (save.flags.log_open) button('Logrummet', 540, 8, () => { sfx.click(); goto('logroom'); }, { w: 92 });
     lock(false);
     helper.night = save.night;
-    if (save.night) { crtHum(true); if (!save.flags.jumped) helper.present = false; }
-    else { crtHum(false); helper.present = true; }
+    if (save.night) { if (!save.flags.jumped) helper.present = false; }
+    else helper.present = true;
     this.idleT = performance.now();
     if (arg.first) { await say(t('intro1'), { voice: 'assets/voice/intro1.ogg', mouth: 'assets/voice/intro1.json' }); await say(t('intro2')); await say(t('intro3')); await say(t('hub_first')); }
     else if (arg.nightIntro) { await sleep(2500); /* nobody says anything */ }
@@ -68,6 +69,7 @@ register({
     else if (arg.back) {
       // Between tasks: let the curve speak, otherwise a normal line
       const fired = await checkWrongness(gameApi);
+      applyMix();
       if (fired) return;
       if (save.flags.english_line && !save.flags.english_said) { save.flags.english_said = true; touch(); await say('Well done. What shall we build next?', { auto: 2000, silent: true }); }
       else if (save.flags.first_name && !save.flags.first_name_said) { save.flags.first_name_said = true; touch(); await say(`Velkommen tilbage, ${meta.firstName}.`, { hold: 500, silent: true }); }

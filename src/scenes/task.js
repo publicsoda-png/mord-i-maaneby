@@ -5,6 +5,7 @@ import { say, sleep } from '../core/dialog.js';
 import { save, touch, persist } from '../core/state.js';
 import { music, sfx } from '../core/audio.js';
 import { progressBox, fakeProgress, showOS } from '../core/os.js';
+import { applyMix } from '../core/mix.js';
 import { t } from '../script.js';
 import { playGame, stopGame } from '../ware/engine.js';
 import landing from '../ware/games/landing.js';
@@ -24,6 +25,7 @@ register({
   async enter(p) {
     this.p = p;
     this.bgc = bg(p.id, save.night);
+    applyMix();
     const cursed = save.night && p.id === 'quarry';
     music(`assets/music/${MUSIC[p.id] || 'plads_a'}${cursed ? '_cursed' : ''}.ogg`, { fade: 1 });
     button('Tilbage', 8, 448, () => { stopGame(); sfx.click(); goto('hub', { back: true }); }, { w: 90 });
