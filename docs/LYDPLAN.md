@@ -12,6 +12,8 @@ Lyden er ét venligt 2005-cd-rom-lydbillede (GM Wavetable, 22 kHz-samples, teatr
 5. **Ét jump scare.** Alt andet er dread. Efter min 68 må lyden kun blive *stillere*.
 
 ## 2. Signalkæde (udvidelse af `src/core/audio.js`)
+
+> **Rettet efter QC 10-11:** niveauerne i tabellen er *indholdsniveauer* for filerne (render.sh/tts.sh normaliserer musik til −18 LUFS og stemme til −16 LUFS). `mix.js` lægger dem IKKE oveni igen: bus-gains er relative dB (0 = som masteret, amb −10…−20 rel.). Ambience-loops er wrap-paddet 1 s i hver ende og looper mellem `loopStart=1` og `duration−1`, så codec-kanterne aldrig høres.
 Eksisterende busser: `music / voice / sfx / amb → master`. Tilføjes:
 
 | Node | Hvor | Bruges til |
