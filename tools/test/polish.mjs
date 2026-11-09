@@ -35,7 +35,9 @@ function grepAll(dir, re, filter = () => true) {
 {
   const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
   const cssHits = G.A7_grep.css_forbidden.filter((k) => css.includes(k));
-  const sinHits = grepAll(path.join(root, 'src'), /Math\.sin/, (p) => /\.js$/.test(p) && !G.A7_grep.sin_allowlist.some((a) => p.endsWith(a)));
+  // Kun TIDSDREVET sinus (bob/glid) i scener + core: Math.sin(t/600), Math.sin(tm*…), Math.sin(performance.now()…). Geometri (vinkler) er lovlig. Minispil (src/ware) tjekkes fra fase 4.
+  const sinRe = new RegExp(G.A7_grep.sin_time_regex);
+  const sinHits = grepAll(path.join(root, 'src'), sinRe, (p) => /\.js$/.test(p) && /src\/(scenes|core)\//.test(p) && !G.A7_grep.sin_allowlist.some((a) => p.endsWith(a)));
   const blackOverrides = grepAll(path.join(root, 'src'), /black:\s*0/, (p) => /\.js$/.test(p));
   const blackBad = blackOverrides.filter((h) => !G.A2_transition.black_override_allowlist.some((a) => h.startsWith(a)));
   const procHits = grepAll(path.join(root, 'src/scenes'), /\bproc\(|placeholder\.js/, (p) => /\.js$/.test(p));

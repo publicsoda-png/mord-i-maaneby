@@ -5,3 +5,4 @@ private/
 .DS_Store
 tools/music/sf2/*.sf2
 tools/music/venv/
+tools/test/qc/

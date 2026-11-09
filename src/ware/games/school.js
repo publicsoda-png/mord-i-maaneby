@@ -22,12 +22,13 @@ export default {
     const sevenMissing = !night && !!(a.opts.save && a.opts.save.flags && a.opts.save.flags.seven_missing);
     const N = 5;
 
-    // ---- questions (deterministic). At night, avoid answers containing a 7 (the 7-key is dead there).
+    // ---- questions (deterministic). When the 7-key is dead (night) or missing, questions 1–4 avoid answers with a 7.
+    const no7 = night || sevenMissing;
     const qs = [];
     for (let i = 0; i < N; i++) {
       if (i === N - 1 && sevenMissing) { qs.push(sevenTask(grade, r)); break; }
       let t = opg(i % 2 ? 'mul' : 'add', grade, r), guard = 0;
-      while (night && String(t.a).includes('7') && guard++ < 30) t = opg(i % 2 ? 'mul' : 'add', grade, r);
+      while (no7 && String(t.a).includes('7') && guard++ < 30) t = opg(i % 2 ? 'mul' : 'add', grade, r);
       qs.push(t);
     }
 

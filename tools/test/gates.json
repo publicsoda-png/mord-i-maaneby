@@ -13,5 +13,5 @@
   "A4_text_aa": { "device_scale_factor": 2, "max_subpixel_diff_pct": 1.0 },
   "A5_placeholder": { "enforced_from_phase": 4, "max_proc_calls_in_scenes": 0 },
   "A6_timing": { "cps_min": 24, "cps_max": 32, "sfx_sync_tolerance_ms": 83 },
-  "A7_grep": { "css_forbidden": ["transition", "ease", "cubic-bezier", "blur("], "sin_allowlist": ["src/core/audio.js", "src/art/placeholder.js", "src/art/portrait.js"] }
+  "A7_grep": { "css_forbidden": ["transition", "ease", "cubic-bezier", "blur("], "sin_time_regex": "Math\\.sin\\(\\s*\\(?\\s*(t|tm|time|now|performance\\.now\\(\\)|Date\\.now\\(\\))\\s*[\\/\\*\\-\\+]", "sin_scope": "src/scenes + src/core (minispil fra fase 4)", "sin_allowlist": ["src/core/audio.js", "src/art/placeholder.js", "src/art/portrait.js"] }
 }
