@@ -98,14 +98,13 @@ export const sprite = (name) => SPR.get(name);
 /** Fnug = one of a flock of different retro aliens: assets/sprites/aliens.png is a grid (3×3 per sheet, several sheets stacked
  *  vertically or side by side); `id` picks the species. frame 1 = step (1 px up), frame 2 = look (flipped). */
 export function drawFnug(g, x, y, s = 1, { frame = 0, back = false, fringe = false, night = false, id = 0 } = {}) {
-  const im = SPR.get('aliens');
+  const im = (night && SPR.get('aliens_nat')) || SPR.get('aliens'); // bagt nat-ark (WP1: ingen canvas-filtre)
   if (im) {
     // sheet is always 3 columns of square cells, any number of rows (sheets stacked vertically by tools/art/aliens.py)
     const cols = 3, cw = im.width / cols, rows = Math.max(1, Math.round(im.height / cw)), ch = im.height / rows, cells = cols * rows;
     const c = ((id % cells) + cells) % cells, sx = (c % cols) * cw, sy = Math.floor(c / cols) * ch;
     const h = 48 * s, w = h * cw / ch, dy = frame === 1 ? -1 : 0;
     g.save();
-    if (night) g.filter = 'brightness(.45) saturate(.6)';
     if (back || frame === 2) { g.translate(x, y); g.scale(-1, 1); g.translate(-x, -y); }
     g.drawImage(im, sx, sy, cw, ch, Math.round(x - w / 2), Math.round(y - h) + dy, Math.round(w), Math.round(h));
     g.restore();
@@ -131,10 +130,10 @@ export function drawFnug(g, x, y, s = 1, { frame = 0, back = false, fringe = fal
 /** Building sprite by stage 0..3 (0 = empty plot, 1 wobbly, 2 plain, 3 fine). */
 export function drawBuilding(g, x, y, stage, kind, night = false) {
   // rendered building: assets/sprites/bld_<kind>.png = 3 stages side by side (2:3 cells), ground line at the bottom
-  const im = stage > 0 && SPR.get('bld_' + kind);
+  const im = stage > 0 && ((night && SPR.get('bld_' + kind + '_nat')) || SPR.get('bld_' + kind));
   if (im) {
     const fw = im.width / 3, fh = im.height, h = 72, w = Math.round(h * fw / fh), f = Math.min(2, stage - 1);
-    g.save(); if (night) g.filter = 'brightness(.4) saturate(.5)';
+    g.save();
     g.drawImage(im, f * fw, 0, fw, fh, Math.round(x - w / 2), y - h + 4, w, h); g.restore();
     return;
   }
