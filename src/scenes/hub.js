@@ -2,12 +2,14 @@
 import { register, goto, button, lock } from '../core/scene.js';
 import { drawText } from '../core/stage.js';
 import { bg, drawFnug, drawBuilding } from '../art/placeholder.js';
-import { say, helper, countHelpClick, hideDialog } from '../core/dialog.js';
+import { say, helper, countHelpClick, hideDialog, sleep, showHelper } from '../core/dialog.js';
 import { save, meta, persist, persistMeta, touch } from '../core/state.js';
-import { music, sfx } from '../core/audio.js';
+import { music, sfx, crtHum } from '../core/audio.js';
+import { msgBox, showOS } from '../core/os.js';
 import { t } from '../script.js';
 import { checkWrongness } from '../wrongness.js';
 import { gameApi } from '../game.js';
+import { cur } from '../core/cursor.js';
 
 export const PLOTS = [
   { id: 'landing', name: 'Landingspladsen', x: 150, y: 400, kind: 'pad', open: true },
@@ -20,38 +22,56 @@ export const PLOTS = [
   { id: 'light', name: 'Fyrtårnet', x: 590, y: 340, kind: 'tower' },
   { id: 'fire', name: 'Fyrværkeripladsen', x: 320, y: 450, kind: 'pad', special: true },
 ];
-const FNUG_POS = [[190, 440], [300, 395], [420, 360], [560, 420], [90, 370], [240, 280], [470, 300], [360, 440], [130, 440], [600, 290], [40, 420]]; // 11 visible, sign says 12
+const FNUG_POS = [[190, 440], [300, 395], [420, 360], [560, 420], [170, 370], [240, 280], [470, 300], [360, 440], [250, 450], [600, 290], [520, 460]]; // 11 visible, sign says 12
 
 register({
   id: 'hub',
   async enter(arg = {}) {
     this.bgc = bg('hub', save.night);
-    document.getElementById('hud').hidden = false;
-    document.getElementById('hudname').textContent = save.name;
-    this.updateHud();
-    music(save.night ? null : 'assets/music/byen.ogg', { fade: 1.5, startDelay: (save.flags.musicDelayMs || 0) / 1000 });
+    showHelper(true);
+    music(save.night ? null : `assets/music/${save.flags.bench_gone ? 'byen_11' : 'byen'}.ogg`, { fade: 1.5, startDelay: (save.flags.musicDelayMs || 0) / 1000 });
     save.flags.musicDelayMs = 0;
     button('Gem', 8, 8, async () => { sfx.click(); persist(true); await say(save.flags.save_lies ? 'Gemt!' : 'Dit byggeri er gemt.', { auto: 900, noPortrait: true }); }, { w: 60 });
+    button('Luk', 76, 8, async () => {
+      sfx.click();
+      const os = document.getElementById('os'); showOS(true); os.style.background = 'transparent'; os.innerHTML = '';
+      const r = await msgBox({ title: 'Regn med Måneby', icon: 'warn', msg: save.flags.morning ? 'Byen er ikke gemt.\nLuk alligevel?' : 'Vil du afslutte?', buttons: [{ label: 'Ja', value: 'y' }, { label: 'Nej', value: 'n', def: true }, ...(save.night && save.flags.jumped ? [{ label: 'Hende', value: 'h' }] : [])], parent: os });
+      showOS(false);
+      if (r === 'y') goto('desktop'); else if (r === 'h') { save.flags.hall_open = true; touch(); await say('Ja. Hende.', { auto: 1500, noPortrait: true }); }
+    }, { w: 60 });
+    if (save.flags.log_open) button('Logrummet', 540, 8, () => { sfx.click(); goto('logroom'); }, { w: 92 });
     lock(false);
-    if (arg.first) { await say(t('intro1')); await say(t('intro2')); await say(t('intro3')); await say(t('hub_first')); }
+    helper.night = save.night;
+    if (save.night) { crtHum(true); if (!save.flags.jumped) helper.present = false; }
+    else { crtHum(false); helper.present = true; }
+    this.idleT = performance.now();
+    if (arg.first) { await say(t('intro1'), { voice: 'assets/voice/intro1.ogg', mouth: 'assets/voice/intro1.json' }); await say(t('intro2')); await say(t('intro3')); await say(t('hub_first')); }
+    else if (arg.nightIntro) { await sleep(2500); /* nobody says anything */ }
+    else if (arg.afterJump) { helper.present = true; await say('Der mangler én. Nogen har … jeg kender ikke ordet.', { voice: 'assets/voice/mangler_en.ogg', mouth: 'assets/voice/mangler_en.json', hold: 600 }); save.flags.hall_open = true; save.flags.hallHint = 'Rådhuset er åbent.'; touch(); }
+    else if (save.flags.hall_answer && !save.flags.fever1) { goto('fever1'); return; }
+    else if (save.flags.fever1 && !save.flags.morning) { await say('Der er ét sted til. Nedenunder.', { hold: 400 }); save.flags.log_open = true; touch(); }
+    else if (save.flags.fever_madpakke && !save.flags.fever2) { save.flags.fever_madpakke = false; goto('fever2'); return; }
     else if (arg.back) {
       // Between tasks: let the curve speak, otherwise a normal line
       const fired = await checkWrongness(gameApi);
       if (!fired) await say(t('hub_back'), { auto: 1600 });
     }
   },
-  updateHud() {
-    const shown = save.flags.fnugShown ?? 12;
-    document.getElementById('hudfnug').textContent = `Fnugger: ${shown}`;
-  },
+  exit() { showHelper(false); },
   hotspots() {
-    const hs = PLOTS.map((p) => ({ x: p.x - 34, y: p.y - 44, w: 68, h: 54, label: p.locked ? '?' : p.name + (save.buildings[p.id] ? ` (${save.buildings[p.id]}/3)` : ''), cursor: 'hand', on: () => this.pick(p) }));
-    hs.push({ x: 560, y: 60, w: 70, h: 90, label: 'Hjælp', on: () => this.help() });
+    const locked = (p) => p.locked && !save.flags.hall_open && !meta.ending;
+    const hs = PLOTS.map((p) => ({ x: p.x - 34, y: p.y - 44, w: 68, h: 54, label: locked(p) ? '?' : p.name + (save.buildings[p.id] ? ` (${save.buildings[p.id]}/3)` : ''), cursor: 'hand', on: () => this.pick(p, locked(p)) }));
+    hs.push({ x: 6, y: 226, w: 130, h: 250, label: 'Hjælp', on: () => this.help() });
     return hs;
   },
-  async pick(p) {
-    if (p.locked) { sfx.bzzt(); await say(save.flags.hallHint || 'Ikke endnu.', { auto: 1200, noPortrait: true }); return; }
-    if (p.special) { await say('Fyrværkeriet venter, til byen er færdig.', { auto: 1500 }); return; }
+  async pick(p, isLocked) {
+    this.idleT = performance.now();
+    if (isLocked) { sfx.bzzt(); await say(save.flags.hallHint || 'Ikke endnu.', { auto: 1200, noPortrait: true }); return; }
+    if (p.special) {
+      const built = Object.values(save.buildings).filter((v) => v >= 2).length;
+      if (built >= 5 && !save.night) { sfx.click(); goto('falseEnd'); return; }
+      await say('Fyrværkeriet venter, til byen er færdig.', { auto: 1500 }); return;
+    }
     sfx.click();
     goto('task', p);
   },
@@ -67,14 +87,29 @@ register({
       drawBuilding(g, p.x, p.y, save.buildings[p.id] || 0, p.kind, save.night);
       if (p.locked) drawText('?', p.x, p.y - 60, { align: 'center', font: '700 28px "Comic Neue","Comic Sans MS",sans-serif', color: '#ffd21f', outline: '#000' });
     }
-    // fnugger: idle bob; one may show its back / magenta fringe after the first off-note
+    // fnugger stand STILL (era rule) — one of them takes a single step every few seconds
+    const stepper = Math.floor(tm / 3200) % FNUG_POS.length, stepPhase = (tm % 3200) < 400 ? 1 : 0;
     FNUG_POS.forEach(([x, y], i) => {
-      const f = Math.floor((tm / 400 + i) % 3);
-      drawFnug(g, x, y + Math.sin(tm / 300 + i) * 1.5, 1, { frame: f, back: save.flags.fnug_fringe && i === 4, fringe: save.flags.fnug_fringe && i === 4, night: save.night });
+      drawFnug(g, x, y, 1, { frame: i === stepper ? stepPhase : 0, back: save.flags.fnug_fringe && i === 4, fringe: save.flags.fnug_fringe && i === 4, night: save.night });
     });
     // bench (disappears at bench_gone)
     if (!save.flags.bench_gone) { g.fillStyle = save.night ? '#2a2a2a' : '#6b4a2a'; g.fillRect(400, 455, 40, 5); g.fillRect(403, 460, 4, 8); g.fillRect(433, 460, 4, 8); }
-    // helper corner marker (portrait lives in the dialog; here a small chair)
-    drawText('?', 595, 70, { align: 'center', font: '700 22px "Comic Neue","Comic Sans MS",sans-serif', color: '#fff', outline: '#000' });
+    // Feberdrøm IV: nattevagten — only real local time 22–05, at night, after 30 s without input
+    const h = new Date().getHours();
+    if (save.night && (h >= 22 || h < 5) && tm - this.idleT > 30000) {
+      g.fillStyle = '#2a2a33'; g.fillRect(520, 300, 26, 80); g.fillStyle = '#d9c9a8'; g.fillRect(523, 284, 20, 18); g.fillStyle = '#000'; g.fillRect(528, 290, 3, 3); g.fillRect(536, 290, 3, 3);
+      g.fillStyle = 'rgba(255,240,180,.35)'; g.beginPath(); g.moveTo(520, 330); g.lineTo(380, 300); g.lineTo(380, 380); g.closePath(); g.fill();
+      if (!this.pedelSaid) { this.pedelSaid = true; say('Jeg lukker kl. 16. Hvorfor er du her?', { noPortrait: true, hold: 1500 }).then(() => say('Den sidste linje i hendes fil var: "tilbage om lidt".', { noPortrait: true, auto: 3000 })); }
+    }
+  },
+  tick(dt, tm) {
+    // nat: cursor drifts toward the town hall after night_cursor; the counter shivers during silence
+    if (save.flags.cursor_drift && save.night && !save.flags.morning) { cur.lag = 0.12; cur.pull = { x: 320, y: 255 }; cur.pullK = 0.015; } else { cur.lag = 0; cur.pull = null; }
+  },
+  draw(g, dt, tm) {
+    // counter as outlined text in the scene (no HUD bar — era rule). Sign says 12 while 11 stand on the plain.
+    const n = save.flags.silence_on ? (Math.floor(tm / 180) % 2 ? 12 : 11) : (save.flags.fnugShown ?? 12);
+    drawText(`Fnugger: ${n}`, 630, 458, { align: 'right', font: '700 14px "Comic Neue","Comic Sans MS",sans-serif', color: '#fff', outline: '#000' });
+    drawText(save.flags.name_B ? 'B.' : save.name, 150, 458, { font: '700 14px "Comic Neue","Comic Sans MS",sans-serif', color: '#fff', outline: '#000' });
   },
 });

@@ -1,66 +1,81 @@
-// Narrator text box: typewriter + tick, click to skip/advance, portrait with mouth/beard frames, optional voice.
+// Narrator text box: typewriter + tick, click to skip/advance, big helper sprite bottom-left with beard-sync, optional voice.
+// Text is rasterised 1-bit on the 640 grid (canvas), never DOM text.
 import { sfx, voice as playVoice } from './audio.js';
 import { drawPortrait } from '../art/portrait.js';
 import { meta, persistMeta } from './state.js';
+import { text1bit } from './stage.js';
 
 const box = document.getElementById('dialog');
-const txt = document.getElementById('dtext');
 const more = document.getElementById('dmore');
-const pc = document.getElementById('portrait').getContext('2d');
-pc.imageSmoothingEnabled = false;
+const tc = document.getElementById('dtextc').getContext('2d');
+const hc = document.getElementById('helper');
+const pc = hc.getContext('2d');
+pc.imageSmoothingEnabled = false; tc.imageSmoothingEnabled = false;
+const FONT = '700 15px "Comic Neue","Comic Sans MS",sans-serif';
 
-export const helper = { present: true, mood: 'calm', night: false, mouth: 0, silentMouth: false };
-let waiting = null; // resolver for "click to continue"
+export const helper = { present: true, mood: 'calm', night: false, mouth: 0, silentMouth: false, visible: false };
+let waiting = null;
 let skipping = false;
 
-box.addEventListener('pointerdown', (e) => { e.stopPropagation(); if (waiting) { const w = waiting; waiting = null; w(); } else skipping = true; });
+box.addEventListener('pointerdown', (e) => { e.stopPropagation(); advance(); });
 box.addEventListener('contextmenu', (e) => e.preventDefault());
-document.getElementById('app').addEventListener('pointerdown', () => { if (waiting) { const w = waiting; waiting = null; w(); } else if (!box.hidden) skipping = true; });
+document.getElementById('app').addEventListener('pointerdown', () => { if (!box.hidden) advance(); });
+function advance() { if (waiting) { const w = waiting; waiting = null; w(); } else skipping = true; }
 
-let portraitTimer = null;
-function animatePortrait(mouthFn) {
-  cancelAnimationFrame(portraitTimer);
-  const loop = () => {
-    helper.mouth = mouthFn ? mouthFn() : 0;
-    drawPortrait(pc, helper);
-    portraitTimer = requestAnimationFrame(loop);
-  };
+/** Word-wrap and rasterise text 1-bit onto the dialog canvas. */
+function renderText(str) {
+  tc.clearRect(0, 0, 600, 60);
+  const words = str.split(' '); const lines = []; let line = '';
+  for (const w of words) { const test = line ? line + ' ' + w : w; if (text1bit(test, FONT).width > 596 && line) { lines.push(line); line = w; } else line = test; }
+  if (line) lines.push(line);
+  lines.slice(0, 3).forEach((l, i) => tc.drawImage(text1bit(l, FONT, '#fff', '#000'), 0, i * 20));
+}
+
+let raf = null;
+function animateHelper(mouthFn) {
+  cancelAnimationFrame(raf);
+  const loop = () => { helper.mouth = mouthFn ? mouthFn() : 0; drawHelper(); raf = requestAnimationFrame(loop); };
   loop();
 }
-export function hideDialog() { box.hidden = true; cancelAnimationFrame(portraitTimer); }
+export function drawHelper() {
+  pc.clearRect(0, 0, 130, 250);
+  hc.classList.toggle('hidden', !helper.visible);
+  if (!helper.visible) return;
+  // portrait.js draws 96×112; scale ×1.35 and sit it at the bottom of the 130×250 sprite box
+  pc.save(); pc.translate(0, 98); pc.scale(1.354, 1.354); drawPortrait(pc, helper, true); pc.restore();
+}
+export function showHelper(v) { helper.visible = v; drawHelper(); }
+export function hideDialog() { box.hidden = true; cancelAnimationFrame(raf); drawHelper(); }
 
-/**
- * say(text, opts): opts.voice (ogg path), opts.mouth (json), opts.cps (chars per sec), opts.hold (ms to wait before
- * ▼ appears), opts.auto (ms: auto-advance), opts.noPortrait, opts.pauseAt ({index: ms}) for "……" dread pauses.
- */
+/** say(text, opts): voice, mouth, cps, hold, auto, noPortrait, pauseAt, keep */
 export async function say(text, opts = {}) {
   box.hidden = false;
-  box.querySelector('.portrait').style.visibility = opts.noPortrait || !helper.present ? 'hidden' : 'visible';
-  txt.textContent = '';
+  renderText('');
   more.style.visibility = 'hidden';
   skipping = false;
   let v = null;
   if (opts.voice) v = await playVoice(opts.voice, opts.mouth);
   const msPerChar = 1000 / (opts.cps ?? 28);
-  // if a voice clip exists, pace the text to the clip
   const pace = v && v.dur ? Math.max(msPerChar, (v.dur * 1000) / Math.max(1, text.length)) : msPerChar;
-  animatePortrait(() => (v ? v.mouth() : helper.silentMouth || (txt.textContent.length < text.length ? 1 + ((txt.textContent.length >> 1) % 3) : 0)));
-  let i = 0, lastTick = 0;
-  while (i < text.length) {
-    if (skipping) { txt.textContent = text; break; }
-    i++;
-    txt.textContent = text.slice(0, i);
-    const ch = text[i - 1];
+  const talking = !opts.noPortrait && helper.present;
+  let shown = 0;
+  animateHelper(() => (!talking ? 0 : v ? v.mouth() : helper.silentMouth || (shown < text.length ? 1 + ((shown >> 1) % 3) : 0)));
+  let lastTick = 0;
+  while (shown < text.length) {
+    if (skipping) { shown = text.length; renderText(text); break; }
+    shown++;
+    renderText(text.slice(0, shown));
+    const ch = text[shown - 1];
     if (!v && ch !== ' ' && performance.now() - lastTick > 38) { sfx.tick(); lastTick = performance.now(); }
     let d = pace;
-    if (opts.pauseAt && opts.pauseAt[i]) d = opts.pauseAt[i];
+    if (opts.pauseAt && opts.pauseAt[shown]) d = opts.pauseAt[shown];
     else if (ch === '…') d = 420; else if (/[.!?]/.test(ch)) d = 260; else if (ch === ',') d = 120;
     await sleep(d);
   }
-  if (v) { v.stop && skipping && v.stop(); if (!skipping) await v.done; }
-  animatePortrait(null);
+  if (v) { if (skipping && v.stop) v.stop(); else await v.done; }
+  animateHelper(null);
   if (opts.hold) await sleep(opts.hold);
-  if (opts.auto) { await sleep(opts.auto); return; }
+  if (opts.auto) { await sleep(opts.auto); if (opts.keep !== true) hideDialog(); return; }
   more.style.visibility = 'visible';
   skipping = false;
   await new Promise((r) => (waiting = r));
@@ -68,5 +83,5 @@ export async function say(text, opts = {}) {
   if (opts.keep !== true) hideDialog();
 }
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-/** Count help-clicks across sessions (B. clicked 400 times). */
 export function countHelpClick() { meta.helpClicks++; persistMeta(); return meta.helpClicks; }
+drawHelper();

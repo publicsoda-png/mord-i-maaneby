@@ -55,7 +55,7 @@ register({
     lock(false);
     const b = bg('hub');
     this.t0 = performance.now();
-    music('assets/music/titel.ogg', { fade: 1.2 });
+    music(save.night ? 'assets/music/titel_nat.ogg' : 'assets/music/titel_b.ogg', { fade: 1.2 });
     button('Start', 280, 400, () => { sfx.click(); goto('setup'); }, { w: 80 });
     if (save.name) button('Fortsæt', 280, 436, () => { sfx.click(); goto('hub'); }, { w: 80 });
     this.bgc = b;
@@ -63,10 +63,10 @@ register({
   bg(g, dt, t) {
     g.drawImage(this.bgc, 0, 0);
     // title logo: big kid-font with hard shadow (placeholder for the real logo render)
-    const bob = Math.sin(t / 600) * 3;
+    const bob = 0; // era rule: no continuous motion on the title
     drawText('REGN MED', 320, 70 + bob, { align: 'center', font: '700 34px "Comic Neue","Comic Sans MS",sans-serif', color: '#ffd21f', outline: '#5a3a00' });
     drawText('MÅNEBY', 320, 108 + bob, { align: 'center', font: '700 58px "Comic Neue","Comic Sans MS",sans-serif', color: '#ffd21f', outline: '#5a3a00' });
-    drawText('Krater Multimedie ApS · 2005', 320, 456, { align: 'center', font: '11px Tahoma, sans-serif', color: '#ccc' });
+    drawText('Krater Multimedie ApS, Valby · 2005 · Afprøvet i 4.b', 320, 456, { align: 'center', font: '11px Tahoma, sans-serif', color: '#ccc' });
     drawText('Ver. 1.3.63', 8, 464, { font: '11px Tahoma, sans-serif', color: '#aaa' });
   },
 });

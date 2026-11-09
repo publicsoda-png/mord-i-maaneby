@@ -47,8 +47,8 @@ export const gameApi = {
     });
   },
   async falseEnding() { goto('falseEnd'); },
-  cursorDrift(px, toward) { cur.lag = 0.15; cur.pull = toward; cur.pullK = 0.02; cur.drift = { x: px, y: 0 }; },
-  async silence(ms) { stopMusic(0.1); helper.present = false; await sleep(ms); },
+  cursorDrift() { save.flags.cursor_drift = true; touch(); },
+  async silence(ms) { stopMusic(0.1); helper.present = false; save.flags.silence_on = true; const { lock } = await import('./core/scene.js'); lock(true); await sleep(ms); lock(false); save.flags.silence_on = false; touch(); },
   async jumpScare() { goto('jump'); },
   async skoleIT() {
     showOS(true); osLayer.style.background = 'transparent'; osLayer.innerHTML = '';

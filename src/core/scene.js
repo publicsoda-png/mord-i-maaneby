@@ -1,5 +1,5 @@
 // Scene manager: scenes are objects {id, bg(ctx, state), hotspots:[{x,y,w,h | poly, cursor, label, on}], enter(g), exit(), tick(dt)}.
-import { ctx, W, H, drawText } from './stage.js';
+import { ctx, W, H, drawText, text1bit } from './stage.js';
 import { cur, setCursor, tickCursor } from './cursor.js';
 import { save, tickClock } from './state.js';
 
@@ -11,14 +11,20 @@ const buttons = new Set();
 
 export function register(s) { scenes.set(s.id, s); return s; }
 
-export async function goto(id, arg) {
+// Era rule (measured on the original, see docs/DECISIONS.md): every scene change cuts through solid black, 0.2–0.5 s.
+let black = 0; // 0 = none, 1 = fully black
+export function cutBlack(ms = 300) { black = 1; return new Promise((r) => setTimeout(() => { black = 0; r(); }, ms)); }
+export async function goto(id, arg, opts = {}) {
   const next = scenes.get(id);
   if (!next) throw new Error('no scene ' + id);
   if (current && current.exit) await current.exit();
   clearButtons();
   hover = null;
+  const hold = opts.black ?? (current ? 280 : 0);
+  if (hold) { black = 1; await new Promise((r) => setTimeout(r, hold)); }
   current = next;
   save.scene = id;
+  black = 0;
   if (next.enter) await next.enter(arg);
 }
 
@@ -57,7 +63,8 @@ app.addEventListener('contextmenu', (e) => e.preventDefault());
 export function button(label, x, y, on, opts = {}) {
   const b = document.createElement('div');
   b.className = 'btn' + (opts.cls ? ' ' + opts.cls : '');
-  b.textContent = label;
+  b.appendChild(text1bit(label.toUpperCase(), '700 12px "Comic Neue","Comic Sans MS",sans-serif', '#111'));
+  b.dataset.label = label;
   b.style.left = x + 'px'; b.style.top = y + 'px';
   if (opts.w) b.style.width = opts.w + 'px';
   b.addEventListener('pointerdown', (e) => { e.stopPropagation(); if (!locked) on(e); });
@@ -83,6 +90,8 @@ function frame(t) {
     if (hover && hover.label && !locked) drawText(hover.label, Math.min(W - 10, cur.x + 14), Math.min(H - 20, cur.y + 18), { font: '700 12px "Comic Neue","Comic Sans MS",sans-serif', color: '#fff', outline: '#000' });
   }
   for (let i = fx.length - 1; i >= 0; i--) { const f = fx[i]; f.draw(ctx, t); if (f.until && t > f.until) fx.splice(i, 1); }
+  if (black) { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); }
+  ui.style.visibility = black ? 'hidden' : 'visible';
   tickCursor();
   requestAnimationFrame(frame);
 }

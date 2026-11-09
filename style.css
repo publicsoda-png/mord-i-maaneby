@@ -23,29 +23,27 @@ body { font-family: var(--ui-font); -webkit-font-smoothing: none; font-smooth: n
 #fx { position: absolute; inset: 0; }
 
 /* Era text box: top of screen, white text on translucent black */
-#dialog {
-  position: absolute; left: 0; top: 0; width: 640px; min-height: 64px; padding: 8px 12px 10px 112px;
-  background: rgba(0,0,0,.72); color: #fff; font: 15px/1.3 var(--kid-font); font-weight: 700;
-  pointer-events: auto; text-shadow: 1px 1px 0 #000;
-}
+/* Era text box: top of screen, 1-bit text rasterised on the 640 grid (canvas, never DOM text) */
+#dialog { position: absolute; left: 0; top: 0; width: 640px; height: 76px; padding: 8px 12px; background: rgba(0,0,0,.72); pointer-events: auto; }
 #dialog[hidden] { display: none; }
-#dialog .portrait { position: absolute; left: 6px; top: 4px; width: 96px; height: 112px; }
-#dialog .portrait canvas { image-rendering: pixelated; }
-#dialog .text { min-height: 44px; }
-#dmore { position: absolute; right: 10px; bottom: 4px; font-style: normal; animation: blink 1s steps(2) infinite; }
+#dialog .text canvas { display: block; image-rendering: pixelated; }
+#dmore { position: absolute; right: 10px; bottom: 2px; font: 12px var(--ui-font); color: #fff; font-style: normal; animation: blink 1s steps(2) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
+/* The helper stands BIG in the scene, bottom-left (~130×250), like a 2005 narrator sprite */
+#helper { position: absolute; left: 6px; top: 226px; width: 130px; height: 250px; image-rendering: pixelated; }
+#helper.hidden { display: none; }
 
-#hud { position: absolute; left: 0; bottom: 0; width: 640px; padding: 2px 8px; color: #e8e8e8; font: 11px var(--ui-font); background: rgba(0,0,0,.5); display: flex; justify-content: space-between; }
-#hud[hidden] { display: none; }
+#hud { display: none !important; }
 
-/* Stone-slab / bevel buttons */
+/* Stone-slab buttons: 3 states = cursor change (hover), inverted bevel + 1 px text shift (active) */
 .btn {
-  pointer-events: auto; position: absolute; padding: 4px 12px; font: 700 12px var(--kid-font); letter-spacing: .5px; text-transform: uppercase;
-  color: #111; background: linear-gradient(#f4f1ea, #b9b3a4); border: 2px solid; border-color: #fff #5e5a52 #5e5a52 #fff; box-shadow: 1px 1px 0 #2a2824;
+  pointer-events: auto; position: absolute; height: 24px; padding: 0 10px; display: flex; align-items: center; justify-content: center;
+  color: #111; background: #c9c3b3; border: 2px solid; border-color: #f4f1ea #5e5a52 #5e5a52 #f4f1ea; box-shadow: 1px 1px 0 #2a2824;
   user-select: none;
 }
-.btn:hover { background: linear-gradient(#fff, #cbc5b6); }
-.btn:active { border-color: #5e5a52 #fff #fff #5e5a52; }
+.btn canvas { image-rendering: pixelated; display: block; }
+.btn:active { border-color: #5e5a52 #f4f1ea #f4f1ea #5e5a52; }
+.btn:active canvas { transform: translate(1px, 1px); }
 
 /* Custom cursor sprite */
 #cursor { position: absolute; left: 0; top: 0; width: 32px; height: 32px; pointer-events: none; z-index: 50;

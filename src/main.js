@@ -6,13 +6,15 @@ import { loadState, save } from './core/state.js';
 import { gameApi } from './game.js';
 import './scenes/boot.js';
 import './scenes/hub.js';
-import './scenes/task.js';
+import { loadGames } from './scenes/task.js';
+import './scenes/acts.js';
 import { ensureAudio } from './core/audio.js';
 import { showOS } from './core/os.js';
 import { showCursor } from './core/cursor.js';
 
 const q = new URLSearchParams(location.search);
 await loadState();
+await loadGames();
 if (q.has('min')) gameApi.devMin = +q.get('min');
 if (q.has('nat')) save.night = true;
 if (q.has('name')) save.name = q.get('name');

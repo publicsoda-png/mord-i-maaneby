@@ -1,11 +1,9 @@
 // Placeholder helper portrait (procedural "Morfar Måne" — half-moon face in a rocking chair). Replaced by renders later.
 // helper = {mouth 0..3, mood, night, present}
-export function drawPortrait(g, h) {
+export function drawPortrait(g, h, transparent = false) {
   const W = 96, H = 112;
   g.clearRect(0, 0, W, H);
-  // backdrop
-  g.fillStyle = h.night ? '#0a0a14' : '#1a1230';
-  g.fillRect(0, 0, W, H);
+  if (!transparent) { g.fillStyle = h.night ? '#0a0a14' : '#1a1230'; g.fillRect(0, 0, W, H); }
   if (!h.present) {
     // empty rocking chair
     g.strokeStyle = '#6b4a2a'; g.lineWidth = 3;
@@ -16,8 +14,8 @@ export function drawPortrait(g, h) {
   // moon face (crescent-ish)
   g.fillStyle = '#efe7c2';
   g.beginPath(); g.arc(50, 50, 34, 0, Math.PI * 2); g.fill();
-  g.fillStyle = h.night ? '#0a0a14' : '#1a1230';
-  g.beginPath(); g.arc(70, 40, 26, 0, Math.PI * 2); g.fill();
+  g.save(); g.globalCompositeOperation = transparent ? 'destination-out' : 'source-over'; g.fillStyle = h.night ? '#0a0a14' : '#1a1230';
+  g.beginPath(); g.arc(70, 40, 26, 0, Math.PI * 2); g.fill(); g.restore();
   // craters
   g.fillStyle = '#d9cf9f';
   [[32, 36, 4], [40, 62, 3], [28, 56, 2], [46, 28, 2]].forEach(([x, y, r]) => { g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); });
