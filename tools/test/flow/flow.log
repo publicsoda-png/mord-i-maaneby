@@ -1,61 +1,64 @@
-scene_title 1204 ms
-scene_setup 1203 ms
-scene_hub 1203 ms
-scene_falseEnd 1204 ms
-scene_fever1 1202 ms
-scene_fever2 1203 ms
+scene_ident 1203 ms
+scene_title 1203 ms
+scene_setup 1202 ms
+scene_hub 1201 ms
+scene_falseEnd 1202 ms
+scene_fever1 1203 ms
+scene_fever2 1202 ms
 scene_logroom 1202 ms
-scene_morning 1204 ms
-scene_credits 1204 ms
-task_landing 4724 ms
-task_bakery 4719 ms
-task_ice 4715 ms
-task_scope 4715 ms
-task_school 4717 ms
-task_quarry 4714 ms
-task_hall 4719 ms
-task_light 4716 ms
+scene_morning 1202 ms
+scene_credits 1202 ms
+scene_trueEnd 1201 ms
+task_landing 4712 ms
+task_bakery 4712 ms
+task_ice 4712 ms
+task_scope 4712 ms
+task_school 4711 ms
+task_quarry 4713 ms
+task_hall 4713 ms
+task_light 4711 ms
   klaret_klaret@15 → true
 ev_klaret_klaret 1408 ms
   scope_face@17 → true
 ev_scope_face 1408 ms
   fnug_fringe@16 → false
-ev_fnug_fringe 1411 ms
-  name_B@18 → true
-ev_name_B 1408 ms
+ev_fnug_fringe 1408 ms
+  name_syv@18 → true
+ev_name_syv 1408 ms
   bench_gone@28 → true
-ev_bench_gone 1409 ms
+ev_bench_gone 1408 ms
   save_lies@30 → true
 ev_save_lies 1407 ms
   progress_back@33 → true
 ev_progress_back 1408 ms
-  english_line@38 → true
-ev_english_line 1407 ms
-  cd2@40 → true
-ev_cd2 1408 ms
-  director_err@43 → true
-ev_director_err 1409 ms
-  knows_time@45 → timeout
-ev_knows_time 7410 ms
-  photo1@47 → timeout
-ev_photo1 7409 ms
-  seven_missing@35 → false
-ev_seven_missing 1407 ms
-  peeked@48 → timeout
-ev_peeked 7410 ms
+  taeller_hoejt@35 → true
+ev_taeller_hoejt 1408 ms
+  seven_missing@35 → true
+ev_seven_missing 1408 ms
+  fuld@40 → true
+ev_fuld 1408 ms
+  director_err@43 → timeout
+ev_director_err 11486 ms
+  tretten@44 → timeout
+ev_tretten 7410 ms
+  byen_taeller@45 → true
+ev_byen_taeller 1407 ms
+  raa_render@47 → timeout
+ev_raa_render 7410 ms
+  peeked@48 → true
+ev_peeked 4032 ms
   false_end@50 → true
-ev_false_end 4029 ms
+ev_false_end 1407 ms
   night_cursor@58 → false
 ev_night_cursor 1407 ms
   silence_counter@65 → false
-ev_silence_counter 1406 ms
+ev_silence_counter 1407 ms
   jump@68 → false
-ev_jump 1408 ms
-  skole_it@69 → timeout
-ev_skole_it 7411 ms
-  tts_leak@70 → true
-ev_tts_leak 1408 ms
-  first_name@75 → false
-ev_first_name 1408 ms
-end_hub 801 ms
+ev_jump 1406 ms
+  raadhus_melder@69 → timeout
+ev_raadhus_melder 7409 ms
+  stemme_rum@70 → true
+ev_stemme_rum 1407 ms
+end_hub 802 ms
+grep-gate: clean
 no errors

@@ -29,7 +29,8 @@ export async function checkWrongness(ctx) {
   save.seen[e.id] = Date.now();
   if (e.shock) save.flags.lastShockMin = m;
   await e.run(ctx);
-  return true;
+  // 'quiet' = rent flag-event (hub må stadig sige sin replik); 'loud' = shock eller noget der selv taler/viser (a0 K1 09-11)
+  return e.shock || !String(e.run).includes('flagText') ? 'loud' : 'quiet';
 }
 
 // ---------------- Akt 1 (0–30 min): decoration + first off-notes ----------------

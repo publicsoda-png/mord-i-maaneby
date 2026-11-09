@@ -18,7 +18,7 @@ await loadState();
 await loadGames();
 await loadBgs(['hub', 'landing', 'bakery', 'ice', 'scope', 'school', 'quarry', 'hall', 'light', 'title']);
 await loadSprites(['aliens', 'helper', 'bld_pad', 'bld_dome', 'bld_tower', 'bld_box', 'bld_pit', 'bld_hall']);
-if (q.has('min')) { gameApi.devMin = +q.get('min'); globalThis.MB_DEV_MIN = gameApi.devMin; } // mix.js reads MB_DEV_MIN so ?min= drives the sound phase too
+if (q.has('min')) { gameApi.devMin = +q.get('min'); globalThis.MB_DEV_MIN = gameApi.devMin; if (q.has('dev') && !q.has('allev')) { const { EVENTS } = await import('./wrongness.js'); for (const e of EVENTS) if (e.min < gameApi.devMin && !(e.id in save.seen)) save.seen[e.id] = 1; } } // mix.js reads MB_DEV_MIN so ?min= drives the sound phase too
 if (q.has('nat')) save.night = true;
 if (q.has('name')) save.name = q.get('name');
 if (q.has('reset')) { localStorage.clear(); }

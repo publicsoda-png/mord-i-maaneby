@@ -84,7 +84,7 @@ register({
       // Between tasks: let the curve speak, otherwise a normal line
       const fired = await checkWrongness(gameApi);
       applyMix();
-      if (fired) return;
+      if (fired === 'loud') return; // stille flag-events sluger ikke hub_back-replikken (a0 K1)
       if (save.flags.name_syv && !save.flags.name_syv_said) { save.flags.name_syv_said = true; touch(); await say('Flot, Syv.', { auto: 1400 }); }
       else if (save.flags.fjerne) { delete save.flags.fjerne; touch(); await say('Fjerne? Det gør vi ikke.', { hold: 500 }); }
       else if (save.flags.taeller_hoejt && !save.flags.taeller_hoejt_said) { save.flags.taeller_hoejt_said = true; touch(); await say('Én, to, tre, fire, fem, seks … otte, ni, ti, elleve, tolv. Det passer.', { hold: 600 }); }
