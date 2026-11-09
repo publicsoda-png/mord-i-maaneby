@@ -59,3 +59,6 @@ Ejer i parentes: B = bygge-/master-session, Q = QC, C = council, F = Frederik.
 - Billeder → review-artifact Ja/Måske/Nej; tekst-tjeklister → skema i chatten.
 - Ingen crossfades/easing/blur/idle-bob; alt på step-uret 10 fps; scene-skift gennem sort 200–500 ms; ingen canvas-filtre (bag nat-varianter).
 - Fnugger = freaky retro-aliens i alle farver; baggrunde/rum/krom er godkendt retning og genrenderes ikke. Alt uden for Måneby-universet er ude (ingen skrivebord/elev07/Skole-IT).
+
+## 8. QC-runde 4 (a0) – ikke verificeret
+Se docs/TODO-QC.md (a0s egen status). Vigtigst: akt 3 fra jump → credits → ægte 2. gennemspilning er ALDRIG QC-et med mus; ægte nat-stol (falsk slutning → nat, ikke &nat); scope 1. klik. a0s rapporter/screenshots lå i a0s scratchpad og er væk ved genstart.
