@@ -4,3 +4,4 @@ private/
 *.mp4
 .DS_Store
 tools/music/sf2/*.sf2
+tools/music/venv/
