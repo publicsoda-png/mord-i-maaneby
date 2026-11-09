@@ -1,0 +1,275 @@
+<title>Måneby Lyt-review</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: one column of groups, each item a row: play · name · what-it-is · Ja/Måske/Nej · note. Win2000-classic palette as the era's own neutral. */
+:root {
+  --bg: #ece9d8; --panel: #f7f6f0; --fg: #1a1a1a; --muted: #5a5a52; --line: #aca899;
+  --accent: #0a246a; --accent-fg: #ffffff; --ja: #2d7a2d; --maaske: #a66b00; --nej: #a32020; --warn-bg: #fff3c4;
+  --font: Verdana, Tahoma, "DejaVu Sans", system-ui, sans-serif; --mono: "Courier New", Courier, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #1e1f1a; --panel: #2a2b24; --fg: #ecebe3; --muted: #a7a69a; --line: #4a4b42; --accent: #7f9ddb; --accent-fg: #0f1320; --ja: #6fc46f; --maaske: #e2b04a; --nej: #e26b6b; --warn-bg: #4a3b10; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #1e1f1a; --panel: #2a2b24; --fg: #ecebe3; --muted: #a7a69a; --line: #4a4b42; --accent: #7f9ddb; --accent-fg: #0f1320; --ja: #6fc46f; --maaske: #e2b04a; --nej: #e26b6b; --warn-bg: #4a3b10; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font: 13px/1.5 var(--font); padding-block: 24px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 880px; margin: 0 auto; display: grid; gap: 28px; }
+h1 { font-size: 22px; margin: 0; text-wrap: balance; }
+h2 { font-size: 15px; margin: 0; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+p { margin: 0; max-width: 65ch; }
+.intro { display: grid; gap: 8px; }
+.status { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.group { background: var(--panel); border: 1px solid var(--line); padding: 14px 16px; display: grid; gap: 10px; }
+.group header { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; }
+.group header p { color: var(--muted); font-size: 12px; }
+.item { display: grid; grid-template-columns: 34px 1fr auto; gap: 8px 12px; align-items: start; padding: 8px 0; border-top: 1px solid var(--line); }
+.item:first-of-type { border-top: 0; }
+.name { font-weight: 700; font-family: var(--mono); font-size: 12.5px; }
+.what { color: var(--muted); font-size: 12px; }
+.play { width: 34px; height: 30px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; font-size: 13px; box-shadow: inset 1px 1px 0 #fff8, inset -1px -1px 0 #0003; }
+.play:active, .play.on { box-shadow: inset -1px -1px 0 #fff8, inset 1px 1px 0 #0003; }
+.play.on { background: var(--accent); color: var(--accent-fg); }
+.votes { display: flex; gap: 4px; }
+.votes button { border: 1px solid var(--line); background: var(--bg); color: var(--fg); padding: 4px 9px; cursor: pointer; font: inherit; font-size: 12px; }
+.votes button.sel[data-v="ja"] { background: var(--ja); color: #fff; border-color: var(--ja); }
+.votes button.sel[data-v="maaske"] { background: var(--maaske); color: #fff; border-color: var(--maaske); }
+.votes button.sel[data-v="nej"] { background: var(--nej); color: #fff; border-color: var(--nej); }
+.note { grid-column: 2 / -1; display: flex; gap: 6px; }
+.note input { flex: 1; min-width: 0; font: inherit; font-size: 12px; padding: 4px 6px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); }
+.note button, .msg button, .ab button { font: inherit; font-size: 12px; padding: 4px 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+.saved { font-size: 11px; color: var(--ja); align-self: center; min-width: 48px; }
+.saved.err { color: var(--nej); }
+.ab { display: flex; gap: 6px; flex-wrap: wrap; }
+.ab button.on { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.warn { background: var(--warn-bg); border: 1px solid var(--line); padding: 8px 10px; font-size: 12px; }
+.msg { display: grid; gap: 6px; }
+.msg textarea { font: inherit; font-size: 13px; min-height: 80px; padding: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); width: 100%; box-sizing: border-box; }
+.msg .row { display: flex; gap: 8px; align-items: center; }
+.meter { height: 4px; background: var(--line); grid-column: 1 / -1; position: relative; overflow: hidden; }
+.meter i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--accent); }
+.summary { font-size: 12px; color: var(--muted); }
+button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+@media (max-width: 520px) { .item { grid-template-columns: 34px 1fr; } .votes { grid-column: 1 / -1; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<main>
+  <section class="intro">
+    <h1>Mord i Måneby — lyt-review, fase 3</h1>
+    <p>Alt lyd i spillet lige nu: musik (GM gennem GeneralUser GS), stemme (Sara, filtreret), ambience-loops og effektkatalog. Tryk ▶, giv dom pr. lyd, skriv noter. Alt gemmes med det samme.</p>
+    <p class="summary" id="sum">Indlæser dine svar…</p>
+    <p class="status" id="dbstate"></p>
+  </section>
+  <div id="groups"></div>
+  <section class="group msg">
+    <header><h2>✍️ Skriv til Claude</h2><p>Alt det der ikke passer i en enkelt note.</p></header>
+    <textarea id="msg" placeholder="Fx: musikken er for høj i forhold til stemmen, eller: byen_minus-trappen skal være kortere"></textarea>
+    <div class="row"><button id="send">Send</button><span class="saved" id="msgsaved"></span></div>
+    <div id="msgs" class="status"></div>
+  </section>
+</main>
+
+<script>
+// ---------------- catalogue ----------------
+const G = [
+  { id: 'titel', title: 'Titeltema', what: 'B er valgt (eget tema; Fnug-temaet som intro). A ligger her kun som reference. titel_nat = samme sang −2 halvtoner, 92 %, fløjte → synth-strygere.',
+    items: [
+      ['music/titel_b', 'titel_b', 'VALGT. C-dur, 88 BPM, music box-intro (12 toner) → piano/pad/fløjte-melodi → hjælper-motiv til sidst.'],
+      ['music/titel_a', 'titel_a', 'Reference: Weyse-salmen i GM. Fravalgt.'],
+      ['music/titel_nat', 'titel_nat', 'Nat-variant. Bruges på titelskærmen ved 2. gennemspilning.'],
+      ['music/credits', 'credits', 'Ægte credits (min 88): titel_b i rigtig toneart, men fløjten er blevet FX Crystal.'],
+    ] },
+  { id: 'fnug', title: 'Fnug-temaet: 12 → 11 toner', what: 'Hub-musikken. Fra minut 28 mangler den sjette tone, pausen beholdes. Kan du høre det uden at det er påfaldende? (Det er meningen at man KUN næsten kan.)',
+    ab: [['music/byen', '12 toner (min 0–28)'], ['music/byen_11', '11 toner (min 28+)']],
+    items: [
+      ['music/byen', 'byen', 'F-dur, 108 BPM, 16 takter: piano, music box, vibrafon-svar, pizzicato-bas, shaker/rim.'],
+      ['music/byen_11', 'byen_11', 'Samme, 11-tone-intro.'],
+      ['music/byen_morgen', 'byen_morgen', '"Stille morgen" (min 84): −8 dB, 12 toner igen.'],
+    ] },
+  { id: 'trappe', title: 'Byg videre-trappen (byen_minus1–7)', what: 'Hver runde i "Byg videre"-loopet mister hubben ét lag. 1: intet vibrafon-svar · 2: ingen rim · 3: ingen percussion · 4: ingen bas · 5: −1 halvtone, langsommere · 6: kun intro, så næsten intet · 7: intro i FX Crystal, −2, 85 %.',
+    items: [1, 2, 3, 4, 5, 6, 7].map((n) => [`music/byen_minus${n}`, `byen_minus${n}`, '']) },
+  { id: 'plads', title: 'Byggeplads-sange', what: 'plads_a: Landingsplads + Bageri · plads_b: Isværk + Stjernekikkert · plads_c: Skole + Kridtgrube. plads_c_cursed er Kridtgruben om natten. raadhus høres aldrig i dagslys.',
+    items: [
+      ['music/plads_a', 'plads_a', 'G-dur, 112 BPM, pizzicato + music box + piano, hi-hat.'],
+      ['music/plads_b', 'plads_b', 'E-dur, 100 BPM, vibrafon + pad + pizz. Køligere.'],
+      ['music/plads_c', 'plads_c', 'D-dur, 118 BPM, piano + fløjte-melodi. Skolegård.'],
+      ['music/plads_c_cursed', 'plads_c_cursed', 'Samme −2 halvtoner, 92 %, fløjte → FX Crystal.'],
+      ['music/raadhus', 'raadhus', 'byens akkorder, kun pad + én hi-hat. −6 dB.'],
+    ] },
+  { id: 'fyrv', title: 'Fyrværkeri', what: 'Falsk slutning (min 50) og loop-grenen, hvor fanfaren falder én halvtone pr. runde.',
+    items: [
+      ['music/fyrvaerkeri', 'fyrvaerkeri', 'C-dur, 120 BPM, alle patches, crash på hvert slag.'],
+      ['music/fyrv_loop2', 'fyrv_loop2', 'Runde 2: −1 halvtone, 95 %.'],
+      ['music/fyrv_loop3', 'fyrv_loop3', 'Runde 3: −2, 90 %.'],
+    ] },
+  { id: 'stemme', title: 'Stemme (Sara, trin 0 og 2)', what: 'OS-stemmen gennem highpass 120 / lowpass 7000 / kompressor / 22 kHz 8-bit. Trin 2 (telefon) ligger i spillet som runtime-filter; her er kun kildefilerne.',
+    items: [
+      ['voice/intro1', 'intro1', '"Velkommen til Måneby, lille bygmester…"'],
+      ['voice/videre', 'videre', '"…vi går videre." (efter 5 s stilhed, min 35)'],
+      ['voice/mangler_en', 'mangler_en', '"Der mangler én. Nogen har … jeg kender ikke ordet." (min 68+, i spillet gennem telefonfilter)'],
+      ['voice/udmaerket', 'udmaerket', '"Udmærket." — hjælperens sidste ord.'],
+    ] },
+  { id: 'amb', title: 'Ambience-loops', what: 'Dag: næsten intet. Nat: CRT-hum + ventilation. Feberdrømme: kridt, edb-lokale, svævende dobbelt-lag. Logrummet: 40 Hz. Alle loops sømløse. Spilles her i fuld styrke, i spillet ligger de −24 til −34 dB.',
+    loop: true,
+    items: [
+      ['sfx/amb_dag', 'amb_dag', 'Rumkoloni-brum 60–200 Hz. Hub om dagen, −34 dB.'],
+      ['sfx/amb_crt', 'amb_crt', '50 Hz sav + 7,8 kHz hvin. Nat, −26 dB.'],
+      ['sfx/amb_ventilation', 'amb_ventilation', 'Brun støj 200–600 Hz, langsom LFO. Nat, −26 dB.'],
+      ['sfx/amb_kridt', 'amb_kridt', 'Feberdrøm I: kridt på tavler i løs rytme.'],
+      ['sfx/amb_edb', 'amb_edb', 'Feberdrøm II: edb-lokalet tæt på, rullegardin-flap.'],
+      ['sfx/amb_svaev', 'amb_svaev', 'Feberdrøm III: hub-ambience dubleret, 7 cent forskudt.'],
+      ['sfx/amb_log', 'amb_log', 'Logrummet: 40 Hz hum, jord.'],
+    ] },
+  { id: 'os', title: 'OS-krom (egne lyde, ikke Microsofts)', what: '',
+    items: [
+      ['sfx/os_startup', 'os_startup', '4 s egen startup-chime: pad-akkord + music box-arpeggio.'],
+      ['sfx/os_cd_eject', 'os_cd_eject', 'Cd-skuffe ud.'],
+      ['sfx/os_ding_info', 'os_ding_info', 'Info-boks. Bruges også til Skole-IT-popuppen (den eneste normale lyd i akt 3).'],
+      ['sfx/os_ding_fejl', 'os_ding_fejl', 'Fejl-boks ("Indsæt CD 2").'],
+      ['sfx/os_print', 'os_print', 'Nålematrix-printer, 3 s (Ctrl+P Byggebevis).'],
+      ['sfx/os_crt_aflad', 'os_crt_aflad', 'CRT-afladning efter SLUK SKÆRM.'],
+    ] },
+  { id: 'ui', title: 'Program-UI', what: 'Resten af UI-lydene (tick, klik, ok, good, bad, sticker) er syntetiseret live i spillet og er ikke filer.',
+    items: [
+      ['sfx/ui_boble', 'ui_boble', 'Taleboble åbner.'],
+      ['sfx/ui_hub_klik', 'ui_hub_klik', 'Hul plastik-klik på hub-knapper.'],
+      ['sfx/ui_bygning_op1', 'ui_bygning_op1', 'Bygning trin 1: planke-slag.'],
+      ['sfx/ui_bygning_op2', 'ui_bygning_op2', 'Bygning trin 2: klokke.'],
+      ['sfx/ui_bygning_op3', 'ui_bygning_op3', 'Bygning trin 3: fanfare-stump, 1 takt.'],
+    ] },
+  { id: 'mg', title: 'Minispil', what: '2–4 lyde pr. byggeplads.',
+    items: [
+      ['sfx/mg_kasse_dump', 'mg_kasse_dump', 'Landingspladsen: kasse sættes ned.'],
+      ['sfx/mg_taelle_bip', 'mg_taelle_bip', 'Landingspladsen: tælle-bip.'],
+      ['sfx/mg_dej_klask', 'mg_dej_klask', 'Bageriet: dej. Højreklik = 5 klask i træk.'],
+      ['sfx/mg_ovn_ding', 'mg_ovn_ding', 'Bageriet: ovn.'],
+      ['sfx/mg_roer_klik', 'mg_roer_klik', 'Isværket: rør klikker på plads.'],
+      ['sfx/mg_vand_gurgle', 'mg_vand_gurgle', 'Isværket: vand.'],
+      ['sfx/mg_ventil_hvaes', 'mg_ventil_hvaes', 'Isværket: ventil.'],
+      ['sfx/mg_kikkert_drej', 'mg_kikkert_drej', 'Stjernekikkerten: servo-drej.'],
+      ['sfx/mg_stjerne_pling', 'mg_stjerne_pling', 'Stjernekikkerten: stjerne fundet.'],
+      ['sfx/mg_tast_klik', 'mg_tast_klik', 'Skolen: mekanisk tastatur.'],
+      ['sfx/mg_kridt', 'mg_kridt', 'Skolen: kridt.'],
+      ['sfx/mg_skoleklokke', 'mg_skoleklokke', 'Skolen: klokke.'],
+      ['sfx/mg_bold_boing', 'mg_bold_boing', 'Kridtgruben: bold.'],
+      ['sfx/mg_krystal_knaek', 'mg_krystal_knaek', 'Kridtgruben: krystal knækker.'],
+      ['sfx/mg_blok_dunk', 'mg_blok_dunk', 'Kridtgruben: klippeblok.'],
+      ['sfx/mg_slider_rasle', 'mg_slider_rasle', 'Rådhuset: slider (den eneste lyd dér).'],
+      ['sfx/mg_lys_drej', 'mg_lys_drej', 'Fyrtårnet: lyset drejes, tungt metal.'],
+      ['sfx/mg_morse_bip', 'mg_morse_bip', 'Fyrtårnet: én morse-enhed 800 Hz.'],
+      ['sfx/mg_skovl', 'mg_skovl', 'Logrummet: skovl i jord.'],
+      ['sfx/mg_papir_riv', 'mg_papir_riv', 'Logrummet: ét lag = papir der rives.'],
+    ] },
+  { id: 'wr', title: 'Wrongness', what: 'Lydene der er forkerte med vilje. wr_jump er det eneste jump scare i spillet — 300 ms hård clip, derefter 3 s total stilhed. SKRU NED før du trykker.',
+    warn: true,
+    items: [
+      ['sfx/wr_palette_knaek', 'wr_palette_knaek', 'Ét 8-bit knæk ved palette-flash ("Indsæt CD 2" → Gentag).'],
+      ['sfx/wr_knald_vaeg', 'wr_knald_vaeg', 'Fyrværkeri-knald hørt gennem en væg (falsk slutning).'],
+      ['sfx/wr_radiator_tik', 'wr_radiator_tik', 'Radiator-tik, hvert 40–70 s om natten.'],
+      ['sfx/wr_telefon_knitren', 'wr_telefon_knitren', 'Erstatter tekst-tikket når hjælperen "ringer" (min 68+).'],
+      ['sfx/wr_morse_syv', 'wr_morse_syv', 'Fyrtårnet blinker S-Y-V (min 75).'],
+      ['sfx/wr_jump', 'wr_jump', '⚠ JUMP SCARE. 300 ms. Højt.'],
+    ] },
+];
+
+// ---------------- audio ----------------
+let currentAudio = null, currentBtn = null;
+function stopCurrent() { if (currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; } if (currentBtn) currentBtn.classList.remove('on'); currentAudio = currentBtn = null; }
+function makeAudio(path, loop) {
+  const a = new Audio(); a.loop = !!loop; a.preload = 'none';
+  const canOgg = a.canPlayType('audio/ogg; codecs=opus');
+  a.src = (canOgg ? path + '.ogg' : path + '.mp3');
+  a.onerror = () => { if (a.src.endsWith('.ogg')) { a.src = path + '.mp3'; a.play().catch(() => {}); } };
+  return a;
+}
+function play(btn, path, loop, meter) {
+  if (currentBtn === btn) { stopCurrent(); return; }
+  stopCurrent();
+  const a = makeAudio(path, loop); currentAudio = a; currentBtn = btn; btn.classList.add('on');
+  a.ontimeupdate = () => { if (meter && a.duration) meter.style.width = (a.currentTime / a.duration * 100) + '%'; };
+  a.onended = () => { if (currentAudio === a) { stopCurrent(); if (meter) meter.style.width = '0'; } };
+  a.play().catch(() => { stopCurrent(); });
+}
+
+// ---------------- storage ----------------
+let db = null, votes = {}, pending = {};
+const dbstate = document.getElementById('dbstate');
+const LS = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch {} };
+function flash(el, ok, text) { el.textContent = text ?? (ok ? '✓ Gemt' : 'Fejl ved gem'); el.classList.toggle('err', !ok); if (ok) setTimeout(() => { if (el.textContent === '✓ Gemt') el.textContent = ''; }, 2500); }
+async function saveVote(key, patch, savedEl) {
+  const prev = votes[key] || {};
+  const doc = { ...prev, ...patch, ts: new Date().toISOString(), kontekst: 'lyt-review fase 3', status: 'ny' };
+  votes[key] = doc; renderVote(key); summary();
+  if (!db) { flash(savedEl, false, 'Ikke forbundet'); return; }
+  try { await db.doc('valg/' + key).set(doc); flash(savedEl, true); }
+  catch (e) { flash(savedEl, false, 'Fejl: ' + (e && e.code || 'ukendt')); }
+}
+function renderVote(key) {
+  const row = document.querySelector(`[data-key="${key}"]`); if (!row) return;
+  const v = votes[key] || {};
+  row.querySelectorAll('.votes button').forEach((b) => b.classList.toggle('sel', b.dataset.v === v.valg));
+  const inp = row.querySelector('.note input');
+  if (inp && document.activeElement !== inp && v.note !== undefined && !LS('draft:' + key)) inp.value = v.note || '';
+}
+function summary() {
+  const all = G.flatMap((g) => g.items.map((i) => i[1]));
+  const c = { ja: 0, maaske: 0, nej: 0 };
+  for (const k of all) { const v = votes[k]; if (v && c[v.valg] !== undefined) c[v.valg]++; }
+  document.getElementById('sum').textContent = `${all.length} lyde · Ja ${c.ja} · Måske ${c.maaske} · Nej ${c.nej} · ubesvaret ${all.length - c.ja - c.maaske - c.nej}`;
+}
+
+// ---------------- render ----------------
+const root = document.getElementById('groups');
+for (const g of G) {
+  const sec = document.createElement('section'); sec.className = 'group'; sec.id = g.id;
+  sec.innerHTML = `<header><h2>${g.title}</h2>${g.what ? `<p>${g.what}</p>` : ''}</header>`;
+  if (g.warn) { const w = document.createElement('div'); w.className = 'warn'; w.textContent = 'Advarsel: den sidste lyd i denne gruppe er jump scaren. Skru ned først.'; sec.appendChild(w); }
+  if (g.ab) {
+    const ab = document.createElement('div'); ab.className = 'ab';
+    g.ab.forEach(([path, label]) => { const b = document.createElement('button'); b.textContent = '▶ ' + label; b.onclick = () => { ab.querySelectorAll('button').forEach((x) => x.classList.remove('on')); play(b, path, true); }; ab.appendChild(b); });
+    sec.appendChild(ab);
+  }
+  for (const [path, key, what] of g.items) {
+    const row = document.createElement('div'); row.className = 'item'; row.dataset.key = key;
+    row.innerHTML = `<button class="play" aria-label="Afspil ${key}">▶</button>
+      <div><div class="name">${key}</div>${what ? `<div class="what">${what}</div>` : ''}</div>
+      <div class="votes"><button data-v="ja">Ja</button><button data-v="maaske">Måske</button><button data-v="nej">Nej</button></div>
+      <div class="meter"><i></i></div>
+      <div class="note"><input id="note-${key}" placeholder="Note til ${key}…"><button>Gem</button><span class="saved"></span></div>`;
+    const saved = row.querySelector('.saved'), inp = row.querySelector('input'), meter = row.querySelector('.meter i');
+    row.querySelector('.play').onclick = (e) => play(e.currentTarget, path, g.loop || /^music\//.test(path), meter);
+    row.querySelectorAll('.votes button').forEach((b) => (b.onclick = () => saveVote(key, { valg: b.dataset.v }, saved)));
+    const d = LS('draft:' + key); if (d) inp.value = d;
+    inp.oninput = () => LS('draft:' + key, inp.value);
+    const saveNote = () => { saveVote(key, { note: inp.value }, saved); try { localStorage.removeItem('draft:' + key); } catch {} };
+    row.querySelector('.note button').onclick = saveNote;
+    inp.onkeydown = (e) => { if (e.key === 'Enter') saveNote(); };
+    sec.appendChild(row);
+  }
+  root.appendChild(sec);
+}
+summary();
+
+// messages
+const msg = document.getElementById('msg'), msgsaved = document.getElementById('msgsaved'), msgs = document.getElementById('msgs');
+const md = LS('draft:msg'); if (md) msg.value = md; msg.oninput = () => LS('draft:msg', msg.value);
+document.getElementById('send').onclick = async () => {
+  const tekst = msg.value.trim(); if (!tekst) return;
+  if (!db) { flash(msgsaved, false, 'Ikke forbundet'); return; }
+  try { await db.collection('beskeder').add({ tekst, kontekst: 'lyt-review fase 3', status: 'ny', svar: '', ts: new Date().toISOString() }); msg.value = ''; try { localStorage.removeItem('draft:msg'); } catch {} flash(msgsaved, true, '✓ Sendt'); }
+  catch (e) { flash(msgsaved, false, 'Fejl: ' + (e && e.code || 'ukendt')); }
+};
+
+// db hookup (after first paint)
+(async () => {
+  const timer = setTimeout(() => { if (!db) dbstate.textContent = 'Svar-lageret svarer ikke endnu. Dine klik gemmes, når det er tilbage.'; }, 10000);
+  db = await (window.claude && window.claude.use ? window.claude.use('db') : Promise.resolve(null));
+  if (!db) { clearTimeout(timer); dbstate.textContent = 'Ingen forbindelse til svar-lageret i denne visning. Lyt gerne, men svar gemmes ikke.'; return; }
+  db.collection('valg').onSnapshot((snap) => {
+    clearTimeout(timer); dbstate.textContent = '';
+    snap.docs.forEach((d) => { if (d.exists) { votes[d.id] = d.data(); renderVote(d.id); } });
+    summary();
+  }, (e) => { dbstate.textContent = 'Svar-lageret fejlede: ' + e.code; });
+  db.collection('beskeder').orderBy('ts', 'desc').limit(10).onSnapshot((snap) => {
+    msgs.innerHTML = snap.docs.map((d) => { const m = d.data(); return `<div>${new Date(m.ts).toLocaleString('da-DK')} — ${escapeHtml(m.tekst)}${m.svar ? `<br>↳ Claude: ${escapeHtml(m.svar)}` : ''} <em>(${m.status})</em></div>`; }).join('');
+  }, () => {});
+})();
+function escapeHtml(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+</script>
