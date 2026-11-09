@@ -277,7 +277,7 @@ register({
 });
 
 // ------------------------------------------------------------------ Regnskabet (Tællerummet): lær ham minus (7 lag, baglæns)
-const LOG = ['Dag 40. 11 på sletten. Rådhuset: 1. Lagt sammen: 12.', 'Dag 33. Rådhuset færdigt. 10 sov. Døren låst.', 'Dag 32. Sidste lag. 9 bar sten. Syv talt med: 144.', 'Dag 31. 8 byggede. Syv sad på grunden. Blev siddende.', 'Dag 20. 7 lagde grund. Rådhuset skal tælle for mig.', 'Dag 7. 6 navne. Så talte jeg igen: Seks, Syv, Otte.', 'Dag 1. 5 landede først. Så 7 til. Vi trækker ikke fra.'];
+const LOG = ['Dag 40. 11 på sletten. Rådhuset: 1. Lagt sammen: 12.', 'Dag 33. Rådhuset færdigt. 10 sov. Døren låst.', 'Dag 32. Sidste lag. 9 bar sten. 143 og Syv: 144.', 'Dag 31. 8 byggede. Syv sad på grunden hele dagen.', 'Dag 20. 7 lagde grund. Rådhuset skal tælle for mig.', 'Dag 7. 6 fik navne. Så talte jeg videre: Syv, Otte.', 'Dag 1. 5 landede. Så 7 mere. Vi trækker ikke fra.'];
 register({
   id: 'logroom',
   async enter() {
@@ -348,7 +348,7 @@ register({
 });
 
 // ------------------------------------------------------------------ Stille morgen (byen som dag 31) + credits
-const BLINES = { landing: '12 kasser. Alle talt.', bakery: '12 boller. Én til hver.', ice: 'Isen holder.', scope: 'Man kan se hele sletten herfra.', school: 'Dagens tælling: 12', quarry: 'Man må gerne grave.', hall: 'Ikke endnu.', light: 'Lyset er til at finde hjem efter.', fire: '' };
+const BLINES = { landing: '12 kasser. Alle talt.', bakery: '12 boller. Én til hver. Én bliver kold.', ice: 'Isen holder.', scope: 'Man kan se hele sletten herfra.', school: 'Dagens tælling: 12', quarry: 'Man må gerne grave.', hall: 'Ikke endnu.', light: 'Lyset er til at finde hjem efter.', fire: '' };
 register({
   id: 'morning',
   async enter() {

@@ -33,9 +33,9 @@ export const VOICE = {
   '…vi går videre.': 'videre',
   '… Vi går videre.': 'videre',
   // Regnskabet (RETNING §3, batch2.sh)
-  'Fnuggerne hedder det, de blev talt til. Én, To, Tre … og så videre. Det er nemmest.': 'intro4',
+  'Fnuggerne hedder det, de blev talt til. Én, To, Tre, og så videre. Det er nemmest.': 'intro4',
   'Flot, Syv.': 'name_syv',
-  'Én, to, tre, fire, fem, seks … otte, ni, ti, elleve, tolv. Det passer.': 'taeller_hoejt',
+  'Én, to, tre, fire, fem, seks ... otte, ni, ti, elleve, tolv. Det passer.': 'taeller_hoejt',
   'Fjerne? Det gør vi ikke.': 'fjerne',
   'Fnuggerne venter på dig. Alle tretten.': 'tretten',
   'Fire hundrede gange. Jeg tæller stadig. Det er det eneste, jeg kan.': 'hjaelp400',

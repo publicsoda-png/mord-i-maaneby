@@ -87,7 +87,7 @@ register({
       if (fired === 'loud') return; // stille flag-events sluger ikke hub_back-replikken (a0 K1)
       if (save.flags.name_syv && !save.flags.name_syv_said) { save.flags.name_syv_said = true; touch(); await say('Flot, Syv.', { auto: 1400 }); }
       else if (save.flags.fjerne) { delete save.flags.fjerne; touch(); await say('Fjerne? Det gør vi ikke.', { hold: 500 }); }
-      else if (save.flags.taeller_hoejt && !save.flags.taeller_hoejt_said) { save.flags.taeller_hoejt_said = true; touch(); await say('Én, to, tre, fire, fem, seks … otte, ni, ti, elleve, tolv. Det passer.', { hold: 600 }); }
+      else if (save.flags.taeller_hoejt && !save.flags.taeller_hoejt_said) { save.flags.taeller_hoejt_said = true; touch(); await say('Én, to, tre, fire, fem, seks ... otte, ni, ti, elleve, tolv. Det passer.', { hold: 600 }); }
       else if (save.flags.tretten && !save.flags.tretten_said) { save.flags.tretten_said = true; touch(); await say('Fnuggerne venter på dig. Alle tretten.', { auto: 1600 }); }
       else if (save.flags.stemme_rum && !save.flags.stemme_rum_said) {
         save.flags.stemme_rum_said = true; touch();

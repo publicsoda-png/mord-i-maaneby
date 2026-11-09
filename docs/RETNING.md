@@ -11,10 +11,10 @@ Hårde regler: H1 intet uden for Måneby · H2 spilleren er aldrig morder · H3 
 | Min | Beat |
 |---|---|
 | 0–2 | Sort → **ident** (Krater Multimedie-chime 3 s, egen GM) → loader "Henter Måneby…" m. ryk → "Klik for at begynde" (= ensureAudio) → **title** → **setup** (tomt navnefelt; "Byggetrin 1–6"; 7× klik på 6 → "Byggetrin 7" = kun opgaver med svaret 7). Intet skrivebord/cd/computer. |
-| 2 | Ny intro-linje efter intro3: L.intro4 "Fnuggerne hedder det, de blev talt til. Én, To, Tre … og så videre. Det er nemmest." |
+| 2 | Ny intro-linje efter intro3: L.intro4 "Fnuggerne hedder det, de blev talt til. Én, To, Tre, og så videre. Det er nemmest." |
 | 18 | `name_syv`: "Flot, Syv." (hub-HUD viser "Syv" i stedet for navnet, som name_B gjorde) |
 | 17–28 | Kraterskolens opslagstavle (school.js hint-tekst): "Dagens tælling: 12" |
-| 35 | `taeller_hoejt` (deniable): hjælperen tæller højt på hubben og springer 7 over: "Én, to, tre, fire, fem, seks … otte, ni, ti, elleve, tolv. Det passer." |
+| 35 | `taeller_hoejt` (deniable): hjælperen tæller højt på hubben og springer 7 over: "Én, to, tre, fire, fem, seks ... otte, ni, ti, elleve, tolv. Det passer." |
 | 40 | `fuld` (shock, erstatter cd2): program-dialog "Måneby er fuld. Fjern noget, og tryk Gentag." [Gentag][Annuller], 10 s ulukkelig; Gentag → bzzt + paletteFlash; derefter replik "Fjerne? Det gør vi ikke." |
 | 43 | `director_err` beholdes (Handler not defined #traekFra) |
 | 44 | `tretten` (erstatter english_line): hub_back-linjen "Fnuggerne venter på dig. Alle tretten." (han kan kun tælle op) |
@@ -28,17 +28,17 @@ Hårde regler: H1 intet uden for Måneby · H2 spilleren er aldrig morder · H3 
 | 68 | `jump`: klik på døren (eller eventet) → ≤300 ms Rådhus-interiør: mørk sal med søjler, i bagvæggen en Fnug presset ind i mørtlen, bulet hjelm på skrå, to åbne øjne, det sædvanlige lille smil. Procedurel tegning i acts.js er standard; `assets/raw/jump/`-render bruges kun hvis `assets/photos/jump_hall.png` findes. Derefter sort til næste klik (audio.jump-gate). |
 | 68–78 | afterJump: "Der mangler én. Nogen har … jeg kender ikke ordet." → "Vi byggede ovenpå. Det plejer at hjælpe." → `raadhus_melder` (erstatter skole_it): program-boks "Rådhuset melder" / "12 bor i Måneby.\n11 står på sletten.\nByen stemmer." [Luk] noop, [OK] — bærer det normale ding_info. `stemme_rum` (erstatter tts_leak): hjælperens næste linje afspilles med `audio.room('tomt')` + replik "Jeg har mistænkt bageren. Og isværket. Og kridtgruben. Ikke dig. Du kom først bagefter." Fyrtårn S-Y-V, Rådhus-skyder → 11 → "Ja. Elleve." → fever1 (uændret) → "Der er ét sted til. Nedenunder." |
 | 78–84 | Valget uændret. Knap på hubben hedder **"Nedenunder"** → scene `logroom` (id beholdes), overskrift **"Regnskabet"**, rummet kaldes Tællerummet i tekst. |
-| 84–88 | morning: byen som dag 31 — alle bygninger trin 1, Rådhuset kun grund (stage 0 + grund-rektangel), **Syv** sidder på grunden (mindre, bulet hjelm), 12 Fnugger på sletten, bænken er tilbage. "Udmærket." og aldrig mere. BLINES: landing "12 kasser. Alle talt." · bakery "12 boller. Én til hver." · ice "Isen holder." · scope "Man kan se hele sletten herfra." · school "Dagens tælling: 12" · quarry "Man må gerne grave." · hall "Ikke endnu." · light "Lyset er til at finde hjem efter." |
+| 84–88 | morning: byen som dag 31 — alle bygninger trin 1, Rådhuset kun grund (stage 0 + grund-rektangel), **Syv** sidder på grunden (mindre, bulet hjelm), 12 Fnugger på sletten, bænken er tilbage. "Udmærket." og aldrig mere. BLINES: landing "12 kasser. Alle talt." · bakery "12 boller. Én til hver. Én bliver kold." · ice "Isen holder." · scope "Man kan se hele sletten herfra." · school "Dagens tælling: 12" · quarry "Man må gerne grave." · hall "Ikke endnu." · light "Lyset er til at finde hjem efter." |
 | 88–90 | credits: Krater-navne (ingen "Afprøvet i 4.b", intet Skole-IT), "Tak til Fnuggerne: Én, To, Tre, Fire, Fem, Seks, Syv, Otte, Ni, Ti, Elleve, Tolv", disclaimer-linjer beholdes, sidste lille linje "Mord i Måneby". |
 
 **Regnskabets 7 lag** (LOG i acts.js, øverst nyest, ≤56 tegn, tallet = 12−n for lag n):
 1. `Dag 40. 11 på sletten. Rådhuset: 1. Lagt sammen: 12.`
 2. `Dag 33. Rådhuset færdigt. 10 sov. Døren låst.`
-3. `Dag 32. Sidste lag. 9 bar sten. Syv talt med: 144.`
-4. `Dag 31. 8 byggede. Syv sad på grunden. Blev siddende.`
+3. `Dag 32. Sidste lag. 9 bar sten. 143 og Syv: 144.`
+4. `Dag 31. 8 byggede. Syv sad på grunden hele dagen.`
 5. `Dag 20. 7 lagde grund. Rådhuset skal tælle for mig.`
-6. `Dag 7. 6 navne. Så talte jeg igen: Seks, Syv, Otte.`
-7. `Dag 1. 5 landede først. Så 7 til. Vi trækker ikke fra.`
+6. `Dag 7. 6 fik navne. Så talte jeg videre: Syv, Otte.`
+7. `Dag 1. 5 landede. Så 7 mere. Vi trækker ikke fra.`
 
 **2. gennemspilning (byen husker — `meta.ending` sat):** starter som DAG (ikke nat). Minus-tast på Kraterskolens stentastatur fra start og 7-tasten tilbage (`seven_missing` kræver `!meta.ending`). Rådhuset klikbart fra min 0. Første hub-linje: "Du har været her før. Det kan jeg tælle." (ingen navne-hukommelse). **Skjult slutning** `trueEnd`: gennemfør uden nogensinde at svare på Rådhusets "Hvor mange Fnugger bor i Måneby?" (flag `hall_answer` aldrig sat) → fyrværkeri med 12 på sletten, rulletekst med alle tolv, Byggebevis "Fnugger: 12 (12)", ingen nat, direkte credits. `meta.ending = 'tolv'`.
 
@@ -56,9 +56,9 @@ Scener: `ident` (ny, boot.js) → `title` → `setup` → `hub`. `desktop` finde
 Hjælper-replikker (eksakt tekst = voicemap-nøgle). **Beholdes (32 klip):** intro1–3, hub_first, hub_back1–3, help1–3, landing_intro, landing_ok, landing_ok_kk, wrong1–2, sticker, fyrv_venter, ikke_endnu, gemt, gemt_lyver, hvor_mange, godt_faerre, et_sted_til, ja_hende, grav, det_tegn, faerre_ja, ikke_mord, mangler_en, udmaerket, videre. **Slettes (5 klip + filer):** name_b, hjaelp400, pedel1, pedel2, knows_time. **Nye (indtales med tts.sh, baseline trin 0 medmindre andet):**
 | id | tekst | trin |
 |---|---|---|
-| intro4 | Fnuggerne hedder det, de blev talt til. Én, To, Tre … og så videre. Det er nemmest. | 0 |
+| intro4 | Fnuggerne hedder det, de blev talt til. Én, To, Tre, og så videre. Det er nemmest. | 0 |
 | name_syv | Flot, Syv. | 0 |
-| taeller_hoejt | Én, to, tre, fire, fem, seks … otte, ni, ti, elleve, tolv. Det passer. | 0 |
+| taeller_hoejt | Én, to, tre, fire, fem, seks ... otte, ni, ti, elleve, tolv. Det passer. | 0 |
 | fjerne | Fjerne? Det gør vi ikke. | 0 |
 | tretten | Fnuggerne venter på dig. Alle tretten. | 0 |
 | hjaelp400 | Fire hundrede gange. Jeg tæller stadig. Det er det eneste, jeg kan. | 0 |
