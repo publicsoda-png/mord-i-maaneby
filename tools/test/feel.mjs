@@ -33,6 +33,8 @@ const rnd = () => { seedState = (seedState + 0x6d2b79f5) >>> 0; let t = seedStat
 const shuffle = (a) => { const b = [...a]; for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
 
 // Mål (QC-POLISH-PLAN §3 + QUALITY-PLAN §2)
+// kinds der tæller som "målrettede" klik (interaktive): hotspots med hand-cursor, .btn, .wbtn, .chip, #field .o med pointer-events:auto, dialog-▼, cd-dobbeltklik. Passive (api.text-labels, input, enkeltklik på ikon, blinde punkter) rapporteres separat.
+const TARGET_KINDS = ['hotspot', 'button', 'wbtn', 'chip', 'field-o', 'dialog', 'desk-icon'];
 const TARGETS = { latency_ms_max: 100, diff_pct_min: 0.1, diff_fuzz: 0, dead_window_ms: 400, sound_window_ms: 150, cps_min: 24, cps_max: 32, max_lines: 3, time_to_hub_s_max: 90, pacing_min: [0, 6, 12, 18, 24, 30] };
 
 // ---------- server ----------
@@ -45,9 +47,19 @@ const URL0 = `http://127.0.0.1:${PORT}/`;
 // ---------- hooks (ingen ændringer i spillets kildekode) ----------
 const HOOK = `(() => {
   const now = () => performance.timeOrigin + performance.now();
-  window.__sfxLog = []; window.__downLog = []; window.__textLog = []; window.__waitMs = 0; window.__lockSamples = 0;
+  window.__sfxLog = []; window.__downLog = []; window.__upLog = []; window.__gotoLog = []; window.__uiHiddenLog = []; window.__textLog = []; window.__waitMs = 0; window.__lockSamples = 0;
+  // URL-tagging af lydbuffere (som sync.mjs): fetch → arrayBuffer → decodeAudioData → buffer
+  const urlOf = new WeakMap(), bufUrl = new WeakMap();
+  const of = window.fetch; window.fetch = async function (u, ...r) { const res = await of.call(this, u, ...r); try { const url = typeof u === 'string' ? u : u.url; const ab = res.arrayBuffer.bind(res); res.arrayBuffer = async () => { const a = await ab(); urlOf.set(a, url); return a; }; } catch {} return res; };
+  const od = AudioContext.prototype.decodeAudioData; AudioContext.prototype.decodeAudioData = function (ab, ok, err) { const p = od.call(this, ab, ok, err); const url = urlOf.get(ab) || '?'; if (p && p.then) p.then((buf) => bufUrl.set(buf, url)); return p; };
   const abs = AudioBufferSourceNode.prototype.start;
-  AudioBufferSourceNode.prototype.start = function (when, ...r) { try { const d = Math.max(0, ((when || 0) - this.context.currentTime) * 1000); window.__sfxLog.push({ t: now() + d, kind: 'buffer', dur: this.buffer ? +this.buffer.duration.toFixed(3) : 0 }); } catch {} return abs.call(this, when, ...r); };
+  AudioBufferSourceNode.prototype.start = function (when, ...r) { try { const d = Math.max(0, ((when || 0) - this.context.currentTime) * 1000); window.__sfxLog.push({ t: now() + d, kind: 'buffer', dur: this.buffer ? +this.buffer.duration.toFixed(3) : 0, url: this.buffer ? (bufUrl.get(this.buffer) || '?') : '?' }); } catch {} return abs.call(this, when, ...r); };
+  window.addEventListener('pointerup', (e) => window.__upLog.push({ t: now(), x: e.clientX, y: e.clientY }), true);
+  // goto()-kald stemples ved at wrappe window.MB.goto når main.js sætter MB (samme funktion som scenerne importerer? nej — scenerne kalder modulets goto direkte;
+  // derfor stemples i stedet det synlige resultat: #ui får visibility:hidden i første rAF-frame hvor black=1)
+  let MBv; Object.defineProperty(window, 'MB', { configurable: true, get: () => MBv, set: (v) => { MBv = v; if (v && v.goto) { const g = v.goto; v.goto = function (...a) { window.__gotoLog.push({ t: now(), id: a[0] }); return g.apply(this, a); }; } } });
+  const obs = () => { const ui = document.getElementById('ui'); if (!ui) return requestAnimationFrame(obs); new MutationObserver(() => { if (ui.style.visibility === 'hidden') window.__uiHiddenLog.push(now()); }).observe(ui, { attributes: true, attributeFilter: ['style'] }); };
+  requestAnimationFrame(obs);
   const osc = OscillatorNode.prototype.start;
   OscillatorNode.prototype.start = function (when, ...r) { try { const d = Math.max(0, ((when || 0) - this.context.currentTime) * 1000); window.__sfxLog.push({ t: now() + d, kind: 'osc', f: this.frequency ? +this.frequency.value.toFixed(0) : 0 }); } catch {} return osc.call(this, when, ...r); };
   window.addEventListener('pointerdown', (e) => window.__downLog.push({ t: now(), x: e.clientX, y: e.clientY, trusted: e.isTrusted }), true);
@@ -141,10 +153,11 @@ async function runBot() {
     await differ.setBase(base);
     const nDown = await p.evaluate(() => window.__downLog.length);
     const nSfx = await p.evaluate(() => window.__sfxLog.length);
+    const nUp = await p.evaluate(() => window.__upLog.length), nHid = await p.evaluate(() => window.__uiHiddenLog.length);
     await p.mouse.down(); await sleep(70); await p.mouse.up();
     if (dbl) { await sleep(110); await p.mouse.down(); await sleep(60); await p.mouse.up(); } // dobbeltklik: 2. tryk inden 450 ms (os.js)
     await sleep(TARGETS.dead_window_ms + 150);
-    const info = await p.evaluate((nd, ns) => ({ down: window.__downLog[nd] || null, sfx: window.__sfxLog.slice(ns), lockAfter: document.getElementById('cursor')?.classList.contains('wait') }), nDown, nSfx);
+    const info = await p.evaluate((nd, ns, nu, nh) => ({ down: window.__downLog[nd] || null, up: window.__upLog[nu] || null, hid: window.__uiHiddenLog.slice(nh), sfx: window.__sfxLog.slice(ns), lockAfter: document.getElementById('cursor')?.classList.contains('wait') }), nDown, nSfx, nUp, nHid);
     const tDown = info.down ? info.down.t : Date.now() - TARGETS.dead_window_ms - 220;
     const after = cast.ring.filter((f) => f.t > tDown && f.t <= tDown + TARGETS.dead_window_ms + 100);
     const mask = [x - 10, y - 10, 44, 44]; // egen cursor-sprite (32 px + hand-offset) skal ikke tælle som respons
@@ -153,7 +166,10 @@ async function runBot() {
     const snd = info.sfx.filter((s) => s.t >= tDown - 30).sort((a, b) => a.t - b.t);
     const firstSound = snd.length ? Math.max(0, snd[0].t - tDown) : null;
     const dead = firstVisual === null && (firstSound === null || firstSound > TARGETS.dead_window_ms);
-    const rec = { i: clicks.length, t_s: +((Date.now() - T0) / 1000).toFixed(1), scene, kind, label, x, y, latency_ms: firstVisual === null ? null : Math.round(firstVisual), any_diff_ms: firstAny === null ? null : Math.round(firstAny), sound_ms: firstSound === null ? null : Math.round(firstSound), sounds: snd.length, max_diff_pct: +maxDiff.toFixed(3), frames_in_window: after.length, dead, trusted: info.down ? info.down.trusted : null };
+    const tUp = info.up ? info.up.t : null; const tHid = info.hid.find((t) => t > tDown) ?? null;
+    const rec = { i: clicks.length, t_s: +((Date.now() - T0) / 1000).toFixed(1), scene, kind, label, x, y, latency_ms: firstVisual === null ? null : Math.round(firstVisual),
+      // nedbrydning (bible: handling på pointerup): down→up = musens holdetid (botten holder 70 ms), up→lyd, up→#ui skjult (= første rAF med black), ui-skjult→første frame
+      down_to_up_ms: tUp === null ? null : Math.round(tUp - tDown), latency_from_up_ms: firstVisual === null || tUp === null ? null : Math.round(tDown + firstVisual - tUp), sound_from_up_ms: firstSound === null || tUp === null ? null : Math.round(tDown + firstSound - tUp), up_to_black_rAF_ms: tHid === null || tUp === null ? null : Math.round(tHid - tUp), black_rAF_to_frame_ms: tHid === null || firstVisual === null ? null : Math.round(tDown + firstVisual - tHid), any_diff_ms: firstAny === null ? null : Math.round(firstAny), sound_ms: firstSound === null ? null : Math.round(firstSound), sounds: snd.length, max_diff_pct: +maxDiff.toFixed(3), frames_in_window: after.length, dead, trusted: info.down ? info.down.trusted : null };
     if (dead || (firstVisual !== null && firstVisual > TARGETS.latency_ms_max)) {
       const dir = path.join(out, 'clicks', `c${String(rec.i).padStart(3, '0')}_${dead ? 'dead' : 'slow'}_${scene}`); fs.mkdirSync(dir, { recursive: true });
       fs.writeFileSync(path.join(dir, 'f000_base.png'), base);
@@ -201,7 +217,9 @@ async function runBot() {
           if (getComputedStyle(el).pointerEvents === 'none' && !el.matches('.desk-icon')) continue;
           if (seen.has(el)) continue; seen.add(el);
           const r = el.getBoundingClientRect(); if (r.width < 2 || r.height < 2) continue;
-          res.push({ kind: el.matches('.btn') ? 'button' : el.matches('#field') ? 'field' : 'dom', label: el.dataset.label || el.textContent.trim().slice(0, 24) || el.className.slice(0, 24), x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height });
+          // kun ægte interaktive elementer er "mål": .btn, .wbtn, .chip, #field .o med inline pointer-events:auto (api.on/api.btn). Resten (api.text-labels, input, ikoner) = passiv/krom
+          const kind = el.matches('.btn') ? 'button' : el.matches('.wbtn') ? 'wbtn' : el.matches('.chip') ? 'chip' : el.matches('.input') ? 'input' : el.matches('.desk-icon') ? 'desk-icon' : el.matches('#field') ? 'field' : el.matches('#field .o') ? (el.style.pointerEvents === 'auto' ? 'field-o' : 'passive') : 'dom';
+          res.push({ kind, label: el.dataset.label || el.textContent.trim().slice(0, 24) || el.className.slice(0, 24), x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height });
         }
       }
       return res;
@@ -226,7 +244,7 @@ async function runBot() {
     await sleep(800 + rnd() * 800);
     const icons = await p.evaluate(() => [...document.querySelectorAll('#os .desk-icon')].map((d) => { const r = d.getBoundingClientRect(); return { label: d.textContent.trim(), x: r.x + r.width / 2, y: r.y + 20 }; }));
     const other = icons.filter((i) => !/REGN/.test(i.label));
-    if (other.length) { const ic = other[Math.floor(rnd() * other.length)]; await click(ic.x, ic.y, 'desk-icon', ic.label); } // nybegynder: ét forkert klik først
+    if (other.length) { const ic = other[Math.floor(rnd() * other.length)]; await click(ic.x, ic.y, 'desk-single', ic.label); } // nybegynder: ét forkert enkeltklik først (krom, kræver dobbeltklik → informativt)
     const cd = icons.find((i) => /REGN/.test(i.label));
     if (!cd) throw new Error('cd-ikon ikke fundet på skrivebordet');
     await click(cd.x, cd.y, 'desk-icon', 'cd dobbeltklik', { dbl: true });
@@ -241,10 +259,10 @@ async function runBot() {
     await waitScene('setup', 8000); note('setup');
     await sleep(600);
     ({ dom } = await scanTargets());
-    const inp = dom.find((d) => d.kind === 'dom' && /input/.test(d.label) || d.h > 20 && d.w > 150);
-    if (inp) { await click(inp.x, inp.y, 'dom', 'input'); await p.keyboard.type('Bo', { delay: 140 + rnd() * 100 }); }
+    const inp = dom.find((d) => d.kind === 'input');
+    if (inp) { await click(inp.x, inp.y, 'input', 'input'); await p.keyboard.type('Bo', { delay: 140 + rnd() * 100 }); }
     const chips = dom.filter((d) => /^\d\.$/.test(d.label));
-    if (chips.length) { const c = chips[Math.floor(rnd() * chips.length)]; await click(c.x, c.y, 'dom', 'klasse ' + c.label); }
+    if (chips.length) { const c = chips[Math.floor(rnd() * chips.length)]; await click(c.x, c.y, 'chip', 'klasse ' + c.label); }
     const ok = dom.find((d) => d.label === 'OK');
     if (ok) await click(ok.x, ok.y, 'button', 'OK'); else await click(330, 341, 'blind', 'ok?');
     await waitScene('hub', 8000); note('hub');
@@ -285,12 +303,13 @@ async function runBot() {
   } catch (e) { errors.push({ kind: 'bot', msg: e.stack || String(e) }); console.error('bot-fejl:', e.message); }
 
   // ---- målinger ----
-  const page = await p.evaluate(() => ({ waitMs: Math.round(window.__waitMs), textLog: window.__textLog, sfx: window.__sfxLog.length, downs: window.__downLog.length }));
+  const page = await p.evaluate(() => ({ waitMs: Math.round(window.__waitMs), textLog: window.__textLog, sfx: window.__sfxLog.length, downs: window.__downLog.length, voiceStarts: window.__sfxLog.filter((s) => s.kind === 'buffer' && /assets\/voice\//.test(s.url)).map((s) => s.t) }));
   // cps: gruppér renderText-kald i replikker (gab > 1500 ms); pr. replik: tegn = renders med linjer, tick = median afstand
   const utter = []; let cur = null;
   // ny replik = renderText('') (clearRect uden drawImage) efter en ikke-tom render, eller gab > 1500 ms
   for (const r of page.textLog) { if (!cur || r.t - cur.last > 1500 || (r.lines === 0 && cur.renders.length && cur.lastNonEmpty)) { cur = { t0: r.t, last: r.t, renders: [], maxLines: 0, lastW: 0, lastNonEmpty: false }; utter.push(cur); } cur.last = r.t; cur.lastNonEmpty = r.lines > 0; if (r.lines) { cur.renders.push(r.t); cur.maxLines = Math.max(cur.maxLines, r.lines); cur.lastW = r.w; } }
-  const cpsRows = utter.filter((u) => u.renders.length >= 8).map((u) => { const iv = []; for (let i = 1; i < u.renders.length; i++) iv.push(u.renders[i] - u.renders[i - 1]); const med = median(iv); return { chars: u.renders.length, span_s: +((u.last - u.t0) / 1000).toFixed(2), tick_ms_median: +med.toFixed(1), cps_tick: +(1000 / med).toFixed(1), cps_incl_pauses: +((u.renders.length - 1) / ((u.renders[u.renders.length - 1] - u.renders[0]) / 1000)).toFixed(1), lines: u.maxLines, skipped: iv.some((x) => x < 5) }; });
+  // voiced = en lydbuffer fra assets/voice/ starter mellem renderText('') (t0 − 100 ms) og første tegn + 300 ms (say(): renderText('') → await playVoice → tekst-loop)
+  const cpsRows = utter.filter((u) => u.renders.length >= 8).map((u) => { const iv = []; for (let i = 1; i < u.renders.length; i++) iv.push(u.renders[i] - u.renders[i - 1]); const med = median(iv); const voiced = page.voiceStarts.some((t) => t >= u.t0 - 100 && t <= u.renders[0] + 300); return { voiced, chars: u.renders.length, span_s: +((u.last - u.t0) / 1000).toFixed(2), tick_ms_median: +med.toFixed(1), cps_tick: +(1000 / med).toFixed(1), cps_incl_pauses: +((u.renders.length - 1) / ((u.renders[u.renders.length - 1] - u.renders[0]) / 1000)).toFixed(1), lines: u.maxLines, skipped: iv.some((x) => x < 5) }; });
   // afskæring: statisk — alle replikker i src/ ombrydes med spillets egen text1bit-måling (samme algoritme som dialog.js renderText)
   let clipped = [];
   try {
@@ -313,27 +332,32 @@ async function runBot() {
   const sheet = [...clicks.filter((c) => c.shot).map((c) => path.join(here, c.shot)), ...[...sceneShots.values()]].slice(0, 24);
   if (sheet.length) { try { const rows = []; for (let i = 0; i < sheet.length; i += 4) rows.push(sheet.slice(i, i + 4)); const args = []; for (const r of rows) args.push('(', ...r.flatMap((f) => ['(', f, '-resize', '320x240', '-bordercolor', '#222', '-border', '4', ')']), '+append', ')'); execFileSync('magick', [...args, '-background', '#222', '-append', path.join(out, 'kontakt.png')], { stdio: 'ignore' }); } catch (e) { errors.push({ kind: 'bot', msg: 'kontaktark fejlede: ' + e.message }); } }
 
-  const targeted = clicks.filter((c) => c.kind !== 'blind');
+  const targeted = clicks.filter((c) => TARGET_KINDS.includes(c.kind));
+  const passive = clicks.filter((c) => !TARGET_KINDS.includes(c.kind));
   const lat = targeted.filter((c) => c.latency_ms !== null).map((c) => c.latency_ms);
-  const sfxEligible = targeted.filter((c) => ['button', 'hotspot', 'dom', 'wbtn'].includes(c.kind) && c.label !== 'input' && !/^cd /.test(c.label));
+  const latUp = targeted.filter((c) => c.latency_from_up_ms !== null).map((c) => c.latency_from_up_ms);
+  const sfxEligible = targeted.filter((c) => ['button', 'hotspot', 'chip', 'field-o', 'wbtn'].includes(c.kind));
   const withSound = sfxEligible.filter((c) => c.sound_ms !== null && c.sound_ms <= TARGETS.sound_window_ms);
-  const deadT = targeted.filter((c) => c.dead), deadB = clicks.filter((c) => c.kind === 'blind' && c.dead);
-  const cpsTick = cpsRows.filter((r) => !r.skipped).map((r) => r.cps_tick);
+  const deadT = targeted.filter((c) => c.dead), deadP = passive.filter((c) => c.dead && c.kind !== 'blind'), deadB = clicks.filter((c) => c.kind === 'blind' && c.dead);
+  const cpsVoiced = cpsRows.filter((r) => !r.skipped && r.voiced).map((r) => r.cps_tick), cpsUnvoiced = cpsRows.filter((r) => !r.skipped && !r.voiced).map((r) => r.cps_tick);
+  const hot = targeted.filter((c) => c.kind === 'hotspot' && c.latency_ms !== null);
+  const hotspotBreakdown = hot.length ? { n: hot.length, down_to_up_ms: median(hot.map((c) => c.down_to_up_ms).filter((v) => v !== null)), up_to_sound_ms: median(hot.map((c) => c.sound_from_up_ms).filter((v) => v !== null)), up_to_black_rAF_ms: median(hot.map((c) => c.up_to_black_rAF_ms).filter((v) => v !== null)), black_rAF_to_frame_ms: median(hot.map((c) => c.black_rAF_to_frame_ms).filter((v) => v !== null)), latency_from_down_ms: median(hot.map((c) => c.latency_ms)), latency_from_up_ms: median(hot.map((c) => c.latency_from_up_ms).filter((v) => v !== null)) } : null;
   const report = {
     when: new Date().toISOString(), git: gitHash, mode: 'bot', minutes: MINUTES, seed: SEED, port: PORT, targets: TARGETS,
-    method: 'klik-latens = pointerdown (sidens tidsstempel) → første screencast-frame med ≥0,1 % ændrede pixels (fuzz 0, cursor-felt 44×44 maskeret) mod screenshot taget lige før klik. Lyd = hook på AudioBufferSourceNode/OscillatorNode.start. cps = median tegn-interval i renderText-kald på #dtextc (tick) og inkl. pauser. Afskæring = statisk ombrydning af alle replik-strenge i src/ med text1bit (dialog.js slice(0,3)).',
+    method: 'klik-latens = pointerdown (sidens tidsstempel) → første screencast-frame med ≥0,1 % ændrede pixels (fuzz 0, cursor-felt 44×44 maskeret) mod screenshot taget lige før klik. Lyd = hook på AudioBufferSourceNode/OscillatorNode.start. cps = median tegn-interval i renderText-kald på #dtextc (tick) og inkl. pauser, splittet i voiced (assets/voice/-buffer starter ved replikkens begyndelse; følger klippets længde) og unvoiced (måles mod 24–32). Latens rapporteres fra pointerdown (protokol) OG fra pointerup (bible: handling på up; botten holder musen 70 ms) med nedbrydning up→lyd→#ui-hidden (første sort rAF)→første screencast-frame. Afskæring = statisk ombrydning af alle replik-strenge i src/ med text1bit (dialog.js slice(0,3)).',
     summary: {
-      clicks_total: clicks.length, clicks_targeted: targeted.length, clicks_blind: clicks.length - targeted.length,
-      latency_ms_median: median(lat), latency_ms_p90: lat.length ? [...lat].sort((a, b) => a - b)[Math.floor(lat.length * 0.9)] : null, latency_ms_max: lat.length ? Math.max(...lat) : null, latency_over_100: lat.filter((x) => x > TARGETS.latency_ms_max).length,
-      dead_targeted: deadT.length, dead_blind: deadB.length,
+      clicks_total: clicks.length, clicks_targeted: targeted.length, clicks_passive: passive.length - clicks.filter((c) => c.kind === 'blind').length, clicks_blind: clicks.filter((c) => c.kind === 'blind').length,
+      latency_ms_median: median(lat), latency_from_up_ms_median: median(latUp), hotspot_breakdown_median: hotspotBreakdown, latency_ms_p90: lat.length ? [...lat].sort((a, b) => a - b)[Math.floor(lat.length * 0.9)] : null, latency_ms_max: lat.length ? Math.max(...lat) : null, latency_over_100: lat.filter((x) => x > TARGETS.latency_ms_max).length,
+      dead_targeted: deadT.length, dead_passive_informativt: deadP.length, dead_blind: deadB.length,
       sound_eligible: sfxEligible.length, sound_within_150ms: withSound.length, sound_share: sfxEligible.length ? +(withSound.length / sfxEligible.length).toFixed(3) : null,
-      cps_tick_median: median(cpsTick), cps_incl_pauses_median: median(cpsRows.map((r) => r.cps_incl_pauses)), utterances_measured: cpsRows.length, clipped_strings: clipped.length, strings_checked: page.textStringsChecked || 0,
+      cps_unvoiced_median: median(cpsUnvoiced), cps_voiced_median: median(cpsVoiced), utterances_unvoiced: cpsUnvoiced.length, utterances_voiced: cpsVoiced.length, cps_incl_pauses_median: median(cpsRows.map((r) => r.cps_incl_pauses)), utterances_measured: cpsRows.length, clipped_strings: clipped.length, strings_checked: page.textStringsChecked || 0,
       time_to_first_free_hub_click_s: firstHubFreeClick === null ? null : +firstHubFreeClick.toFixed(1), wait_cursor_total_s: +(page.waitMs / 1000).toFixed(1), wait_share: +(page.waitMs / 1000 / (MINUTES * 60)).toFixed(3),
       forced_msgbox_clicks: forcedWbtn, scenes_visited: [...sceneShots.keys()], screencast_frames: cast.frames(), sfx_events_total: page.sfx,
       console_errors: errors.filter((e) => e.kind !== 'bot' && !e.is404).length, console_404: errors.filter((e) => e.is404).length, missing_404_unique: [...new Set(errors.filter((e) => e.is404).map((e) => e.msg.slice(4)))], bot_errors: errors.filter((e) => e.kind === 'bot').length,
     },
     pass: {},
-    dead_clicks: [...deadT, ...deadB].map((c) => ({ i: c.i, scene: c.scene, kind: c.kind, label: c.label, x: c.x, y: c.y, shot: c.shot, gif: c.gif })),
+    dead_clicks: deadT.map((c) => ({ i: c.i, scene: c.scene, kind: c.kind, label: c.label, x: c.x, y: c.y, shot: c.shot, gif: c.gif })),
+    dead_passive_informativt: [...deadP, ...deadB].map((c) => ({ i: c.i, scene: c.scene, kind: c.kind, label: c.label, x: c.x, y: c.y, shot: c.shot, gif: c.gif })),
     slow_clicks: targeted.filter((c) => c.latency_ms !== null && c.latency_ms > TARGETS.latency_ms_max).map((c) => ({ i: c.i, scene: c.scene, kind: c.kind, label: c.label, x: c.x, y: c.y, latency_ms: c.latency_ms, shot: c.shot, gif: c.gif })),
     cps: cpsRows, clipped, clicks, events, errors,
     files: { kontakt: 'feel/kontakt.png', scener: 'feel/scener/', clicks: 'feel/clicks/' },
@@ -341,7 +365,7 @@ async function runBot() {
   report.pass.klik_latens_median = report.summary.latency_ms_median !== null && report.summary.latency_ms_median <= TARGETS.latency_ms_max;
   report.pass.dead_clicks_maal = deadT.length === 0;
   report.pass.lyd_pr_handling = report.summary.sound_share === 1;
-  report.pass.cps_24_32 = report.summary.cps_tick_median !== null && report.summary.cps_tick_median >= TARGETS.cps_min && report.summary.cps_tick_median <= TARGETS.cps_max;
+  report.pass.cps_24_32_unvoiced = report.summary.cps_unvoiced_median !== null && report.summary.cps_unvoiced_median >= TARGETS.cps_min && report.summary.cps_unvoiced_median <= TARGETS.cps_max; // kun linjer uden stemme; voiced følger klippets længde (forventet ~15–20)
   report.pass.ingen_afskaaret_tekst = clipped.length === 0;
   report.pass.tid_til_hub_90s = firstHubFreeClick !== null && firstHubFreeClick <= TARGETS.time_to_hub_s_max;
   report.pass.ingen_konsolfejl = report.summary.console_errors === 0;

@@ -128,7 +128,8 @@ function frame(t) {
     const h = locked ? null : hit({ x: cur.x, y: cur.y });
     if (h !== hover) { hover = h; }
     setCursor(locked ? 'wait' : h && h.on ? h.cursor || 'hand' : domHover ? 'hand' : 'arrow');
-    if (hover && hover.label && !locked) drawText(hover.label, Math.min(W - 10, cur.x + 14), Math.min(H - 20, cur.y + 18), { font: '700 12px "Comic Neue","Comic Sans MS",sans-serif', color: '#fff', outline: '#000' });
+    const pd = pressHot ? 1 : 0; // press-feedback on hotspots: label 1 px down/right while the pointer is held (bible: press on down, action on up)
+    if (hover && hover.label && !locked) drawText(hover.label, Math.min(W - 10, cur.x + 14 + pd), Math.min(H - 20, cur.y + 18 + pd), { font: '700 12px "Comic Neue","Comic Sans MS",sans-serif', color: '#fff', outline: '#000' });
   }
   for (let i = fx.length - 1; i >= 0; i--) { const f = fx[i]; f.draw(ctx, t); if (f.until && t > f.until) fx.splice(i, 1); }
   if (black) { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); }
