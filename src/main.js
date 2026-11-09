@@ -11,6 +11,7 @@ import './scenes/acts.js';
 import { ensureAudio } from './core/audio.js';
 import { showOS } from './core/os.js';
 import { showCursor } from './core/cursor.js';
+import { installEggs } from './eggs.js';
 
 const q = new URLSearchParams(location.search);
 await loadState();
@@ -21,6 +22,7 @@ if (q.has('name')) save.name = q.get('name');
 if (q.has('reset')) { localStorage.clear(); }
 
 window.MB = { save, gameApi, goto };
+installEggs();
 if (q.has('dev') && q.get('scene')) {
   // Skip the desktop chrome in dev: first click starts audio
   showOS(false); document.getElementById('app').style.visibility = 'visible'; showCursor(true);

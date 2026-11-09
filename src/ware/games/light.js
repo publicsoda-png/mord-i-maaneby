@@ -52,7 +52,7 @@ export default {
     }, { top: LY - LEN - 30 + 'px' });
     if (!night) {
       // angle labels as DOM text so they stay crisp
-      [[0, LX + LEN + 22, LY - 10], [45, LX + (LEN + 36) * 0.707 + 6, LY - (LEN + 36) * 0.707 - 16], [90, LX - 12, LY - LEN - 42], [135, LX - (LEN + 36) * 0.707 - 36, LY - (LEN + 36) * 0.707 - 16], [180, LX - LEN - 56, LY - 10]]
+      [[0, LX + LEN + 22, LY - 10], [45, LX + (LEN + 36) * 0.707 + 6, LY - (LEN + 36) * 0.707 - 16], [90, LX - 12, LY - LEN - 42], [135, LX - (LEN + 36) * 0.707 - 36, LY - (LEN + 36) * 0.707 - 16], [180, LX - LEN - 30, LY + 4]]
         .forEach(([d, x, y]) => a.text(d + '°', x, y, { fontSize: '13px', fontFamily: FONT }));
     }
     // ---- beam (canvas line in its own sprite, redrawn per angle)

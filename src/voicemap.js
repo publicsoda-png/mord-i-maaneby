@@ -1,0 +1,42 @@
+// Exact helper line → rendered Sara clip id (assets/voice/<id>.ogg|m4a|json). Lines not listed are text + tick only.
+export const VOICE = {
+  'Velkommen til Måneby, lille bygmester. Her er stille. Alt for stille, hvis du spørger mig.': 'intro1',
+  'Fnuggerne vil så gerne bygge en by, men de kan ikke regne. Det kan du. Så hjælper I hinanden.': 'intro2',
+  'Klik på en byggeplads på kortet, så går vi i gang. Hvis du mangler hjælp, så klik på mig.': 'intro3',
+  'Lad os begynde med Landingspladsen. Der er landet en masse kasser med byggesten.': 'hub_first',
+  'Godt. Hvad skal vi bygge nu?': 'hub_back1',
+  'Udmærket. Vælg en ny byggeplads.': 'hub_back2',
+  'Fnuggerne venter på dig.': 'hub_back3',
+  'Klik på en byggeplads, så fortæller jeg, hvad der skal regnes ud.': 'help1',
+  'Rigtige svar giver flotte huse. Forkerte svar giver skæve huse. Men man kan altid prøve igen.': 'help2',
+  'I Måneby lægger vi sammen og ganger. Det er alt, hvad man behøver.': 'help3',
+  'Kasserne lander ét ad gangen. Tæl dem, og klik på det rigtige tal. Du må gerne klikke på kasserne imens.': 'landing_intro',
+  'Godt klaret! Nu kan Fnuggerne bygge en rigtig landingsplads.': 'landing_ok',
+  'Godt klaret klaret! Nu kan Fnuggerne bygge en rigtig landingsplads.': 'landing_ok_kk',
+  'Hov, det går ikke. Tæl en gang til.': 'wrong1',
+  'Det var ikke helt rigtigt. Prøv igen.': 'wrong2',
+  'Du har fået et klistermærke til dit byggekort!': 'sticker',
+  'Flot, B.': 'name_b',
+  'Fyrværkeriet venter, til byen er færdig.': 'fyrv_venter',
+  'Ikke endnu.': 'ikke_endnu',
+  'Dit byggeri er gemt.': 'gemt',
+  'Gemt!': 'gemt_lyver',
+  'Fire hundrede gange. Det var også det, hun nåede.': 'hjaelp400',
+  'Hvor mange bor her?': 'hvor_mange',
+  'Godt. Nu er der færre.': 'godt_faerre',
+  'Der er ét sted til. Nedenunder.': 'et_sted_til',
+  'Ja. Hende.': 'ja_hende',
+  'Her ligger det, vi ikke har talt med. Grav.': 'grav',
+  'Det tegn … det kender jeg ikke. Vis mig.': 'det_tegn',
+  'Nå. Så bliver der … færre. Ja.': 'faerre_ja',
+  'Så det var ikke mord. Det var bare … mindre.': 'ikke_mord',
+  'Jeg lukker kl. 16. Hvorfor er du her?': 'pedel1',
+  'Den sidste linje i hendes fil var: "tilbage om lidt".': 'pedel2',
+  'Der mangler én. Nogen har … jeg kender ikke ordet.': 'mangler_en',
+  'Udmærket.': 'udmaerket',
+  '…vi går videre.': 'videre',
+};
+export function voiceFor(text) {
+  const id = VOICE[text];
+  return id ? { voice: `assets/voice/${id}.ogg`, mouth: `assets/voice/${id}.json` } : null;
+}

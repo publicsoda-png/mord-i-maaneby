@@ -4,6 +4,7 @@ import { sfx, voice as playVoice } from './audio.js';
 import { drawPortrait } from '../art/portrait.js';
 import { meta, persistMeta } from './state.js';
 import { text1bit } from './stage.js';
+import { voiceFor } from '../voicemap.js';
 
 const box = document.getElementById('dialog');
 const more = document.getElementById('dmore');
@@ -49,6 +50,7 @@ export function hideDialog() { box.hidden = true; cancelAnimationFrame(raf); dra
 
 /** say(text, opts): voice, mouth, cps, hold, auto, noPortrait, pauseAt, keep */
 export async function say(text, opts = {}) {
+  if (!opts.voice && !opts.noPortrait && !opts.silent) { const v = voiceFor(text); if (v) opts = { ...opts, ...v }; }
   box.hidden = false;
   renderText('');
   more.style.visibility = 'hidden';
@@ -66,7 +68,7 @@ export async function say(text, opts = {}) {
     shown++;
     renderText(text.slice(0, shown));
     const ch = text[shown - 1];
-    if (!v && ch !== ' ' && performance.now() - lastTick > 38) { sfx.tick(); lastTick = performance.now(); }
+    if (!v && !opts.silent && ch !== ' ' && performance.now() - lastTick > 38) { sfx.tick(); lastTick = performance.now(); }
     let d = pace;
     if (opts.pauseAt && opts.pauseAt[shown]) d = opts.pauseAt[shown];
     else if (ch === '…') d = 420; else if (/[.!?]/.test(ch)) d = 260; else if (ch === ',') d = 120;

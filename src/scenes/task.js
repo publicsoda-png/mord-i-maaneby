@@ -4,6 +4,7 @@ import { bg } from '../art/placeholder.js';
 import { say, sleep } from '../core/dialog.js';
 import { save, touch, persist } from '../core/state.js';
 import { music, sfx } from '../core/audio.js';
+import { progressBox, fakeProgress, showOS } from '../core/os.js';
 import { t } from '../script.js';
 import { playGame, stopGame } from '../ware/engine.js';
 import landing from '../ware/games/landing.js';
@@ -27,6 +28,13 @@ register({
     music(`assets/music/${MUSIC[p.id] || 'plads_a'}${cursed ? '_cursed' : ''}.ogg`, { fade: 1 });
     button('Tilbage', 8, 448, () => { stopGame(); sfx.click(); goto('hub', { back: true }); }, { w: 90 });
     const G = GAMES[p.id];
+    if (save.flags.progress_back && !save.flags.progress_back_shown) {
+      // the loading bar goes 71 % → 44 % once (deniable: "it just reloaded something")
+      save.flags.progress_back_shown = true; touch();
+      const os = document.getElementById('os'); showOS(true); os.style.background = 'transparent'; os.innerHTML = '';
+      const box = progressBox({ title: 'Regn med Måneby', text: 'Henter ' + p.name + '…', parent: os });
+      await fakeProgress(box, { ms: 2400, back: true }); box.close(); showOS(false);
+    }
     if (!G) { await say(`${p.name} er ikke bygget endnu i denne udgave.`, { auto: 1500 }); goto('hub', { back: true }); return; }
     await say(line(G, p.id + '_intro', 'Løs opgaven, så bygger Fnuggerne.'));
     let wrong = 0;

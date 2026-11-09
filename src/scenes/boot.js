@@ -21,7 +21,14 @@ register({
       icons: [
         { x: 16, y: 16, label: 'Denne computer', svg: `<svg viewBox="0 0 32 32"><rect x="3" y="4" width="26" height="18" fill="#dfe6f3" stroke="#445"/><rect x="6" y="7" width="20" height="12" fill="#3a6ea5"/><rect x="10" y="24" width="12" height="4" fill="#99a"/></svg>` },
         { x: 16, y: 86, label: 'Mine dokumenter', svg: folderSvg },
-        { x: 16, y: 156, label: 'elev07', svg: folderSvg, onOpen: () => { meta.peeked.elev07 = true; persistMeta(); msgBox({ title: 'elev07', icon: 'err', msg: 'Mappen er tom.\n\nAdgang nægtet af administrator (Skole-IT).', buttons: [{ label: 'OK', value: 'ok', def: true }] }); } },
+        { x: 16, y: 156, label: 'elev07', svg: folderSvg, onOpen: async () => {
+          meta.peeked.elev07 = true; persistMeta();
+          if (!meta.ending) { msgBox({ title: 'elev07', icon: 'err', msg: 'Mappen er tom.\n\nAdgang nægtet af administrator (Skole-IT).', buttons: [{ label: 'OK', value: 'ok', def: true }] }); return; }
+          // second playthrough: the folder has the file. Deleting it is the one thing the game answers.
+          const r = await msgBox({ title: 'elev07', icon: 'info', w: 340, msg: meta.deletedLog ? '(tom)' : 'elev07.txt        2 KB   17-11-2005 16:04\n\n1 objekt', buttons: meta.deletedLog ? [{ label: 'Luk', value: 'x', def: true }] : [{ label: 'Åbn', value: 'open', def: true }, { label: 'Slet', value: 'del' }, { label: 'Luk', value: 'x' }] });
+          if (r === 'del') { meta.deletedLog = true; persistMeta(); await msgBox({ title: 'Regn med Måneby', icon: 'warn', msg: 'Du prøvede at slette hende.', buttons: [{ label: 'OK', value: 'ok', def: true }] }); }
+          else if (r === 'open') await msgBox({ title: 'elev07.txt - Notesblok', icon: 'info', w: 360, msg: '17-11-2005 15:40  elev07 logget ind\n15:41  Rådhuset: "Rådhuss" (skrevet af bruger)\n15:44  hjælp ×38\n15:52  Landingspladsen: 12 kasser. svar: 11\n15:58  "hvor mange bor her" — intet svar\n16:03  hjælp ×400 i alt\n16:04  tilbage om lidt', buttons: [{ label: 'Luk', value: 'x', def: true }] });
+        } },
         { x: 16, y: 226, label: 'REGN MED MÅNEBY (E:)', svg: cdSvg, onOpen: start },
         { x: 100, y: 16, label: 'Sluk skærmen efter brug.txt', svg: docSvg, onOpen: () => msgBox({ title: 'Sluk skærmen efter brug.txt - Notesblok', icon: 'info', msg: 'Husk at slukke skærmen efter brug.\nLog af med Ctrl+Alt+Delete.\nSpørg en voksen, hvis noget ikke virker.\n\n– Skole-IT, Teknisk Forvaltning', w: 320, buttons: [{ label: 'Luk', value: 'ok', def: true }] }) },
       ],
@@ -95,6 +102,7 @@ register({
     button('OK', 300, 330, () => {
       const name = inp.value.trim() || 'Bygmester';
       save.name = name; save.grade = grade;
+      if (meta.ending) { save.night = true; save.flags.hall_open = true; } // second playthrough starts at 15:40, in the night
       if (!meta.firstName) meta.firstName = name;
       if (!meta.names.includes(name)) meta.names.push(name);
       persistMeta(); persist(true);

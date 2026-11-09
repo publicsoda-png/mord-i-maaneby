@@ -11,6 +11,18 @@ import { checkWrongness } from '../wrongness.js';
 import { gameApi } from '../game.js';
 import { cur } from '../core/cursor.js';
 
+/** The browser's own voice slips through (the break): live speechSynthesis, Danish if present, else the telephone filter line. */
+async function leak(text) {
+  const synth = window.speechSynthesis;
+  const v = synth && synth.getVoices().find((x) => /^da/i.test(x.lang));
+  if (!synth || !v) return say(text, { hold: 600 });
+  const u = new SpeechSynthesisUtterance(text); u.voice = v; u.rate = 0.95; u.pitch = 0.9;
+  const done = new Promise((r) => { u.onend = r; u.onerror = r; });
+  synth.speak(u);
+  await Promise.all([say(text, { silent: true, auto: 1, keep: true }), done]);
+  hideDialog();
+}
+
 export const PLOTS = [
   { id: 'landing', name: 'Landingspladsen', x: 150, y: 400, kind: 'pad', open: true },
   { id: 'bakery', name: 'Kraterbageriet', x: 250, y: 330, kind: 'dome' },
@@ -32,13 +44,15 @@ register({
     music(save.night ? null : `assets/music/${save.flags.bench_gone ? 'byen_11' : 'byen'}.ogg`, { fade: 1.5, startDelay: (save.flags.musicDelayMs || 0) / 1000 });
     save.flags.musicDelayMs = 0;
     button('Gem', 8, 8, async () => { sfx.click(); persist(true); await say(save.flags.save_lies ? 'Gemt!' : 'Dit byggeri er gemt.', { auto: 900, noPortrait: true }); }, { w: 60 });
-    button('Luk', 76, 8, async () => {
+    const luk = async () => {
       sfx.click();
       const os = document.getElementById('os'); showOS(true); os.style.background = 'transparent'; os.innerHTML = '';
       const r = await msgBox({ title: 'Regn med Måneby', icon: 'warn', msg: save.flags.morning ? 'Byen er ikke gemt.\nLuk alligevel?' : 'Vil du afslutte?', buttons: [{ label: 'Ja', value: 'y' }, { label: 'Nej', value: 'n', def: true }, ...(save.night && save.flags.jumped ? [{ label: 'Hende', value: 'h' }] : [])], parent: os });
       showOS(false);
-      if (r === 'y') goto('desktop'); else if (r === 'h') { save.flags.hall_open = true; touch(); await say('Ja. Hende.', { auto: 1500, noPortrait: true }); }
-    }, { w: 60 });
+      if (r === 'y') goto('desktop'); else if (r === 'h') { save.flags.hall_open = true; touch(); await say('Ja. Hende.', { auto: 1500 }); }
+    };
+    button('Luk', 76, 8, luk, { w: 60 });
+    window.MB && (window.MB.luk = luk);
     if (save.flags.log_open) button('Logrummet', 540, 8, () => { sfx.click(); goto('logroom'); }, { w: 92 });
     lock(false);
     helper.night = save.night;
@@ -54,7 +68,11 @@ register({
     else if (arg.back) {
       // Between tasks: let the curve speak, otherwise a normal line
       const fired = await checkWrongness(gameApi);
-      if (!fired) await say(t('hub_back'), { auto: 1600 });
+      if (fired) return;
+      if (save.flags.english_line && !save.flags.english_said) { save.flags.english_said = true; touch(); await say('Well done. What shall we build next?', { auto: 2000, silent: true }); }
+      else if (save.flags.first_name && !save.flags.first_name_said) { save.flags.first_name_said = true; touch(); await say(`Velkommen tilbage, ${meta.firstName}.`, { hold: 500, silent: true }); }
+      else if (save.flags.tts_leak && !save.flags.tts_leaked) { save.flags.tts_leaked = true; touch(); await leak('Er du der stadig? Jeg kan ikke høre dig.'); }
+      else await say(t('hub_back'), { auto: 1600 });
     }
   },
   exit() { showHelper(false); },
@@ -91,6 +109,8 @@ register({
     const stepper = Math.floor(tm / 3200) % FNUG_POS.length, stepPhase = (tm % 3200) < 400 ? 1 : 0;
     FNUG_POS.forEach(([x, y], i) => {
       drawFnug(g, x, y, 1, { frame: i === stepper ? stepPhase : 0, back: save.flags.fnug_fringe && i === 4, fringe: save.flags.fnug_fringe && i === 4, night: save.night });
+      if (save.flags.peeked && i === 6) { g.fillStyle = '#111'; g.fillRect(x - 4, y - 16, 3, 3); g.fillRect(x + 3, y - 16, 3, 3); } // one of them looks into the camera
+      if (save.flags.season === 'jul') { g.fillStyle = '#c22'; g.beginPath(); g.moveTo(x - 8, y - 20); g.lineTo(x + 8, y - 20); g.lineTo(x + 2, y - 32); g.closePath(); g.fill(); g.fillStyle = '#fff'; g.fillRect(x + 1, y - 34, 3, 3); }
     });
     // bench (disappears at bench_gone)
     if (!save.flags.bench_gone) { g.fillStyle = save.night ? '#2a2a2a' : '#6b4a2a'; g.fillRect(400, 455, 40, 5); g.fillRect(403, 460, 4, 8); g.fillRect(433, 460, 4, 8); }

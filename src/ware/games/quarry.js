@@ -81,8 +81,12 @@ export default {
     });
     const R = 6, SPEED = 230;
     const ball = a.spr(px, PY - 20, R * 2 + 2, R * 2 + 2, (g) => {
-      g.fillStyle = night ? '#9aa0b8' : '#fff'; g.fillRect(2, 0, R * 2 - 2, R * 2 + 1); g.fillRect(0, 2, R * 2 + 2, R * 2 - 2);
-      g.fillStyle = night ? '#555c74' : '#b9b3a4'; g.fillRect(R + 1, R + 1, R - 1, R - 1); g.fillRect(R + 2, R - 2, 3, 2);
+      // a chalk ball: hard pixel disc with a dark rim on the lower right and one square highlight
+      const c = R + 1;
+      g.fillStyle = night ? '#2a2e3c' : '#5e5a52'; g.beginPath(); g.arc(c + 1, c + 1, R, 0, 7); g.fill();
+      g.fillStyle = night ? '#9aa0b8' : '#fff'; g.beginPath(); g.arc(c, c, R, 0, 7); g.fill();
+      g.fillStyle = night ? '#d0d4e0' : '#fff'; g.fillRect(c - 4, c - 4, 3, 3);
+      g.fillStyle = night ? '#6a7088' : '#d4d0c8'; g.fillRect(c + 1, c + 2, 3, 2);
     });
     let bx = px, by = PY - 20, vx = 0, vy = 0, live = false, respawnAt = 0, lost = false;
     const launch = () => {
