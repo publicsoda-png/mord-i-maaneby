@@ -1,13 +1,13 @@
-// Akt 2–3: falsk slutning → nat → feberdrømme → jump scare → Rådhus/Regnerum → Logrummet → Stille morgen → credits.
+// Akt 2–3: falsk slutning → nat → feberdrømme → jump scare → Rådhus/Regnerum → Regnskabet → Stille morgen → credits (+ skjult trueEnd).
 // Art is procedural until renders land. All timing is driven from wrongness.js / hub.js; these scenes are self-contained.
 import { register, goto, button, lock, cutBlack } from '../core/scene.js';
 import { ctx, W, H, drawText, paletteFlash, rng, proc } from '../core/stage.js';
-import { bg, drawFnug, drawBuilding } from '../art/placeholder.js';
+import { bg, hasBg, drawFnug, drawBuilding } from '../art/placeholder.js';
 import { say, helper, hideDialog, showHelper } from '../core/dialog.js';
 import { save, meta, touch, persist, persistMeta, playMin } from '../core/state.js';
 import { music, stopMusic, sfx, ambient, crtHum, crtOff, blip, jump as jumpSfx, jumpSilent } from '../core/audio.js';
 import { applyMix, enterNight, stilleMorgen } from '../core/mix.js';
-import { cur } from '../core/cursor.js';
+import { cur, showCursor } from '../core/cursor.js';
 import { msgBox, showOS, sleep } from '../core/os.js';
 import { PLOTS } from './hub.js';
 
@@ -15,19 +15,53 @@ const KID = '700 16px "Comic Neue","Comic Sans MS",sans-serif';
 const KIDBIG = '700 34px "Comic Neue","Comic Sans MS",sans-serif';
 const osLayer = document.getElementById('os');
 
+// ------------------------------------------------------------------ fyrværkeri (fælles for falseEnd + trueEnd)
+// Krater-krom only: the roll never carries story. The last entry gets save.name appended.
+const NAMES13 = ['Idé og manuskript: Krater Multimedie', 'Programmering: J. Krøyer', 'Grafik: Mette L. Hansen', 'Musik: Torben Vang', 'Fortæller: Sara', 'Pædagogisk konsulent: Kirsten Møller', 'Produktion: Valby Multimediecenter', 'Lyd: Valby Lydstudie', 'Fnuggerne: Én, To, Tre, Fire, Fem, Seks,', 'Otte, Ni, Ti, Elleve, Tolv', 'Tak for hjælpen!', '', 'Bygmester: '];
+const NAMES_TOLV = ['Idé og manuskript: Krater Multimedie', 'Programmering: J. Krøyer', 'Grafik: Mette L. Hansen', 'Musik: Torben Vang', 'Fortæller: Sara', 'Pædagogisk konsulent: Kirsten Møller', 'Produktion: Valby Multimediecenter', 'Lyd: Valby Lydstudie', 'Fnuggerne: Én, To, Tre, Fire, Fem, Seks, Syv,', 'Otte, Ni, Ti, Elleve, Tolv', 'Tak for hjælpen!', '', 'Bygmester: '];
+
+function fyrEnter(sc) {
+  sc.bgc = bg('hub'); sc.t0 = performance.now(); sc.r = rng(99);
+  sc.rockets = []; sc.scroll = 0; sc.clicks = 0; sc.gone = false; sc.fall = 0;
+  music('assets/music/fyrvaerkeri.ogg', { fade: 0.3, restart: true });
+  lock(false);
+  sc.hs = [{ x: 0, y: 0, w: W, h: H, cursor: 'arrow', on: () => sc.click() }];
+  for (let i = 0; i < 9; i++) setTimeout(() => { if (!sc.gone) { sfx.thud(); sc.rockets.push({ x: 80 + sc.r() * 480, y: 60 + sc.r() * 120, t: performance.now(), c: ['#ff5a5a', '#ffd21f', '#5ad1ff', '#ff9bff'][i % 4] }); } }, 600 + i * 900);
+}
+/** town + n Fnugger + step-based fireworks (4 frames) */
+function fyrBg(g, t, sc, n) {
+  g.drawImage(sc.bgc, 0, 0);
+  for (const p of PLOTS) if (!p.special) drawBuilding(g, p.x, p.y, Math.max(2, save.buildings[p.id] || 2), p.kind);
+  const r = rng(7); for (let i = 0; i < n; i++) drawFnug(g, 60 + r() * 520, 300 + r() * 150, 1, { id: i, frame: Math.floor(t / 250) % 2 });
+  for (const k of sc.rockets) {
+    const age = (t - k.t) / 1000; if (age > 2.4) continue;
+    const f = Math.floor(age * 4) % 4; const R = 10 + f * 14;
+    g.fillStyle = k.c;
+    for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; g.fillRect(k.x + Math.cos(a) * R - 2, k.y + Math.sin(a) * R - 2, 4, 4); }
+  }
+}
+/** headline band + rolling credits (last entry gets the player's name) */
+function fyrRoll(g, dt, sc, names, sub) {
+  g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(0, 150, W, 90);
+  if (!sc.fall) {
+    drawText(`Tillykke, ${save.name}!`, 320, 160, { align: 'center', font: KIDBIG, color: '#ffd21f', outline: '#5a3a00' });
+    drawText(sub, 320, 206, { align: 'center', font: KID, color: '#fff' });
+  } else {
+    // letters fallen: crooked, lower (2 frames)
+    const s = 'TILLYKKE'; let x = 200;
+    for (let i = 0; i < s.length; i++) { const dy = (i * 37) % 23 - 5 + sc.fall * 14; drawText(s[i], x, 160 + dy, { font: KIDBIG, color: '#ffd21f', outline: '#5a3a00' }); x += 30 + (i % 3) * 4; }
+  }
+  sc.scroll += dt * 22;
+  g.fillStyle = 'rgba(0,0,0,.6)'; g.fillRect(0, 250, W, 230);
+  const last = names.length - 1;
+  names.forEach((n, i) => { const y = 480 - sc.scroll + i * 26; if (y > 250 && y < 470) drawText(i === last ? n + save.name : n, 320, y, { align: 'center', font: KID, color: '#eee' }); });
+  if (sc.clicks > 0 && sc.clicks < 3) drawText('(klik igen for at lukke)', 320, 460, { align: 'center', font: '11px Tahoma', color: '#888' });
+}
+
 // ------------------------------------------------------------------ falsk slutning (min ~50)
-const NAMES13 = ['Idé og manuskript: Krater Multimedie', 'Programmering: J. Krøyer', 'Grafik: Mette L. Hansen', 'Musik: Torben Vang', 'Stemme: Sara', 'Pædagogisk konsulent: Kirsten Møller', 'Afprøvet i 4.b', 'Produktion: Valby Multimediecenter', 'Tak til Skole-IT, Teknisk Forvaltning', 'Lyd: Valby Lydstudie', 'Oversættelse (ufærdig): —', 'Bygmester: B.', 'Bygmester: '];
 register({
   id: 'falseEnd',
-  async enter() {
-    this.bgc = bg('hub'); this.t0 = performance.now(); this.r = rng(99);
-    this.rockets = []; this.scroll = 0; this.clicks = 0;
-    music('assets/music/fyrvaerkeri.ogg', { fade: 0.3, restart: true });
-    lock(false);
-    
-    this.hs = [{ x: 0, y: 0, w: W, h: H, cursor: 'arrow', on: () => this.click() }];
-    for (let i = 0; i < 9; i++) setTimeout(() => { if (!this.gone) { sfx.thud(); this.rockets.push({ x: 80 + this.r() * 480, y: 60 + this.r() * 120, t: performance.now(), c: ['#ff5a5a', '#ffd21f', '#5ad1ff', '#ff9bff'][i % 4] }); } }, 600 + i * 900);
-  },
+  async enter() { fyrEnter(this); },
   hotspots() { return this.hs; },
   async click() {
     this.clicks++;
@@ -45,37 +79,35 @@ register({
     this.fall = 1; await sleep(90); this.fall = 2; await sleep(90);
     crtOff();
     save.act = 3; save.flags.nightStartMin = playMin(); touch();
-    document.title = location.hostname.endsWith('github.io') ? 'Mord i Måneby' : document.title;
     const black = cutBlack(3000);
     await enterNight(); // CRT off → 3 s nothing → hum + ventilation fade in (mix.js); sets save.night
     await black; persist(true);
     goto('hub', { back: false, nightIntro: true }, { black: 0 });
   },
   bg(g, dt, t) {
-    g.drawImage(this.bgc, 0, 0);
-    for (const p of PLOTS) if (!p.special) drawBuilding(g, p.x, p.y, Math.max(2, save.buildings[p.id] || 2), p.kind);
-    const r = rng(7); for (let i = 0; i < 11; i++) drawFnug(g, 60 + r() * 520, 300 + r() * 150, 1, { id: i, frame: Math.floor(t / 250) % 2 });
-    // fireworks: step-based bursts (4 frames)
-    for (const k of this.rockets) {
-      const age = (t - k.t) / 1000; if (age > 2.4) continue;
-      const f = Math.floor(age * 4) % 4; const R = 10 + f * 14;
-      g.fillStyle = k.c;
-      for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; g.fillRect(k.x + Math.cos(a) * R - 2, k.y + Math.sin(a) * R - 2, 4, 4); }
-    }
-    g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(0, 150, W, 90);
-    if (!this.fall) {
-      drawText(`Tillykke, ${save.name}!`, 320, 160, { align: 'center', font: KIDBIG, color: '#ffd21f', outline: '#5a3a00' });
-      drawText('Måneby er færdig. Fnuggerne takker dig.', 320, 206, { align: 'center', font: KID, color: '#fff' });
-    } else {
-      // letters fallen: crooked, lower
-      const s = 'TILLYKKE'; let x = 200;
-      for (let i = 0; i < s.length; i++) { const dy = (i * 37) % 23 - 5 + this.fall * 14; drawText(s[i], x, 160 + dy, { font: KIDBIG, color: '#ffd21f', outline: '#5a3a00' }); x += 30 + (i % 3) * 4; }
-    }
-    // rolling credits (13 names, the 13th is the player's)
-    this.scroll += dt * 22;
-    g.fillStyle = 'rgba(0,0,0,.6)'; g.fillRect(0, 250, W, 230);
-    NAMES13.forEach((n, i) => { const y = 480 - this.scroll + i * 26; if (y > 250 && y < 470) drawText(i === 12 ? n + save.name : n, 320, y, { align: 'center', font: KID, color: i === 11 ? '#ffd21f' : '#eee' }); });
-    if (this.clicks > 0 && this.clicks < 3) drawText('(klik igen for at lukke)', 320, 460, { align: 'center', font: '11px Tahoma', color: '#888' });
+    fyrBg(g, t, this, 11);
+    fyrRoll(g, dt, this, NAMES13, 'Måneby er færdig. Fnuggerne takker dig.');
+  },
+});
+
+// ------------------------------------------------------------------ skjult slutning (2. gennemspilning, hall_answer aldrig sat)
+register({
+  id: 'trueEnd',
+  async enter() { fyrEnter(this); },
+  hotspots() { return this.hs; },
+  async click() {
+    this.clicks++;
+    if (this.clicks < 3) return;
+    if (this.gone) return; this.gone = true;
+    lock(true); stopMusic(0.8);
+    meta.ending = 'tolv'; persistMeta();
+    save.flags.morning = true; save.night = false; touch(); persist(true);
+    await cutBlack(1200);
+    goto('credits', {}, { black: 0 }); // ingen nat
+  },
+  bg(g, dt, t) {
+    fyrBg(g, t, this, 12);
+    fyrRoll(g, dt, this, NAMES_TOLV, 'Måneby er færdig. Alle er her.');
   },
 });
 
@@ -123,13 +155,15 @@ register({
   },
 });
 
-// ------------------------------------------------------------------ Feberdrøm II: tekst-adventure i edb-lokalet
+// ------------------------------------------------------------------ Feberdrøm II: "Hjelmene" — tekst-adventure på sletten om natten
+const MONO = '700 15px "Lucida Console", Menlo, monospace';
 register({
   id: 'fever2',
   async enter() {
     lock(false); stopMusic(0.2); applyMix({ flags: { ...save.flags, scene: 'feber2' } });
-    this.lines = ['> du er i edb-lokalet. rullegardinerne er nede.', '> der er 12 skærme. 11 er slukket.'];
-    this.cmds = ['SE', 'GÅ', 'SLUK SKÆRM'];
+    this.seen = 0;
+    this.lines = ['> du står på sletten. det er nat.', '> ved bageriet står 12 hjelme på række. 11 har nogen under sig.'];
+    this.cmds = ['SE', 'GÅ', 'SLUK LYSET'];
     this.mk();
   },
   mk() {
@@ -138,9 +172,11 @@ register({
   },
   async cmd(c) {
     sfx.tick();
-    if (c === 'SE') { this.seen = (this.seen || 0) + 1; this.lines.push(this.seen === 1 ? '> en stol er trukket ud. der ligger en madpakke på bordet.' : '> på skærmen der er tændt står der: tilbage om lidt'); }
-    else if (c === 'GÅ') this.lines.push('> døren er låst. det er efter 16.');
-    else if (c === 'SLUK SKÆRM') {
+    if (c === 'SE') {
+      this.seen++;
+      this.lines.push(this.seen === 1 ? '> den tomme hjelm er bulet. den er for lille.' : this.seen === 2 ? '> på bageriets disk ligger én bolle. den er kold.' : '> der er ikke mere at se.');
+    } else if (c === 'GÅ') this.lines.push('> rådhuset er låst. der er ikke mere at lægge til.');
+    else if (c === 'SLUK LYSET') {
       lock(true); crtOff(); crtHum(false);
       save.flags.fever2 = true; touch();
       await cutBlack(3000);
@@ -151,18 +187,79 @@ register({
   bg(g) {
     g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
     g.fillStyle = '#00140a'; for (let y = 0; y < H; y += 2) g.fillRect(0, y, W, 1);
-    this.lines.forEach((l, i) => drawText(l, 24, 40 + i * 26, { font: '700 15px "Lucida Console", Menlo, monospace', color: '#4dff7a' }));
-    if (Math.floor(performance.now() / 500) % 2) drawText('> _', 24, 40 + this.lines.length * 26, { font: '700 15px "Lucida Console", Menlo, monospace', color: '#4dff7a' });
+    this.lines.forEach((l, i) => drawText(l, 24, 40 + i * 26, { font: MONO, color: '#4dff7a' }));
+    if (Math.floor(performance.now() / 500) % 2) drawText('> _', 24, 40 + this.lines.length * 26, { font: MONO, color: '#4dff7a' });
   },
 });
 
 // ------------------------------------------------------------------ Jump scare (min 68, den eneste)
+/** Rådhusets sal i flash-lys fra døren (venstre): perspektivgulv, 4 søjler, stenvæg — og i væggen en indemuret Fnug. */
+function drawHall(g) {
+  const r = rng(68);
+  g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
+  // back wall: big stones, 1 px mortar, lit from the left
+  const WALL_T = 40, WALL_B = 330;
+  g.fillStyle = '#111114'; g.fillRect(0, WALL_T, W, WALL_B - WALL_T);
+  const rowH = 44;
+  for (let row = 0, y = WALL_T; y < WALL_B; row++, y += rowH) {
+    let x = row % 2 ? -36 : 0;
+    while (x < W) {
+      const w = 60 + Math.floor(r() * 36);
+      const lit = Math.max(0, 1 - x / W);
+      const v = Math.floor(34 + lit * 70 + (r() * 10 - 5));
+      g.fillStyle = `rgb(${v},${v},${v + 4})`; g.fillRect(x + 1, y + 1, w - 1, Math.min(rowH, WALL_B - y) - 1);
+      x += w;
+    }
+  }
+  // floor: three hard-perspective steps toward the back wall
+  const steps = [[WALL_B, 480, '#1c1c20', '#2a2a30'], [WALL_B + 40, 480, '#26262c', '#36363e'], [WALL_B + 95, 480, '#303036', '#44444c']];
+  const vx = 320;
+  for (let i = 0; i < 3; i++) {
+    const [y] = steps[i];
+    const ins = (480 - y) * 0.45; // edges converge toward vx
+    g.fillStyle = steps[i][2];
+    g.beginPath(); g.moveTo(-40 + ins * 0.4, y); g.lineTo(W + 40 - ins * 0.4, y); g.lineTo(W + 40, H); g.lineTo(-40, H); g.closePath(); g.fill();
+    g.fillStyle = steps[i][3]; g.fillRect(0, y, W, 2); // riser edge
+  }
+  // flash light wedge from the door (left) across the floor
+  g.fillStyle = '#5c5c64';
+  g.beginPath(); g.moveTo(0, WALL_B + 6); g.lineTo(150, WALL_B + 6); g.lineTo(560, H); g.lineTo(0, H); g.closePath(); g.fill();
+  g.fillStyle = '#7a7a84';
+  g.beginPath(); g.moveTo(0, WALL_B + 20); g.lineTo(90, WALL_B + 20); g.lineTo(330, H); g.lineTo(0, H); g.closePath(); g.fill();
+  for (const s of steps) { g.fillStyle = s[3]; g.fillRect(0, s[0], W, 2); } // edges stay crisp over the light
+  // 4 columns, lit edge left / dark right
+  for (const cx of [90, 230, 410, 550]) {
+    const lit = Math.max(0, 1 - cx / W);
+    const v = Math.floor(50 + lit * 90);
+    g.fillStyle = `rgb(${v},${v},${v + 6})`; g.fillRect(cx - 17, 0, 34, WALL_B + 12);
+    g.fillStyle = `rgb(${v + 40},${v + 40},${v + 44})`; g.fillRect(cx - 17, 0, 6, WALL_B + 12);
+    g.fillStyle = '#0c0c10'; g.fillRect(cx + 9, 0, 8, WALL_B + 12);
+    g.fillStyle = `rgb(${v + 20},${v + 20},${v + 24})`; g.fillRect(cx - 22, WALL_B + 4, 44, 10); // base
+    g.fillRect(cx - 22, 0, 44, 10); // capital
+  }
+  // the Fnug, pressed into the mortar — right of centre, head height
+  const fx = 372, fy = 252;
+  drawFnug(g, fx, fy, 2.2, { frame: 0, id: 6, night: false });
+  // two stones laid OVER the tot so it reads as walled in
+  g.fillStyle = '#3c3c42'; g.fillRect(fx - 72, fy - 96, 58, 42); g.fillStyle = '#111114'; g.fillRect(fx - 72, fy - 96, 58, 1); g.fillRect(fx - 15, fy - 96, 1, 42);
+  g.fillStyle = '#34343a'; g.fillRect(fx + 18, fy - 56, 64, 44); g.fillStyle = '#111114'; g.fillRect(fx + 18, fy - 56, 64, 1); g.fillRect(fx + 18, fy - 56, 1, 44);
+  // dented helmet, askew
+  g.save(); g.translate(fx + 2, fy - 92); g.rotate(-0.35);
+  g.fillStyle = '#d9b31a'; g.beginPath(); g.ellipse(0, 0, 24, 11, 0, Math.PI, 2 * Math.PI); g.fill(); g.fillRect(-28, -1, 56, 5);
+  g.fillStyle = '#8a7010'; g.fillRect(6, -9, 9, 5); // the dent
+  g.restore();
+  // two black open eyes with a 1 px glint
+  g.fillStyle = '#000'; g.fillRect(fx - 13, fy - 66, 7, 7); g.fillRect(fx + 6, fy - 66, 7, 7);
+  g.fillStyle = '#fff'; g.fillRect(fx - 12, fy - 65, 1, 1); g.fillRect(fx + 7, fy - 65, 1, 1);
+  // the usual small smile
+  g.strokeStyle = '#222'; g.lineWidth = 2; g.beginPath(); g.moveTo(fx - 4, fy - 52); g.lineTo(fx + 4, fy - 52); g.stroke();
+}
 register({
   id: 'jump',
   async enter() {
-    lock(true); hideDialog(); stopMusic(0.01); crtHum(false);
-    const img = new Image(); img.src = 'assets/photos/jump.png'; await new Promise((r) => { img.onload = r; img.onerror = r; });
-    // ≤300 ms: pencil drawing + the one clipped knæk (audio.js jump: master stays muted until the player acts)
+    lock(true); hideDialog(); stopMusic(0.01); crtHum(false); showCursor(false); // ingen timeglas over salen
+    const img = new Image(); img.src = 'assets/photos/jump_hall.png'; await new Promise((r) => { img.onload = r; img.onerror = r; });
+    // ≤300 ms: the hall + the one clipped knæk (audio.js jump: master stays muted until the player acts)
     jumpSfx(3000);
     this.img = img.naturalWidth ? img : null; this.show = true;
     await sleep(280);
@@ -170,25 +267,17 @@ register({
     await cutBlack(3000); // total silence
     while (jumpSilent()) { await sleep(100); } // black holds until the player clicks or types
     save.flags.phone = true; save.flags.jumped = true; touch(); persist(true);
-    goto('hub', { back: false, afterJump: true }, { black: 0 });
+    showCursor(true); goto('hub', { back: false, afterJump: true }, { black: 0 });
   },
   bg(g) {
     if (!this.show) { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); return; }
     if (this.img) g.drawImage(this.img, 0, 0, W, H);
-    else {
-      // procedural: squared paper + scribbled moon face
-      g.fillStyle = '#f4f1e6'; g.fillRect(0, 0, W, H); g.strokeStyle = '#b9c7e0'; g.lineWidth = 1;
-      for (let x = 0; x < W; x += 20) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); } for (let y = 0; y < H; y += 20) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
-      g.strokeStyle = '#333'; g.lineWidth = 3; g.beginPath(); g.arc(330, 230, 150, 0.3, 5.9); g.stroke();
-      g.beginPath(); g.arc(280, 190, 18, 0, 7); g.stroke(); g.fillStyle = '#222'; g.beginPath(); g.arc(284, 192, 9, 0, 7); g.fill();
-      g.beginPath(); g.moveTo(250, 290); g.quadraticCurveTo(330, 380, 410, 280); g.stroke();
-      g.lineWidth = 2; for (let i = 0; i < 30; i++) { g.beginPath(); g.moveTo(230 + i * 5, 300 + (i % 3) * 8); g.lineTo(225 + i * 5, 360 + (i % 5) * 6); g.stroke(); }
-    }
+    else drawHall(g);
   },
 });
 
-// ------------------------------------------------------------------ Logrummet: lær ham minus (7 lag, baglæns)
-const LOG = ['17-11-2005 15:40  elev07 logget ind', '15:41  Rådhuset: "Rådhuss" (skrevet af bruger)', '15:44  hjælp ×38', '15:52  Landingspladsen: 12 kasser. svar: 11', '15:58  "hvor mange bor her" — intet svar', '16:03  hjælp ×400 i alt', '16:04  tilbage om lidt'];
+// ------------------------------------------------------------------ Regnskabet (Tællerummet): lær ham minus (7 lag, baglæns)
+const LOG = ['Dag 40. 11 på sletten. Rådhuset: 1. Lagt sammen: 12.', 'Dag 33. Rådhuset færdigt. 10 sov. Døren låst.', 'Dag 32. Sidste lag. 9 bar sten. 143 og Syv: 144.', 'Dag 31. 8 byggede. Syv sad på grunden hele dagen.', 'Dag 20. 7 lagde grund. Rådhuset skal tælle for mig.', 'Dag 7. 6 fik navne. Så talte jeg videre: Syv, Otte.', 'Dag 1. 5 landede. Så 7 mere. Vi trækker ikke fra.'];
 register({
   id: 'logroom',
   async enter() {
@@ -248,9 +337,9 @@ register({
   },
   bg(g) {
     g.fillStyle = '#120d0a'; g.fillRect(0, 0, W, H);
-    // dug layers
+    // dug layers (newest on top; the number in layer n is 12−n)
     for (let i = 0; i < 7; i++) { g.fillStyle = i < this.layer ? '#0a0806' : ['#5a3d22', '#4b321c', '#3f2a18', '#352314', '#2c1d10', '#24170d', '#1c110a'][i]; g.fillRect(160, 120 + i * 44, 440, 44); if (i < this.layer) drawText(LOG[i], 172, 134 + i * 44, { font: '12px "Lucida Console", Menlo, monospace', color: '#cfc3a8' }); }
-    drawText('elev07.txt', 160, 96,{ font: '700 14px Tahoma', color: '#cfc3a8' });
+    drawText('Regnskabet', 160, 96, { font: '700 14px Tahoma', color: '#cfc3a8' });
     if (this.task) {
       g.fillStyle = 'rgba(0,0,0,.7)'; g.fillRect(120, 330, 400, 40);
       drawText(`${this.task.q.replace('?', this.input || '_')}`, 320, 338, { align: 'center', font: '700 22px "Comic Neue",sans-serif', color: '#fff' });
@@ -258,8 +347,8 @@ register({
   },
 });
 
-// ------------------------------------------------------------------ Stille morgen + credits
-const BLINES = { landing: 'her skal man ikke regne', bakery: 'boller til alle (også syv)', ice: 'isen er til at glide på', scope: 'man kan se jylland herfra', school: 'skolen er lukket om lørdagen', quarry: 'man må gerne grave', hall: 'Rådhuss', light: 'lyset er til at finde hjem efter', fire: '' };
+// ------------------------------------------------------------------ Stille morgen (byen som dag 31) + credits
+const BLINES = { landing: '12 kasser. Alle talt.', bakery: '12 boller. Én til hver. Én bliver kold.', ice: 'Isen holder.', scope: 'Man kan se hele sletten herfra.', school: 'Dagens tælling: 12', quarry: 'Man må gerne grave.', hall: 'Ikke endnu.', light: 'Lyset er til at finde hjem efter.', fire: '' };
 register({
   id: 'morning',
   async enter() {
@@ -284,28 +373,38 @@ register({
   tick() { if (this.said && performance.now() - this.idle > 120000) { this.idle = Infinity; goto('credits'); } },
   bg(g, dt, t) {
     g.drawImage(this.bgc, 0, 0);
-    // B.'s skæve by: every building stage 1 (leaning) except hall which is "fine but misspelt"
+    // day 31: every building stage 1; the hall is only a plot — a flat light plateau with Syv sitting on it
     for (const p of PLOTS) {
       if (p.special) continue;
-      drawBuilding(g, p.x, p.y, p.id === 'hall' ? 3 : 1, p.kind);
-      if (p.id === 'hall') drawText('Rådhuss', p.x, p.y - 80, { align: 'center', font: '700 13px "Comic Neue",sans-serif', color: '#fff', outline: '#000' });
+      if (p.id === 'hall') {
+        g.fillStyle = '#c9ccd8'; g.fillRect(p.x - 44, p.y - 12, 88, 16);
+        g.fillStyle = '#e4e6ee'; g.fillRect(p.x - 44, p.y - 12, 88, 3);
+        drawBuilding(g, p.x, p.y, 0, p.kind);
+        drawFnug(g, p.x, p.y - 6, 0.75, { frame: 0, id: 6 });
+        // small dented helmet, askew (~-15°)
+        g.save(); g.translate(p.x + 1, p.y - 38); g.rotate(-0.26);
+        g.fillStyle = '#ffd21f'; g.beginPath(); g.ellipse(0, 0, 9, 5, 0, Math.PI, 2 * Math.PI); g.fill(); g.fillRect(-10, -1, 20, 2);
+        g.fillStyle = '#b08a10'; g.fillRect(2, -4, 4, 2); // the dent
+        g.restore();
+        continue;
+      }
+      drawBuilding(g, p.x, p.y, 1, p.kind);
     }
     const r = rng(12); for (let i = 0; i < 12; i++) drawFnug(g, 60 + r() * 520, 300 + r() * 150, 1, { id: i, frame: 0 });
-    // the small one with the red hat by the bench
-    g.fillStyle = '#6b4a2a'; g.fillRect(400, 455, 40, 5); g.fillRect(403, 460, 4, 8); g.fillRect(433, 460, 4, 8);
-    drawFnug(g, 452, 462, 0.75, { id: 6, frame: 0 }); g.fillStyle = '#d22'; g.beginPath(); g.arc(452, 446, 7, Math.PI, 2 * Math.PI); g.fill();
+    // the bench is back: the render has it baked in; only the procedural bg needs it drawn
+    if (!hasBg('hub')) { g.fillStyle = '#6b4a2a'; g.fillRect(400, 455, 40, 5); g.fillRect(403, 460, 4, 8); g.fillRect(433, 460, 4, 8); }
     if (this.rocket) { const a = (t - this.rocket) / 1000; g.fillStyle = '#ddd'; g.fillRect(318, 440 - Math.min(60, a * 80), 4, 12); }
   },
 });
 
-const CREDITS = ['REGN MED MÅNEBY', '', 'Idé og manuskript: Krater Multimedie ApS, Valby', 'Programmering: J. Krøyer', 'Grafik: Mette L. Hansen', 'Musik: Torben Vang (GM Wavetable)', 'Fortæller: Sara', 'Pædagogisk konsulent: Kirsten Møller', 'Afprøvet i 4.b', 'Tak til Skole-IT, Teknisk Forvaltning', '', 'Fan-inspireret hyldest. Ikke tilknyttet Bitfrost Interactive eller maaneby.dk.', 'Alle figurer, steder og personer er opdigtede.', '', '', '', 'Mord i Måneby'];
+const CREDITS = ['REGN MED MÅNEBY', '', 'Idé og manuskript: Krater Multimedie ApS, Valby', 'Programmering: J. Krøyer', 'Grafik: Mette L. Hansen', 'Musik: Torben Vang (GM Wavetable)', 'Fortæller: Sara', 'Pædagogisk konsulent: Kirsten Møller', 'Produktion: Valby Multimediecenter', '', 'Tak til Fnuggerne:', 'Én, To, Tre, Fire, Fem, Seks, Syv,', 'Otte, Ni, Ti, Elleve, Tolv', '', 'Fan-inspireret hyldest. Ikke tilknyttet Bitfrost Interactive eller maaneby.dk.', 'Alle figurer, steder og personer er opdigtede.', '', '', '', 'Mord i Måneby'];
 register({
   id: 'credits',
   async enter() {
     lock(true); hideDialog(); applyMix({ flags: { ...save.flags, scene: 'credits' } });
     music('assets/music/credits.ogg', { fade: 1, restart: true });
     this.t0 = performance.now();
-    setTimeout(() => { lock(false); button('Luk', 290, 440, () => goto('desktop'), { w: 60 }); }, 38000);
+    setTimeout(() => { lock(false); button('Luk', 290, 440, () => goto('title'), { w: 60 }); }, 38000);
   },
   bg(g, dt, t) {
     g.fillStyle = '#000'; g.fillRect(0, 0, W, H);

@@ -9,7 +9,6 @@ import './scenes/hub.js';
 import { loadGames } from './scenes/task.js';
 import './scenes/acts.js';
 import { ensureAudio } from './core/audio.js';
-import { showOS } from './core/os.js';
 import { showCursor } from './core/cursor.js';
 import { installEggs } from './eggs.js';
 import { loadBgs, loadSprites } from './art/placeholder.js';
@@ -19,7 +18,7 @@ await loadState();
 await loadGames();
 await loadBgs(['hub', 'landing', 'bakery', 'ice', 'scope', 'school', 'quarry', 'hall', 'light', 'title']);
 await loadSprites(['aliens', 'helper', 'bld_pad', 'bld_dome', 'bld_tower', 'bld_box', 'bld_pit', 'bld_hall']);
-if (q.has('min')) { gameApi.devMin = +q.get('min'); globalThis.MB_DEV_MIN = gameApi.devMin; } // mix.js reads MB_DEV_MIN so ?min= drives the sound phase too
+if (q.has('min')) { gameApi.devMin = +q.get('min'); globalThis.MB_DEV_MIN = gameApi.devMin; if (q.has('dev') && !q.has('allev')) { const { EVENTS } = await import('./wrongness.js'); for (const e of EVENTS) if (e.min < gameApi.devMin && !(e.id in save.seen)) save.seen[e.id] = 1; } } // mix.js reads MB_DEV_MIN so ?min= drives the sound phase too
 if (q.has('nat')) save.night = true;
 if (q.has('name')) save.name = q.get('name');
 if (q.has('reset')) { localStorage.clear(); }
@@ -27,10 +26,10 @@ if (q.has('reset')) { localStorage.clear(); }
 window.MB = { save, gameApi, goto };
 installEggs();
 if (q.has('dev') && q.get('scene')) {
-  // Skip the desktop chrome in dev: first click starts audio
-  showOS(false); document.getElementById('app').style.visibility = 'visible'; showCursor(true);
+  // Dev: spring identen over — første klik tænder lyden
+  showCursor(true);
   addEventListener('pointerdown', () => ensureAudio(), { once: true });
   const { PLOTS } = await import('./scenes/hub.js');
   const plot = q.get('plot') && PLOTS.find((p) => p.id === q.get('plot'));
   goto(q.get('scene'), plot || { first: q.has('first') });
-} else goto('desktop');
+} else goto('ident');
