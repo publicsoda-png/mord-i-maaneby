@@ -42,26 +42,28 @@ function animateHelper(mouthFn) {
   loop();
 }
 // WP8: the empty rocking chair (same chair, same pixel position as frame 0) when the helper is gone at night
-const chairImg = new Image(); let chairOk = false;
-chairImg.onload = () => { chairOk = true; drawHelper(); }; chairImg.src = 'assets/sprites/helper_chair.png';
+// WP1 (era rule, no canvas filters): night versions are baked PNG8 files (tools/art/nightlut.py) — *_nat.png
+const load = (src) => { const i = new Image(); i.onload = () => drawHelper(); i.src = src; return i; };
+const chairImg = load('assets/sprites/helper_chair.png'), chairNat = load('assets/sprites/helper_chair_nat.png'), helperNat = load('assets/sprites/helper_nat.png');
+const ok = (i) => i.complete && i.naturalWidth > 0;
 export function drawHelper() {
   pc.clearRect(0, 0, 130, 250);
   hc.classList.toggle('hidden', !helper.visible);
   if (!helper.visible) return;
   const im = sprite('helper');
-  if (im && !helper.present && chairOk) {
+  if (im && !helper.present && ok(chairImg)) {
+    const ch = helper.night && ok(chairNat) ? chairNat : chairImg;
     const fw = im.width / Math.max(1, Math.round(im.width / (im.height / 2)));
-    const k = Math.min(130 / fw, 250 / im.height), w = Math.round(chairImg.width * k), h = Math.round(chairImg.height * k);
-    pc.save(); if (helper.night) pc.filter = 'brightness(.5) saturate(.5)';
-    pc.imageSmoothingEnabled = false; pc.drawImage(chairImg, Math.round((130 - w) / 2), 250 - h, w, h); pc.restore();
+    const k = Math.min(130 / fw, 250 / im.height), w = Math.round(ch.width * k), h = Math.round(ch.height * k);
+    pc.imageSmoothingEnabled = false; pc.drawImage(ch, Math.round((130 - w) / 2), 250 - h, w, h);
     return;
   }
   if (im && helper.present) {
     // rendered full-body helper: sheet of mouth frames side by side (frames ~1:2), contained in 130×250, bottom-anchored
+    const src = helper.night && ok(helperNat) && helperNat.width === im.width ? helperNat : im;
     const n = Math.max(1, Math.round(im.width / (im.height / 2))), fw = im.width / n, f = Math.min(n - 1, helper.mouth || 0);
     const k = Math.min(130 / fw, 250 / im.height), w = Math.round(fw * k), h = Math.round(im.height * k);
-    pc.save(); if (helper.night) pc.filter = 'brightness(.5) saturate(.5)';
-    pc.imageSmoothingEnabled = false; pc.drawImage(im, f * fw, 0, fw, im.height, Math.round((130 - w) / 2), 250 - h, w, h); pc.restore();
+    pc.imageSmoothingEnabled = false; pc.drawImage(src, f * fw, 0, fw, im.height, Math.round((130 - w) / 2), 250 - h, w, h);
     return;
   }
   // portrait.js draws 96×112; scale ×1.35 and sit it at the bottom of the 130×250 sprite box

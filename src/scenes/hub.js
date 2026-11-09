@@ -46,6 +46,8 @@ register({
   id: 'hub',
   async enter(arg = {}) {
     this.bgc = bg('hub', save.night);
+    helper.night = save.night;
+    if (save.night) { if (!save.flags.jumped) helper.present = false; } else helper.present = true; // FØR showHelper: ellers tegnes månemanden i stolen om natten (drawHelper kaldes ikke igen når present ændres)
     showHelper(true); applyMix();
     music(save.night ? null : `assets/music/${save.flags.bench_gone ? 'byen_11' : 'byen'}.ogg`, { fade: 1.5, startDelay: (save.flags.musicDelayMs || 0) / 1000 });
     save.flags.musicDelayMs = 0;
@@ -61,9 +63,6 @@ register({
     window.MB && (window.MB.luk = luk);
     if (save.flags.log_open) button('Nedenunder', 540, 8, () => goto('logroom'), { w: 92 });
     lock(false);
-    helper.night = save.night;
-    if (save.night) { if (!save.flags.jumped) helper.present = false; }
-    else helper.present = true;
     this.idleT = performance.now(); this.nvArmed = null; this.nvDone = false;
     if (jb) { const p = PLOTS.find((x) => x.id === jb.id); if (p) await buildSwap(p, Math.max(0, jb.stage - 1), jb.stage, { night: save.night }); } // støv → pop + pling → stjerner på step-uret (fx.js)
     if (arg.first) {
