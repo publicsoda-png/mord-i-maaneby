@@ -26,10 +26,11 @@ document.getElementById('app').addEventListener('pointerdown', () => { if (!box.
 function advance() { if (waiting) { const w = waiting; waiting = null; w(); } else skipping = true; }
 
 /** Word-wrap and rasterise text 1-bit onto the dialog canvas. */
+let wrapW = 596;
 function renderText(str) {
   tc.clearRect(0, 0, 600, 60);
   const words = str.split(' '); const lines = []; let line = '';
-  for (const w of words) { const test = line ? line + ' ' + w : w; if (text1bit(test, FONT).width > 596 && line) { lines.push(line); line = w; } else line = test; }
+  for (const w of words) { const test = line ? line + ' ' + w : w; if (text1bit(test, FONT).width > wrapW && line) { lines.push(line); line = w; } else line = test; }
   if (line) lines.push(line);
   lines.slice(0, 3).forEach((l, i) => tc.drawImage(text1bit(l, FONT, '#fff', '#000'), 0, i * 20));
 }
@@ -65,13 +66,22 @@ export async function say(text, opts = {}) {
   const gen = ++sayGen;
   if (waiting) { const w = waiting; waiting = null; w(); } // release an older say() that is waiting for a click
   box.hidden = false;
+  // keep the text clear of DOM buttons sitting in the box's zone (hub's Gem/Luk top-left) — QC: lines were clipped under them
+  const inBox = [...document.querySelectorAll('#ui .btn')].filter((b) => parseFloat(b.style.top) < 76);
+  const inset = inBox.length ? Math.max(...inBox.map((b) => parseFloat(b.style.left) + b.offsetWidth)) + 12 : 12;
+  box.style.paddingLeft = inset + 'px'; wrapW = 620 - inset;
   renderText('');
   more.style.visibility = 'hidden';
   skipping = false;
-  let v = null;
-  if (opts.voice) v = await playVoice(opts.voice, opts.mouth, { silent: !!opts.silent }); // silent = real mouth data, no sound (min 60)
+  let v = null, vAt = 0;
+  // the typewriter starts at once; the voice joins when its buffer is ready (QC: text used to wait seconds for the load on live)
+  const vp = opts.voice ? playVoice(opts.voice, opts.mouth, { silent: !!opts.silent }).then((r) => { v = r; vAt = performance.now(); return r; }) : null; // silent = real mouth data, no sound (min 60)
   const msPerChar = 1000 / (opts.cps ?? 28);
-  const pace = v && v.dur ? Math.max(msPerChar, (v.dur * 1000) / Math.max(1, text.length)) : msPerChar;
+  const pace = () => { // once the voice is in: spread the remaining characters over the remaining voice time
+    if (!v || !v.dur) return msPerChar;
+    const left = v.dur * 1000 - (performance.now() - vAt), chars = Math.max(1, text.length - shown);
+    return Math.max(msPerChar, left / chars);
+  };
   const talking = !opts.noPortrait && helper.present;
   let shown = 0;
   animateHelper(() => (!talking ? 0 : v ? v.mouth() : helper.silentMouth || (shown < text.length ? 1 + ((shown >> 1) % 3) : 0)));
@@ -83,11 +93,12 @@ export async function say(text, opts = {}) {
     renderText(text.slice(0, shown));
     const ch = text[shown - 1];
     if (!v && !opts.silent && ch !== ' ' && performance.now() - lastTick > 38) { sfx.tick(); lastTick = performance.now(); }
-    let d = pace;
+    let d = pace();
     if (opts.pauseAt && opts.pauseAt[shown]) d = opts.pauseAt[shown];
     else if (ch === '…') d = 420; else if (/[.!?]/.test(ch)) d = 260; else if (ch === ',') d = 120;
     await sleep(d);
   }
+  if (vp) { await vp; if (gen !== sayGen) { if (v && v.stop) v.stop(); return; } }
   if (v) { if (skipping && v.stop) v.stop(); else await v.done; }
   if (gen !== sayGen) return; // superseded while talking
   animateHelper(null);
