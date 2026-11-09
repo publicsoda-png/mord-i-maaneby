@@ -1,0 +1,6 @@
+node_modules/
+dist/
+private/
+*.mp4
+.DS_Store
+tools/music/sf2/*.sf2

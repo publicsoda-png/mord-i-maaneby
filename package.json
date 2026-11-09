@@ -1,0 +1,14 @@
+{
+  "name": "mord-i-maaneby",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "python3 -m http.server 4873 --bind 127.0.0.1",
+    "test:flow": "nice -n 10 node tools/test/flow.mjs",
+    "shots": "nice -n 10 node tools/test/shots.mjs"
+  },
+  "devDependencies": {
+    "puppeteer-core": "25.14.0"
+  }
+}

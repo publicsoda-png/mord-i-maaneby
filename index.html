@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Regn med Måneby</title>
+<link rel="icon" href="assets/favicon-cd.png" id="favicon">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="os"></div>
+<div id="app" aria-label="Regn med Måneby">
+  <canvas id="stage" width="640" height="480"></canvas>
+  <div id="ui">
+    <div id="field"></div>
+    <div id="dialog" hidden>
+      <div class="portrait"><canvas id="portrait" width="96" height="112"></canvas></div>
+      <div class="text"><span id="dtext"></span><i id="dmore">▼</i></div>
+    </div>
+    <div id="hud" hidden><span id="hudname"></span><span id="hudfnug">Fnugger: 12</span></div>
+    <div id="fx"></div>
+  </div>
+  <div id="cursor"></div>
+</div>
+<div id="letter"></div>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
