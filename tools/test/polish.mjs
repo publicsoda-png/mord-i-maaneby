@@ -162,7 +162,8 @@ try {
 } finally { await b.close(); srv.kill(); }
 
 // ---------- samlet ----------
-const S = Object.values(report.scenes);
+// Minispil ("ware": true) er informative indtil fase 4 (G4) — tæller ikke i G1-gates.
+const S = Object.values(report.scenes).filter((r) => !G.scenes.find((s) => s.id === r.id)?.ware);
 report.pass.A1_max = S.every((r) => r.pass_A1_max);
 report.pass.A1_liveness = S.filter((r) => r.pass_A1_live !== null).every((r) => r.pass_A1_live);
 report.pass.A1_steprate = S.every((r) => r.pass_A1_steprate);

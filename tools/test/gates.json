@@ -5,7 +5,10 @@
     { "id": "setup", "q": "dev&scene=setup&name=Test", "liveness": false },
     { "id": "hub", "q": "dev&scene=hub&name=Test", "liveness": true },
     { "id": "hub_nat", "q": "dev&scene=hub&nat&name=Test", "liveness": false },
-    { "id": "task_landing", "q": "dev&scene=task&plot=landing&name=Test", "liveness": false }
+    { "id": "task_landing", "q": "dev&scene=task&plot=landing&name=Test", "liveness": false },
+    { "id": "task_school", "q": "dev&scene=task&plot=school&name=Test", "liveness": false, "ware": true },
+    { "id": "task_bakery", "q": "dev&scene=task&plot=bakery&name=Test", "liveness": false, "ware": true },
+    { "id": "task_quarry", "q": "dev&scene=task&plot=quarry&name=Test", "liveness": false, "ware": true }
   ],
   "A1_motion": { "window_ms": 250, "frames": 40, "fuzz_pct": 8, "max_change_pct": 0.8, "liveness_min_change_pct": 0.005, "liveness_window_s": 10, "unique_frames_per_s_max": 12 },
   "A2_transition": { "black_luma_max_255": 8, "black_min_ms": 200, "black_max_ms": 500, "blend_frames_max": 0, "blend_diff_pct": 5, "black_override_allowlist": ["src/scenes/acts.js"] },
