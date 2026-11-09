@@ -1,64 +1,64 @@
-scene_ident 1203 ms
-scene_title 1203 ms
-scene_setup 1202 ms
-scene_hub 1201 ms
-scene_falseEnd 1202 ms
-scene_fever1 1203 ms
-scene_fever2 1202 ms
-scene_logroom 1202 ms
-scene_morning 1202 ms
-scene_credits 1202 ms
-scene_trueEnd 1201 ms
-task_landing 4712 ms
-task_bakery 4712 ms
-task_ice 4712 ms
-task_scope 4712 ms
-task_school 4711 ms
-task_quarry 4713 ms
-task_hall 4713 ms
-task_light 4711 ms
-  klaret_klaret@15 → true
-ev_klaret_klaret 1408 ms
-  scope_face@17 → true
-ev_scope_face 1408 ms
+scene_ident 1204 ms
+scene_title 1205 ms
+scene_setup 1204 ms
+scene_hub 1203 ms
+scene_falseEnd 1204 ms
+scene_fever1 1204 ms
+scene_fever2 1203 ms
+scene_logroom 1205 ms
+scene_morning 1201 ms
+scene_credits 1203 ms
+scene_trueEnd 1200 ms
+task_landing 4715 ms
+task_bakery 4717 ms
+task_ice 4718 ms
+task_scope 4720 ms
+task_school 4719 ms
+task_quarry 4715 ms
+task_hall 4720 ms
+task_light 4719 ms
+  klaret_klaret@15 → quiet
+ev_klaret_klaret 1412 ms
+  scope_face@17 → quiet
+ev_scope_face 1414 ms
   fnug_fringe@16 → false
-ev_fnug_fringe 1408 ms
-  name_syv@18 → true
-ev_name_syv 1408 ms
-  bench_gone@28 → true
-ev_bench_gone 1408 ms
-  save_lies@30 → true
-ev_save_lies 1407 ms
-  progress_back@33 → true
+ev_fnug_fringe 1414 ms
+  name_syv@18 → quiet
+ev_name_syv 1412 ms
+  bench_gone@28 → quiet
+ev_bench_gone 1414 ms
+  save_lies@30 → quiet
+ev_save_lies 1413 ms
+  progress_back@33 → quiet
 ev_progress_back 1408 ms
-  taeller_hoejt@35 → true
-ev_taeller_hoejt 1408 ms
-  seven_missing@35 → true
-ev_seven_missing 1408 ms
-  fuld@40 → true
-ev_fuld 1408 ms
+  taeller_hoejt@35 → quiet
+ev_taeller_hoejt 1415 ms
+  seven_missing@35 → quiet
+ev_seven_missing 1416 ms
+  fuld@40 → quiet
+ev_fuld 1414 ms
   director_err@43 → timeout
-ev_director_err 11486 ms
+ev_director_err 11550 ms
   tretten@44 → timeout
-ev_tretten 7410 ms
-  byen_taeller@45 → true
-ev_byen_taeller 1407 ms
+ev_tretten 7416 ms
+  byen_taeller@45 → quiet
+ev_byen_taeller 1416 ms
   raa_render@47 → timeout
-ev_raa_render 7410 ms
-  peeked@48 → true
-ev_peeked 4032 ms
-  false_end@50 → true
-ev_false_end 1407 ms
+ev_raa_render 7416 ms
+  peeked@48 → loud
+ev_peeked 4051 ms
+  false_end@50 → quiet
+ev_false_end 1416 ms
   night_cursor@58 → false
-ev_night_cursor 1407 ms
+ev_night_cursor 1417 ms
   silence_counter@65 → false
-ev_silence_counter 1407 ms
+ev_silence_counter 1415 ms
   jump@68 → false
-ev_jump 1406 ms
+ev_jump 1415 ms
   raadhus_melder@69 → timeout
-ev_raadhus_melder 7409 ms
-  stemme_rum@70 → true
-ev_stemme_rum 1407 ms
-end_hub 802 ms
+ev_raadhus_melder 7425 ms
+  stemme_rum@70 → quiet
+ev_stemme_rum 1415 ms
+end_hub 803 ms
 grep-gate: clean
 no errors
