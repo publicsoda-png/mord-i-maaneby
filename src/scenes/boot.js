@@ -134,7 +134,8 @@ register({
     }
     button('OK', 300, 330, () => {
       const name = inp.value.trim() || 'Bygmester';
-      if (meta.ending) { resetSave(); save.flags.hall_open = true; save.flags.minus_known = true; } // 2. gennemspilning: rent save, DAG, byen husker (Rådhus åbent, minus-tast kendt)
+      if (meta.ending || save.flags.morning || save.flags.log_open) resetSave(); // nyt spil efter credits: rent save (a0 QC 09-11)
+      if (meta.ending) { save.flags.hall_open = true; save.flags.minus_known = true; } // 2. gennemspilning: rent save, DAG, byen husker (Rådhus åbent, minus-tast kendt)
       save.name = name; save.grade = grade;
       persistMeta(); persist(true);
       sfx.ok();

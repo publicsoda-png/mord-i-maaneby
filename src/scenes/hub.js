@@ -104,7 +104,7 @@ register({
     const door = (p) => p.id === 'hall' && locked(p) && save.flags.hall_door && save.night && !save.flags.jumped;
     const hs = PLOTS.map((p) => ({ x: p.x - 34, y: p.y - 44, w: 68, h: 54, label: locked(p) ? '?' : p.name + (save.buildings[p.id] ? ` (${save.buildings[p.id]}/3)` : ''), cursor: 'hand', on: () => this.pick(p, locked(p)) }));
     if (PLOTS.some(door)) hs.push({ x: DOOR.x - 4, y: DOOR.y - 4, w: DOOR.w + 8, h: DOOR.h + 8, label: '?', cursor: 'hand', on: () => this.pick(HALL, true) });
-    hs.push({ x: 6, y: 226, w: 130, h: 250, label: 'Hjælp', on: () => this.help() });
+    hs.unshift({ x: 6, y: 226, w: 130, h: 250, label: 'Hjælp', on: () => this.help() }); // unshift: hit() tester bagfra, så pladserne (Kraterskolen) vinder over Hjælp (a0 QC 09-11)
     return hs;
   },
   async pick(p, isLocked) {
