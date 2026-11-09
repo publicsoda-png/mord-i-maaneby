@@ -55,6 +55,9 @@ Fra de tabende pakker tages med som eggs (ikke slutninger): Dymo-klistermærket 
 - Fever II "edb-lokalet" → **"Hjelmene"** (sletten om natten, SE/GÅ/SLUK LYSET). Fever IV pedel på rigtig tid → **Natvagten Fnuggen Elleve** efter 30 s spilletid om natten, kridt-7 på Rådhusdøren, ingen replik.
 - Jump scare: blyantstegning på ternet papir → **Rådhus-interiør med Fnug i mørtlen** (procedurel; render kun hvis `assets/photos/jump_hall.png` findes).
 
+### C7-b — Tekst-council 09-11 (Regnskabets lag + 13 replikker, 3 linser tone/dramaturgi/håndværk, Opus-chair)
+Vinder: opus-sættet (7,67) over det oprindelige (7,00) og fable-sættet (6,33). Ingen gyldige vetoer. Ændringer anvendt: lag 3 "143 og Syv: 144" (regnestykket spilleren kan regne baglæns på), lag 4 "Syv sad på grunden hele dagen" (kanon, 2 af 3 dommere), lag 6 "6 fik navne. Så talte jeg videre: Syv, Otte." (ingen dobbelttælling af Seks), lag 7 "5 landede. Så 7 mere.", intro4 og tælle-højt uden "…" (Sara-udtale), bageriets morgenlinje "12 boller. Én til hver. Én bliver kold." (lånt fra fable-sættet, rost af to dommere). Afvist: alle linjer hvor hjælperen forklarer pointen ("Jeg har aldrig mistænkt tallene", "Syv var i vejen", "Jeg er træt") — fortælleren må ikke vide, at han er uhyggelig.
+
 ## Faste valg uden council
 - Referencemåling (session b8, 09-11): hubben i originalen står STILLE (0,02–0,8 % pixelændring/250 ms), alle sceneskift går gennem helt sort (0,2–0,5 s), ingen crossfades. → Ingen idle-bob på figurer; kun step-animationer; `goto()` klipper gennem sort.
 - Lyd: `docs/LYDPLAN.md` (session a0) er grundlag for fase 3.
