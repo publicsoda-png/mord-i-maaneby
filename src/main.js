@@ -35,7 +35,7 @@ if (q.has('dev') && q.get('scene')) {
   addEventListener('pointerdown', () => ensureAudio(), { once: true });
   const { PLOTS } = await import('./scenes/hub.js');
   const plot = q.get('plot') && PLOTS.find((p) => p.id === q.get('plot'));
-  if (q.get('scene') !== 'desktop' && q.get('scene') !== 'ident') { const { showOS } = await import('./core/os.js'); showOS(false); } // #os ligger over #app (z 40) og slås normalt fra af boot.js — ved dev-start direkte i en scene dækkede det hele spillet med blåt
+  if (q.get('scene') !== 'ident') { const { showOS } = await import('./core/os.js'); showOS(false); } // #os ligger over #app (z 40) og slås normalt fra af boot.js — ved dev-start direkte i en scene dækkede det hele spillet med blåt
   await goto(q.get('scene'), plot || { first: q.has('first') });
   if (devBuilt) {
     const { buildSwap } = await import('./art/fx.js');
