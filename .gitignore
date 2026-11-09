@@ -6,3 +6,6 @@ private/
 tools/music/sf2/*.sf2
 tools/music/venv/
 tools/test/qc/
+.gh-pages-wt/
+dist-artifact/
+tools/voice/tmp/
