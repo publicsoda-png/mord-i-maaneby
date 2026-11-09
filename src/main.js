@@ -18,7 +18,7 @@ const q = new URLSearchParams(location.search);
 await loadState();
 await loadGames();
 await loadBgs(['hub', 'landing', 'bakery', 'ice', 'scope', 'school', 'quarry', 'hall', 'light', 'title']);
-await loadSprites(['aliens', 'helper']);
+await loadSprites(['aliens', 'helper', 'bld_pad', 'bld_dome', 'bld_tower', 'bld_box', 'bld_pit', 'bld_hall']);
 if (q.has('min')) { gameApi.devMin = +q.get('min'); globalThis.MB_DEV_MIN = gameApi.devMin; } // mix.js reads MB_DEV_MIN so ?min= drives the sound phase too
 if (q.has('nat')) save.night = true;
 if (q.has('name')) save.name = q.get('name');
