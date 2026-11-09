@@ -17,7 +17,7 @@ for (let i = 0; i < 100; i++) { try { if ((await fetch(`http://127.0.0.1:${port}
 const b = await puppeteer.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: 'new', args: ['--mute-audio', '--autoplay-policy=no-user-gesture-required'] });
 const errors = [];
 const queries = process.argv.slice(2);
-if (!queries.length) queries.push('dev&scene=title', 'dev&scene=setup', 'dev&scene=hub&first&name=Test', 'dev&scene=hub&nat&name=Test');
+if (!queries.length) queries.push('dev&scene=ident', 'dev&scene=title', 'dev&scene=setup', 'dev&scene=hub&first&name=Test', 'dev&scene=hub&nat&name=Test');
 try {
   for (const q of queries) {
     const p = await b.newPage();

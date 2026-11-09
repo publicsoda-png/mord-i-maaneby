@@ -4,25 +4,13 @@ import { drawText } from '../core/stage.js';
 import { bg, drawFnug, drawBuilding } from '../art/placeholder.js';
 import { say, helper, countHelpClick, hideDialog, sleep, showHelper } from '../core/dialog.js';
 import { save, meta, persist, persistMeta, touch } from '../core/state.js';
-import { music, sfx, crtHum, play } from '../core/audio.js';
+import { music, sfx, crtHum, play, room } from '../core/audio.js';
 import { applyMix } from '../core/mix.js';
 import { msgBox, showOS } from '../core/os.js';
 import { t } from '../script.js';
 import { checkWrongness } from '../wrongness.js';
 import { gameApi } from '../game.js';
 import { cur } from '../core/cursor.js';
-
-/** The browser's own voice slips through (the break): live speechSynthesis, Danish if present, else the telephone filter line. */
-async function leak(text) {
-  const synth = window.speechSynthesis;
-  const v = synth && synth.getVoices().find((x) => /^da/i.test(x.lang));
-  if (!synth || !v) return say(text, { hold: 600 });
-  const u = new SpeechSynthesisUtterance(text); u.voice = v; u.rate = 0.95; u.pitch = 0.9;
-  const done = new Promise((r) => { u.onend = r; u.onerror = r; });
-  synth.speak(u);
-  await Promise.all([say(text, { silent: true, auto: 1, keep: true }), done]);
-  hideDialog();
-}
 
 export const PLOTS = [
   { id: 'landing', name: 'Landingspladsen', x: 150, y: 400, kind: 'pad', open: true },
@@ -35,7 +23,23 @@ export const PLOTS = [
   { id: 'light', name: 'Fyrtårnet', x: 590, y: 340, kind: 'tower' },
   { id: 'fire', name: 'Fyrværkeripladsen', x: 320, y: 450, kind: 'pad', special: true },
 ];
-const FNUG_POS = [[190, 440], [300, 395], [420, 360], [560, 420], [170, 370], [240, 280], [470, 300], [360, 440], [250, 450], [600, 290], [520, 460]]; // 11 visible, sign says 12
+export const FNUG_POS = [[190, 440], [300, 395], [420, 360], [560, 420], [170, 370], [240, 280], [470, 300], [360, 440], [250, 450], [600, 290], [520, 460]]; // 11 visible, sign says 12
+
+// Rådhusets dør (tegnes i stedet for "?" når save.flags.hall_door) — på pladsens grundlinje
+const HALL = PLOTS.find((p) => p.id === 'hall');
+const DOOR = { x: HALL.x - 9, y: HALL.y - 34, w: 18, h: 32 };
+// Natvagten (Fnuggen Elleve, id 10): tre faste trin, bageriet → midtvejs → Rådhusdøren. Ingen tween.
+const NV_STEPS = [[262, 332], [284, 296], [300, 258]];
+const NV_WAIT = 30000, NV_STEP_MS = 1200;
+
+/** Rådhusets lukkede dør: mørkt blad, lysere karm, 1 px kridt-7 i midten når natvagten har været der. */
+function drawDoor(g, night) {
+  const { x, y, w, h } = DOOR;
+  g.fillStyle = night ? '#5a5d6a' : '#9aa0b4'; g.fillRect(x - 2, y - 2, w + 4, h + 2); // karm
+  g.fillStyle = night ? '#111318' : '#2a2d3a'; g.fillRect(x, y, w, h); // blad
+  g.fillStyle = night ? '#3a3d4a' : '#6b7088'; g.fillRect(x + w - 5, y + Math.floor(h / 2), 2, 2); // håndtag
+  if (save.flags.chalk7) { g.fillStyle = '#e8e4d8'; const cx = x + Math.floor(w / 2) - 2, cy = y + 9; g.fillRect(cx, cy, 5, 1); g.fillRect(cx + 4, cy + 1, 1, 2); g.fillRect(cx + 3, cy + 3, 1, 2); g.fillRect(cx + 2, cy + 5, 1, 2); }
+}
 
 register({
   id: 'hub',
@@ -51,19 +55,28 @@ register({
       const os = document.getElementById('os'); showOS(true); os.style.background = 'transparent'; os.innerHTML = '';
       const r = await msgBox({ title: 'Regn med Måneby', icon: 'warn', msg: save.flags.morning ? 'Byen er ikke gemt.\nLuk alligevel?' : 'Vil du afslutte?', buttons: [{ label: 'Ja', value: 'y' }, { label: 'Nej', value: 'n', def: true }, ...(save.night && save.flags.jumped ? [{ label: 'Hende', value: 'h' }] : [])], parent: os });
       showOS(false);
-      if (r === 'y') goto('desktop'); else if (r === 'h') { save.flags.hall_open = true; touch(); await say('Ja. Hende.', { auto: 1500 }); }
+      if (r === 'y') goto('title'); else if (r === 'h') { save.flags.hall_open = true; touch(); await say('Ja. Hende.', { auto: 1500 }); }
     };
     button('Luk', 76, 8, luk, { w: 60 });
     window.MB && (window.MB.luk = luk);
-    if (save.flags.log_open) button('Logrummet', 540, 8, () => { sfx.click(); goto('logroom'); }, { w: 92 });
+    if (save.flags.log_open) button('Nedenunder', 540, 8, () => { sfx.click(); goto('logroom'); }, { w: 92 });
     lock(false);
     helper.night = save.night;
     if (save.night) { if (!save.flags.jumped) helper.present = false; }
     else helper.present = true;
-    this.idleT = performance.now();
-    if (arg.first) { await say(t('intro1'), { voice: 'assets/voice/intro1.ogg', mouth: 'assets/voice/intro1.json' }); await say(t('intro2')); await say(t('intro3')); await say(t('hub_first')); }
+    this.idleT = performance.now(); this.nvArmed = null; this.nvDone = false;
+    if (arg.first) {
+      await say(t('intro1'), { voice: 'assets/voice/intro1.ogg', mouth: 'assets/voice/intro1.json' }); await say(t('intro2')); await say(t('intro3')); await say(t('intro4')); await say(t('hub_first'));
+      // 2. gennemspilning: han kan tælle besøg
+      if (meta.ending && !save.flags.vaeret_her_said) { save.flags.vaeret_her_said = true; touch(); await say('Du har været her før. Det kan jeg tælle.', { hold: 500 }); }
+    }
     else if (arg.nightIntro) { await sleep(2500); /* nobody says anything */ }
-    else if (arg.afterJump) { helper.present = true; await say('Der mangler én. Nogen har … jeg kender ikke ordet.', { voice: 'assets/voice/mangler_en.ogg', mouth: 'assets/voice/mangler_en.json', hold: 600 }); save.flags.hall_open = true; save.flags.hallHint = 'Rådhuset er åbent.'; touch(); }
+    else if (arg.afterJump) {
+      helper.present = true;
+      await say('Der mangler én. Nogen har … jeg kender ikke ordet.', { voice: 'assets/voice/mangler_en.ogg', mouth: 'assets/voice/mangler_en.json', hold: 600 });
+      await say('Vi byggede ovenpå. Det plejer at hjælpe.', { hold: 500 });
+      save.flags.hall_open = true; save.flags.hallHint = 'Rådhuset er åbent.'; touch();
+    }
     else if (save.flags.hall_answer !== undefined && !save.flags.fever1) { goto('fever1'); return; } // 0 is an answer too
     else if (save.flags.fever1 && !save.flags.morning) { await say('Der er ét sted til. Nedenunder.', { hold: 400 }); save.flags.log_open = true; touch(); }
     else if (save.flags.fever_madpakke && !save.flags.fever2) { save.flags.fever_madpakke = false; goto('fever2'); return; }
@@ -72,59 +85,92 @@ register({
       const fired = await checkWrongness(gameApi);
       applyMix();
       if (fired) return;
-      if (save.flags.english_line && !save.flags.english_said) { save.flags.english_said = true; touch(); await say('Well done. What shall we build next?', { auto: 2000, silent: true }); }
-      else if (save.flags.first_name && !save.flags.first_name_said) { save.flags.first_name_said = true; touch(); await say(`Velkommen tilbage, ${meta.firstName}.`, { hold: 500, silent: true }); }
-      else if (save.flags.tts_leak && !save.flags.tts_leaked) { save.flags.tts_leaked = true; touch(); await leak('Er du der stadig? Jeg kan ikke høre dig.'); }
-      else if (save.flags.name_B && !save.flags.name_B_said) { save.flags.name_B_said = true; touch(); await say(t('name_B'), { auto: 1600 }); } // the wrong name, once, never commented on
+      if (save.flags.name_syv && !save.flags.name_syv_said) { save.flags.name_syv_said = true; touch(); await say('Flot, Syv.', { auto: 1400 }); }
+      else if (save.flags.fjerne) { delete save.flags.fjerne; touch(); await say('Fjerne? Det gør vi ikke.', { hold: 500 }); }
+      else if (save.flags.taeller_hoejt && !save.flags.taeller_hoejt_said) { save.flags.taeller_hoejt_said = true; touch(); await say('Én, to, tre, fire, fem, seks … otte, ni, ti, elleve, tolv. Det passer.', { hold: 600 }); }
+      else if (save.flags.tretten && !save.flags.tretten_said) { save.flags.tretten_said = true; touch(); await say('Fnuggerne venter på dig. Alle tretten.', { auto: 1600 }); }
+      else if (save.flags.stemme_rum && !save.flags.stemme_rum_said) {
+        save.flags.stemme_rum_said = true; touch();
+        try { await room('tomt'); } catch (e) { /* no audio yet */ }
+        await say('Jeg har mistænkt bageren. Og isværket. Og kridtgruben. Ikke dig. Du kom først bagefter.', { hold: 700 });
+        try { await room(null); } catch (e) { /* ignore */ }
+      }
       else await say(t('hub_back'), { auto: 1600 });
     }
   },
   exit() { showHelper(false); },
   hotspots() {
     const locked = (p) => p.locked && !save.flags.hall_open && !meta.ending;
+    const door = (p) => p.id === 'hall' && locked(p) && save.flags.hall_door && save.night && !save.flags.jumped;
     const hs = PLOTS.map((p) => ({ x: p.x - 34, y: p.y - 44, w: 68, h: 54, label: locked(p) ? '?' : p.name + (save.buildings[p.id] ? ` (${save.buildings[p.id]}/3)` : ''), cursor: 'hand', on: () => this.pick(p, locked(p)) }));
+    if (PLOTS.some(door)) hs.push({ x: DOOR.x - 4, y: DOOR.y - 4, w: DOOR.w + 8, h: DOOR.h + 8, label: '?', cursor: 'hand', on: () => this.pick(HALL, true) });
     hs.push({ x: 6, y: 226, w: 130, h: 250, label: 'Hjælp', on: () => this.help() });
     return hs;
   },
   async pick(p, isLocked) {
     this.idleT = performance.now();
-    if (isLocked) { sfx.bzzt(); await say(save.flags.hallHint || 'Ikke endnu.', { auto: 1200, noPortrait: true }); return; }
+    if (isLocked) {
+      if (p.id === 'hall' && save.flags.hall_door && save.night && !save.flags.jumped) { sfx.click(); goto('jump'); return; } // døren
+      meta.qClicks = (meta.qClicks || 0) + 1; persistMeta();
+      sfx.bzzt(); await say(save.flags.hallHint || 'Ikke endnu.', { auto: 1200, noPortrait: true }); return;
+    }
     if (p.special) {
       const built = Object.values(save.buildings).filter((v) => v >= 2).length;
-      if (built >= 5 && !save.night) { sfx.click(); goto('falseEnd'); return; }
+      if (built >= 5 && !save.night) { sfx.click(); goto(meta.ending && save.flags.hall_answer === undefined ? 'trueEnd' : 'falseEnd'); return; }
       await say('Fyrværkeriet venter, til byen er færdig.', { auto: 1500 }); return;
     }
     play('ui_hub_klik');
     goto('task', p);
   },
   async help() {
+    this.idleT = performance.now();
     const n = countHelpClick();
     if (save.night && !save.flags.jumped) { sfx.tick(); return; } // the chair is empty: nobody answers
     sfx.click();
-    await say(n === 400 ? 'Fire hundrede gange. Det var også det, hun nåede.' : t('help'));
+    await say(n === 400 ? 'Fire hundrede gange. Jeg tæller stadig. Det er det eneste, jeg kan.' : t('help'));
+  },
+  /** Natvagten: trin 0..2 efter 30 s stilhed om natten (spilletid), ellers -1. */
+  nvStep(tm) {
+    if (!save.night || save.flags.morning) return -1;
+    const idle = tm - this.idleT;
+    if (idle < NV_WAIT) { if (this.nvArmed !== null) { this.nvArmed = null; this.nvDone = false; } return -1; }
+    const step = Math.min(NV_STEPS.length - 1, Math.floor((idle - NV_WAIT) / NV_STEP_MS));
+    if (this.nvArmed === null) { this.nvArmed = this.idleT; try { play('nv_lygte_klik'); } catch (e) { /* lyd mangler endnu */ } }
+    if (step === NV_STEPS.length - 1 && !this.nvDone) { this.nvDone = true; if (!save.flags.chalk7) { save.flags.chalk7 = true; touch(); } try { play('nv_uld_sten'); } catch (e) { /* lyd mangler endnu */ } }
+    return step;
   },
   bg(g, dt, tm) {
     g.drawImage(this.bgc, 0, 0);
+    // bench_gone: renderens bænk (x 416–639, y 310–443) dækkes med overfladen ved siden af, spejlet så sømmen passer
+    if (save.flags.bench_gone) { g.save(); g.translate(640, 0); g.scale(-1, 1); g.drawImage(this.bgc, 188, 306, 226, 140, 0, 306, 226, 140); g.restore(); }
+    const showDoor = save.flags.hall_door && save.night && !save.flags.jumped && !save.flags.hall_open && !meta.ending;
     for (const p of PLOTS) {
       if (p.special) continue;
       drawBuilding(g, p.x, p.y, save.buildings[p.id] || 0, p.kind, save.night);
-      if (p.locked) drawText('?', p.x, p.y - 60, { align: 'center', font: '700 28px "Comic Neue","Comic Sans MS",sans-serif', color: '#ffd21f', outline: '#000' });
+      if (p.locked && !save.flags.hall_open && !meta.ending) {
+        if (showDoor) drawDoor(g, save.night);
+        else drawText('?', p.x, p.y - 60, { align: 'center', font: '700 28px "Comic Neue","Comic Sans MS",sans-serif', color: '#ffd21f', outline: '#000' });
+      }
     }
+    const nv = this.nvStep(tm);
+    const il = save.flags.idle_look, lookOn = !!il && save.night && (il === true || Math.abs(performance.now() - il) < 1000);
     // fnugger stand STILL (era rule) — one of them takes a single step every few seconds
     const stepper = Math.floor(tm / 3200) % FNUG_POS.length, stepPhase = (tm % 3200) < 400 ? 1 : 0;
     FNUG_POS.forEach(([x, y], i) => {
-      drawFnug(g, x, y, 1, { id: i, frame: i === stepper ? stepPhase : 0, back: save.flags.fnug_fringe && i === 4, fringe: save.flags.fnug_fringe && i === 4, night: save.night });
+      if (nv >= 0 && i === 10) return; // Elleve er på vagt
+      const frame = lookOn && i === 1 ? 2 : (i === stepper ? stepPhase : 0);
+      drawFnug(g, x, y, 1, { id: i, frame, back: save.flags.fnug_fringe && i === 4, fringe: save.flags.fnug_fringe && i === 4, night: save.night });
       if (save.flags.peeked && i === 6) { g.fillStyle = '#111'; g.fillRect(x - 4, y - 16, 3, 3); g.fillRect(x + 3, y - 16, 3, 3); } // one of them looks into the camera
-      if (save.flags.season === 'jul') { g.fillStyle = '#c22'; g.beginPath(); g.moveTo(x - 8, y - 20); g.lineTo(x + 8, y - 20); g.lineTo(x + 2, y - 32); g.closePath(); g.fill(); g.fillStyle = '#fff'; g.fillRect(x + 1, y - 34, 3, 3); }
     });
-    // bench (disappears at bench_gone)
-    if (!save.flags.bench_gone) { g.fillStyle = save.night ? '#2a2a2a' : '#6b4a2a'; g.fillRect(400, 455, 40, 5); g.fillRect(403, 460, 4, 8); g.fillRect(433, 460, 4, 8); }
-    // Feberdrøm IV: nattevagten — only real local time 22–05, at night, after 30 s without input
-    const h = new Date().getHours();
-    if (save.night && (h >= 22 || h < 5) && tm - this.idleT > 30000) {
-      g.fillStyle = '#2a2a33'; g.fillRect(520, 300, 26, 80); g.fillStyle = '#d9c9a8'; g.fillRect(523, 284, 20, 18); g.fillStyle = '#000'; g.fillRect(528, 290, 3, 3); g.fillRect(536, 290, 3, 3);
-      g.fillStyle = 'rgba(255,240,180,.35)'; g.beginPath(); g.moveTo(520, 330); g.lineTo(380, 300); g.lineTo(380, 380); g.closePath(); g.fill();
-      if (!this.pedelSaid) { this.pedelSaid = true; say('Jeg lukker kl. 16. Hvorfor er du her?', { noPortrait: true, hold: 1500 }).then(() => say('Den sidste linje i hendes fil var: "tilbage om lidt".', { noPortrait: true, auto: 3000 })); }
+    // Natvagt: Fnuggen Elleve med lygte, tre faste trin, flad lyskegle (ingen alpha over renderen — hård farve)
+    if (nv >= 0) {
+      const [x, y] = NV_STEPS[nv], atDoor = nv === NV_STEPS.length - 1;
+      const tx = atDoor ? DOOR.x + DOOR.w / 2 : NV_STEPS[nv + 1][0], ty = atDoor ? DOOR.y + DOOR.h / 2 : NV_STEPS[nv + 1][1] - 20;
+      g.fillStyle = '#6a5a28';
+      g.beginPath(); g.moveTo(x + 6, y - 18); g.lineTo(tx + 10, ty - 14); g.lineTo(tx + 10, ty + 14); g.closePath(); g.fill();
+      if (atDoor) { drawDoor(g, false); } // døren står i lyset
+      drawFnug(g, x, y, 1, { id: 10, frame: nv % 2, night: true });
+      g.fillStyle = '#ffe9a0'; g.fillRect(x + 5, y - 20, 4, 5); g.fillStyle = '#333'; g.fillRect(x + 6, y - 23, 2, 3); // lygten
     }
   },
   tick(dt, tm) {
@@ -135,6 +181,6 @@ register({
     // counter as outlined text in the scene (no HUD bar — era rule). Sign says 12 while 11 stand on the plain.
     const n = save.flags.silence_on ? (Math.floor(tm / 180) % 2 ? 12 : 11) : (save.flags.fnugShown ?? 12);
     drawText(`Fnugger: ${n}`, 630, 458, { align: 'right', font: '700 14px "Comic Neue","Comic Sans MS",sans-serif', color: '#fff', outline: '#000' });
-    drawText(save.flags.name_B && !save.flags.name_B_said ? 'B.' : save.name, 150, 458, { font: '700 14px "Comic Neue","Comic Sans MS",sans-serif', color: '#fff', outline: '#000' });
+    drawText(save.flags.name_syv ? 'Syv' : save.name, 150, 458, { font: '700 14px "Comic Neue","Comic Sans MS",sans-serif', color: '#fff', outline: '#000' });
   },
 });

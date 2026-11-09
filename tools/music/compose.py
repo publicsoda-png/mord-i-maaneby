@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Compose all songs as GM MIDI (midiutil). Usage: venv/bin/python compose.py [out_dir] [song ...]
-Songs: titel_a titel_b byen byen_11 plads_a plads_b plads_c raadhus fyrvaerkeri credits (+ variants via variant.py).
+Songs: ident titel_a titel_b byen byen_11 plads_a plads_b plads_c raadhus fyrvaerkeri credits (+ variants via variant.py).
 Motifs: fnug12 (12-tone pentatonic music box), fnug11 (6th omitted, rest kept), hjaelper (4 slow nylon notes),
 minus (falling minor second — the only falling interval in the baseline score)."""
 import sys, os
@@ -8,6 +8,7 @@ from midiutil import MIDIFile
 
 # GM programs (0-based)
 PIANO, MUSICBOX, VIBES, NYLON, FLUTE, PIZZ, PAD, CRYSTAL, SYNSTR = 0, 10, 11, 24, 73, 45, 89, 98, 50
+CELESTA, MARIMBA = 8, 12
 
 # ---------- motif library (semitone offsets from root, (beat, dur)) ----------
 # Pentatonic major: 0 2 4 7 9
@@ -145,10 +146,20 @@ def fyrvaerkeri():
         s.note(9, 49, b, 1, 70)  # crash
         for k in range(4): s.rim(b + k, 55)
     return s, 32
+def ident():
+    """Krater Multimedie-ident (3 s): fire egne toner celesta + marimba (C G A E, stigende, ikke en kendt melodi) over en lav
+    Warm Pad (C2+G2). Ren krom — bærer ingen historie (RETNING §0). 80 bpm × 4 beats = 3,0 s."""
+    s = Song(80, root=60)
+    s.prog(0, CELESTA); s.prog(1, MARIMBA); s.prog(2, PAD)
+    s.note(2, s.root - 24, 0, 4, 44); s.note(2, s.root - 17, 0, 4, 36)             # lav pad, hele varigheden
+    for k, p in enumerate([0, 7, 9, 16]):                                           # C5 G5 A5 E6
+        s.note(0, s.root + p + 12, k * 0.5, 2.5 - k * 0.5, 86 - k * 4)             # celesta ringer ud til slut
+        s.note(1, s.root + p, k * 0.5, 0.5, 70)                                     # marimba-anslag en oktav under
+    return s, 4
 def credits():
     s, L = titel_b(); return s, L
 
-SONGS = {'titel_a': titel_a, 'titel_b': titel_b, 'byen': lambda: byen(12), 'byen_11': lambda: byen(11), 'plads_a': plads_a, 'plads_b': plads_b, 'plads_c': plads_c, 'raadhus': raadhus, 'fyrvaerkeri': fyrvaerkeri, 'credits': credits}
+SONGS = {'ident': ident, 'titel_a': titel_a, 'titel_b': titel_b, 'byen': lambda: byen(12), 'byen_11': lambda: byen(11), 'plads_a': plads_a, 'plads_b': plads_b, 'plads_c': plads_c, 'raadhus': raadhus, 'fyrvaerkeri': fyrvaerkeri, 'credits': credits}
 
 if __name__ == '__main__':
     out = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file__), 'mid')

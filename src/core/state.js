@@ -1,9 +1,11 @@
 // Save (progress) in localStorage mirrored to IndexedDB; meta (what the game "remembers") only in IndexedDB.
 // Everything is best-effort: the game must run with no storage at all (private window, artifact iframe).
+// Meta remembers ONLY things inside Måneby (docs/RETNING.md): no names, no peeks, nothing from the player's world.
 const LS_KEY = 'maaneby.save.v1';
 const DB = 'maaneby', STORE = 'kv';
+export const SAVE_VERSION = 2;
 
-export const save = {
+const saveDefaults = () => ({
   name: '', grade: 3, lang: 'da',
   buildings: {},      // id → 0..3 (0 = not built)
   stickers: [],
@@ -11,10 +13,14 @@ export const save = {
   flags: {},          // story flags
   act: 1, night: false,
   seen: {},           // wrongness ids fired
-};
-export const meta = {
-  starts: 0, firstName: '', names: [], lastSeen: 0, resets: 0, deletedLog: false, peeked: {}, helpClicks: 0, ending: null, finishedTowns: 11203,
-};
+  wrongCount: 0,      // wrong answers in the minigames (task.js/engine onWrong) — read by byen_taeller
+  version: SAVE_VERSION,
+});
+export const save = saveDefaults();
+const metaDefaults = () => ({
+  starts: 0, lastSeen: 0, resets: 0, helpClicks: 0, qClicks: 0, ending: null, finishedTowns: 11203, version: SAVE_VERSION,
+});
+export const meta = metaDefaults();
 let dirty = false;
 export const flag = (k, v) => { if (v === undefined) return save.flags[k]; save.flags[k] = v; dirty = true; };
 
@@ -41,9 +47,22 @@ export async function loadState() {
   let s = null;
   try { s = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch {}
   if (!s) s = await idbGet('save');
-  if (s && typeof s === 'object') Object.assign(save, s);
+  if (s && typeof s === 'object') {
+    if ((s.version | 0) >= SAVE_VERSION) Object.assign(save, s);
+    else { // v1 save: nothing carried over — the town starts from scratch
+      try { localStorage.removeItem(LS_KEY); } catch {}
+      idbSet('save', null);
+    }
+  }
   const m = await idbGet('meta');
-  if (m && typeof m === 'object') Object.assign(meta, m);
+  if (m && typeof m === 'object') {
+    Object.assign(meta, m);
+    if ((m.version | 0) < SAVE_VERSION) { // v1 meta: drop every field v2 does not know (names, peeks, deleted files …)
+      const keep = metaDefaults();
+      for (const k of Object.keys(meta)) if (!(k in keep)) delete meta[k];
+      meta.version = SAVE_VERSION;
+    }
+  }
   meta.starts++;
   meta.lastSeen = Date.now();
   await idbSet('meta', meta);
@@ -62,7 +81,7 @@ export function resetSave() {
   meta.resets++; persistMeta();
   try { localStorage.removeItem(LS_KEY); } catch {}
   idbSet('save', null);
-  Object.assign(save, { name: '', grade: 3, buildings: {}, stickers: [], playMs: 0, flags: {}, act: 1, night: false, seen: {} });
+  Object.assign(save, saveDefaults()); // incl. wrongCount = 0 and version
   dirty = true; persist(true);
 }
 /** The ending wipes everything (ending b) — kept for later; not used by "stille morgen". */

@@ -44,7 +44,7 @@ register({
     if (!G) { await say(`${p.name} er ikke bygget endnu i denne udgave.`, { auto: 1500 }); goto('hub', { back: true }); return; }
     await say(line(G, p.id + '_intro', 'Løs opgaven, så bygger Fnuggerne.'));
     let wrong = 0;
-    const res = await playGame(G, { grade: save.grade, seed: Date.now(), night: save.night, save, say, onWrong: () => { wrong++; say(line(G, p.id + '_wrong', 'Prøv igen.'), { auto: 1000 }); } });
+    const res = await playGame(G, { grade: save.grade, seed: Date.now(), night: save.night, save, say, minusKnown: !!save.flags.minus_known, onWrong: () => { wrong++; save.wrongCount = (save.wrongCount || 0) + 1; touch(); say(line(G, p.id + '_wrong', 'Prøv igen.'), { auto: 1000 }); } });
     if (res.aborted) return;
     if (res.fever === 'madpakke') { save.flags.fever_madpakke = true; touch(); }
     if (p.id === 'hall' && res.answer !== undefined) { save.flags.hall_answer = res.answer; touch(); persist(true); lock(true); if (res.answer === 11) await say('Ja. Elleve.', { hold: 600 }); else await sleep(2500); lock(false); goto('hub', { back: false }); return; }

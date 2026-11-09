@@ -2,7 +2,7 @@
 """Synthetic 2005-cd-rom sample catalogue (LYDPLAN §4–5). Every sound is synthesised with numpy, then forced through a
 22 050 Hz / 8-bit round-trip so the era artefacts live in the file, then encoded by ffmpeg to .ogg (opus) + .m4a.
 Usage: <venv>/bin/python tools/sfx/make.py [name ...]      (no names = all)
-Groups: os_* ui_* mg_* (minispil) wr_* (wrongness) amb_* (loops) ir_* (impulsresponser, wav only)."""
+Groups: os_* ui_* mg_* (minispil) wr_* (wrongness) nv_* (natvagten) amb_* (loops) ir_* (impulsresponser, wav only)."""
 import sys, os, subprocess, math
 import numpy as np
 from scipy import signal
@@ -187,6 +187,21 @@ def _():
         elif ch == '-': items.append((t, sine(800, 3 * unit) * env(3 * unit, 0.003, 0.01, 1, 0.005))); t += 4 * unit
         else: t += 2 * unit
     return norm(seq(*items), 0.5)
+
+# --- Natvagten (Fnuggen Elleve, RETNING §2 min 55–65; egen rng så de er deterministiske uanset rækkefølge) ---
+@snd('nv_lygte_klik')
+def _():
+    r = np.random.default_rng(11); n = lambda d: r.uniform(-1, 1, int(SR * d))
+    # kort mekanisk klik ~80 ms: kontakt-transient + lille fjeder-resonans + dæmpet hus-"tok"
+    return norm(mix(lp(n(0.006), 6000) * decay(0.006, 400), 0.7 * sine(2900, 0.03, 1800) * decay(0.03, 90),
+                    at(0.5 * lp(n(0.02), 1800) * decay(0.02, 120), 0.08, 0.035), 0.4 * sine(260, 0.08, 150) * decay(0.08, 35)), 0.7)
+@snd('nv_uld_sten')
+def _():
+    r = np.random.default_rng(12); n = lambda d: r.uniform(-1, 1, int(SR * d))
+    # blød dæmpet dunk/skrab ~250 ms: uld mod sten — lavt dunk, derefter skrab uden top (ingen klik, ingen højfrekvens)
+    dunk = lp(np.cumsum(n(0.12)) / 60.0, 220) * decay(0.12, 16)
+    skrab = bp(n(0.25), 250, 1400) * (0.55 + 0.45 * np.abs(np.sin(2 * np.pi * 9 * t_(0.25)))) * env(0.25, 0.03, 0.08, 0.6, 0.1)
+    return norm(lp(mix(dunk, 0.45 * skrab), 1600), 0.6)
 
 # --- Ambience loops (seamless) ---
 @snd('amb_dag')

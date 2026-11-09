@@ -8,7 +8,7 @@ Lyden er ét venligt 2005-cd-rom-lydbillede (GM Wavetable, 22 kHz-samples, teatr
 1. **Samme, men ikke.** Horror-versioner er altid varianter af baseline-filer (`variant()`), aldrig nye kompositioner. Spilleren skal *genkende* det, der er galt.
 2. **Stilhed er den dyreste lyd.** Musik der udebliver, mund uden stemme, cd-spin uden resultat. Stilhed bruges 5 gange i alt og aldrig to gange inden for 5 min.
 3. **Æra-ægte, ikke chiptune.** 22 kHz 8/16-bit samples, let for høj volumen, let clipping, GM-patches. Ingen moderne horror-lyd (ingen risers, ingen skrig, ingen sub-drops) — kun ét clippet 22 kHz-knæk ved jump scaren.
-4. **Autoriteten lyver med rolig stemme.** Skole-IT-popups og hjælperen bliver aldrig højere, kun tættere (telefonfilter) eller fjernere (rum uden musik).
+4. **Autoriteten lyver med rolig stemme.** "Rådhuset melder"-boksene og hjælperen bliver aldrig højere, kun tættere (telefonfilter) eller fjernere (rum uden musik).
 5. **Ét jump scare.** Alt andet er dread. Efter min 68 må lyden kun blive *stillere*.
 
 ## 2. Signalkæde (udvidelse af `src/core/audio.js`)
@@ -20,7 +20,7 @@ Eksisterende busser: `music / voice / sfx / amb → master`. Tilføjes:
 |---|---|---|
 | **Bitcrusher** (WaveShaper, 8-bit trin + sample-hold) | på `voice` (fast) og `sfx` (fast, mild) | 22 kHz/8-bit-fornemmelse — hele spillet |
 | **Telefonfilter** (BP 300–3400 Hz + crush 11 kHz) | `voice`, slås til fra min 68 | hjælperen "ringer" fra et andet sted |
-| **Convolver "edb-lokale"** (syntetisk IR 0,6 s, lille hårdt rum) | `voice` + `sfx`, kun i nat-scener og Feberdrøm II | stemmen får pludselig et *rum* = den er ikke længere "i programmet" |
+| **Convolver "lille hårdt rum"** (syntetisk IR 0,6 s; teknisk room-id `edb` i mix.js, fil `ir_edb.wav`) | `voice` + `sfx`, kun i nat-scener og Feberdrøm II | stemmen får pludselig et *rum* = den er ikke længere "i programmet" |
 | **Convolver "tomt"** (IR 2,5 s, ingen early reflections) | Feberdrøm I (Regnerummet) | ternet testgulv uden vægge |
 | **Master-clipper** (soft-clip tanh) | master | æra-ægte "lidt for højt"; kun jump scaren rammer hård clip |
 | **Ducking** | `music` −6 dB når `voice` spiller | standard cd-rom-mix; i akt 3 holder ducking op med at virke (musik overdøver stemmen = wrongness) |
@@ -70,15 +70,15 @@ Kildeformat for samples: syntetiseret i Python/ffmpeg eller Web Audio runtime (s
 | 32 | "Gemt!" lyver | `ok` spilles, men 1 halvtone for lavt (`detune −100`) |
 | 35 | 7-tasten mangler | tastatur-klik uden tast; hjælperens 5 s pause: `tick` fortsætter uden tekst |
 | 38 | volumen død | slider ændrer intet på `voice` |
-| 42 | "Indsæt CD 2" | `cd_spin` 1,6 s → 0,5 s stilhed → `ding_fejl`; [Gentag] → palette-flash med **ét 8-bit knæk** (1 sample fuldt udslag) |
-| 45 | "Klokken er 15:40" | ingen musik-duck; stemmen og musikken kæmper |
+| 40 | "Måneby er fuld" (`fuld`) | `ding_fejl`; [Gentag] → bzzt + palette-flash med **ét 8-bit knæk** (1 sample fuldt udslag); derefter replik `fjerne` |
+| 45 | `byen_taeller` (kun tekst) | ingen stemme; `tick` fortsætter som normalt mens tallene lægges sammen |
 | 50 | falsk slutning | fanfare, fyrværkeri-knald (filtret, som gennem en væg) |
 | 55 | nat | `crtOff` → 3 s sort → `crtHum` + ventilation fader ind over 8 s |
 | 60 | mund uden stemme | mund-data fra ægte replik afspilles, `voice`-bus −∞ |
 | 65 | tælleren dirrer 30 s | kun hum; hvert klik = ingenting (ikke engang `click`) |
 | **68** | jump scare | ≤300 ms: hvid støj + 1 kHz firkant, hård clip, 22 kHz-alias; derefter **alt** muted inkl. hum — mindst 3 s, og lyden kommer først tilbage ved spillerens næste klik/tast (council 10-11: ingen automatisk fade-in) |
 | 68+ | telefon-hjælper | `voice` → telefonfilter; `tick` bliver til telefon-knitren |
-| 72 | Skole-IT-popup | `ding_info` korrekt — den *eneste* lyd i akt 3 der lyder helt normal |
+| 72 | "Rådhuset melder"-boks | `ding_info` korrekt — den *eneste* lyd i akt 3 der lyder helt normal |
 | 75 | fyrtårn S-Y-V | morse 800 Hz, 3 gentagelser, så stilhed |
 | 78 | Byg videre-loop | fanfare hver runde −1 halvtone; 144 Fnugger: `tick`-lyde fra alle sider (stereo-spredning, første gang stereo bruges) |
 | 80 | Lær ham minus | minus-motiv, nylon guitar, første faldende interval |
@@ -90,9 +90,9 @@ Kildeformat for samples: syntetiseret i Python/ffmpeg eller Web Audio runtime (s
 | Dag (0–50) | næsten ingen: let "rumkoloni-brum" (filtreret brun støj 60–200 Hz) så stilhed senere føles som tab | −34 dBFS |
 | Nat (55–84) | `crtHum` (findes: 50 Hz sav + 7,8 kHz hvin) + **ventilation** (brun støj BP 200–600 Hz, langsom LFO 0,07 Hz) + hvert 40–70 s ét **radiator-tik** | −26 dBFS, aldrig lavere end stemmen −14 |
 | Feberdrøm I (Regnerummet) | ingen hum; kridt på tavle i løs rytme fra alle Fnugger; lang IR | −28 |
-| Feberdrøm II (edb-lokalet) | ventilation tæt på, 15" CRT-hvin kraftigere, rullegardin-flap; SLUK SKÆRM = `crtOff` + 3 s ægte stilhed + CRT-afladnings-knitren | −24 |
+| Feberdrøm II (Hjelmene, sletten om natten; room `edb` = "lille hårdt rum") | ventilation tæt på, 15" CRT-hvin kraftigere, rullegardin-flap; SLUK SKÆRM = `crtOff` + 3 s ægte stilhed + CRT-afladnings-knitren | −24 |
 | Feberdrøm III (division) | hub-ambience, men dubleret og 7 cent forskudt (to lag der svæver) | −26 |
-| Nattevagten (kl. 22–05) | lommelygte-klik, nøgleknippe én gang, gulvknirk; pedellen taler i edb-lokale-IR | −28 |
+| Natvagten (Fnuggen Elleve, efter 30 s inaktivitet om natten) | `nv_lygte_klik` (lygte-klik), `nv_uld_sten` (uld mod sten); **ingen stemme** | −28 |
 | Logrummet | dyb hum 40 Hz, jord, ingen CRT (vi er ikke i programmet længere) | −24 |
 | Stille morgen | **intet.** Ventilationen slukker hørbart. Ingen fugle (det er Månen). Kun musik −8 dB | — |
 | Ægte credits | ingen ambience | — |
@@ -130,7 +130,7 @@ tools/music/compose.py      midiutil: 8 sange som funktioner, fælles motiv-bibl
 tools/music/variant.py      variant(song, transpose, tempo, swap={74:99}, drop_note=6)
 tools/music/render.sh       fluidsynth -ni sf2/GeneralUser-GS.sf2 X.mid -F X.wav -r 22050 → ffmpeg → ogg q1 mono + m4a
 tools/sfx/make.py           syntetiske samples (numpy) → 22050/8-bit-rundtur → assets/sfx/*.ogg(+m4a)
-tools/sfx/ir.py             to syntetiske impulsresponser (edb-lokale 0,6 s · tomt 2,5 s) → assets/sfx/ir_*.wav
+tools/sfx/ir.py             to syntetiske impulsresponser (lille hårdt rum 0,6 s = ir_edb · tomt 2,5 s) → assets/sfx/ir_*.wav
 tools/voice/tts.sh, rms.py  (jf. PLAN §5)
 src/core/audio.js           + crusher(), phone(on), room(name), duck(on), clipper, stereoTicks(), loopHak()
 src/core/mix.js             fase → busniveauer/ambience-lag (data-drevet, læser save.minute + save.night)

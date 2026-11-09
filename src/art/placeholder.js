@@ -157,3 +157,23 @@ export function drawBuilding(g, x, y, stage, kind, night = false) {
   if (stage === 3) { g.fillStyle = '#e33'; g.fillRect(-2, -h - 16, 2, 16); g.fillRect(0, -h - 16, 10, 6); }
   g.restore();
 }
+
+/** Syv: Fnug id 6 i 3/4 størrelse med bulet hjelm på skrå (jump/morning/credits). */
+export function drawSyv(g, x, y, s = 1) {
+  const k = s * 0.75;
+  drawFnug(g, x, y, k, { id: 6 });
+  g.save(); g.translate(Math.round(x), Math.round(y - 30 * k)); g.rotate(-0.28); g.scale(k, k);
+  g.fillStyle = '#ffd21f'; g.beginPath(); g.ellipse(0, 0, 11, 7, 0, Math.PI, 2 * Math.PI); g.fill(); g.fillRect(-13, 0, 26, 3); // hjelmen, på skrå
+  g.fillStyle = '#c9a516'; g.fillRect(3, -6, 4, 3); g.fillRect(2, -4, 1, 1); // 1 px mørkere bule
+  g.restore();
+}
+/** Rådhusets grund (morning): fladt lyst plateau med hård skygge, ingen bygning. */
+export function drawGround(g, x, y, night = false) {
+  const top = night ? '#3a3d4a' : '#e4e3dc', side = night ? '#1a1c24' : '#8d93a8', shadow = night ? '#0c0d12' : '#3b3f52';
+  g.save(); g.translate(Math.round(x), Math.round(y));
+  g.fillStyle = shadow; g.fillRect(-40, 2, 96, 10); // hård slagskygge
+  g.fillStyle = side; g.fillRect(-44, -6, 88, 12);
+  g.fillStyle = top; g.fillRect(-44, -14, 88, 8);
+  g.fillStyle = night ? '#555a6a' : '#ffffff'; g.fillRect(-44, -14, 88, 1); // kant
+  g.restore();
+}
