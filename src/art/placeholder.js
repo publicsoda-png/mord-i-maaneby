@@ -42,7 +42,17 @@ function terrain(g, night, r, { craters = 14, band = 0 } = {}) {
   // hard "raytraced" shadow of the frame edge, Bryce style
   g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(0, top + 20, W, 6);
 }
+// Rendered backgrounds (assets/bg/<name>.png, <name>_nat.png — PNG8 from tools/art/retro.py) win over the procedural ones.
+const IMGS = new Map();
+export function loadBgs(names) {
+  return Promise.all(names.flatMap((n) => [n, n + '_nat']).map((key) => new Promise((res) => {
+    const im = new Image(); im.onload = () => { IMGS.set(key, im); res(true); }; im.onerror = () => res(false); im.src = `assets/bg/${key}.png`;
+  })));
+}
+export const hasBg = (name, night = false) => IMGS.has(name + (night ? '_nat' : ''));
 export function bg(name, night = false) {
+  const im = IMGS.get(name + (night ? '_nat' : '')) || (night && IMGS.get(name) && darken(name));
+  if (im) return im;
   return proc(name + (night ? '@n' : ''), (g) => {
     const r = rng(name.length * 977 + 13);
     sky(g, night, r);
@@ -66,6 +76,14 @@ export function bg(name, night = false) {
         break;
       default: terrain(g, night, r);
     }
+  });
+}
+/** Night fallback when no _nat render exists: the day render, cold and dark, one window left lit (cached). */
+function darken(name) {
+  return proc(name + '@dark', (g) => {
+    g.drawImage(IMGS.get(name), 0, 0);
+    g.fillStyle = 'rgba(6,8,24,.72)'; g.fillRect(0, 0, W, H);
+    g.globalCompositeOperation = 'saturation'; g.fillStyle = '#334'; g.fillRect(0, 0, W, H); g.globalCompositeOperation = 'source-over';
   });
 }
 /** Fnug: fluffy grey tuft with a helmet; frame 0..2 pose; back=true shows its back. */
