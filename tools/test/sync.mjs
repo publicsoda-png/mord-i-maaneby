@@ -8,9 +8,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const root = path.resolve(here, '../..');
+const root = process.env.MB_ROOT ? path.resolve(process.env.MB_ROOT) : path.resolve(here, '../..'); // MB_ROOT = kør QC mod en anden worktree
 const G = JSON.parse(fs.readFileSync(path.join(here, 'gates.json'), 'utf8')).A6_timing;
-const out = path.join(here, 'qc-sync');
+const out = process.env.MB_OUT ? path.resolve(process.env.MB_OUT) : path.join(here, 'qc-sync');
 fs.rmSync(out, { recursive: true, force: true }); fs.mkdirSync(out, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const magick = (...a) => execFileSync('magick', a, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
@@ -147,15 +147,19 @@ try {
   {
     const p = await open('dev&scene=hub&name=Test');
     const cdp = await p.target().createCDPSession();
-    let downT = 0;
-    const { rows, audio } = await record(p, path.join(out, 't4'), async () => { downT = Date.now() / 1000; await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: 38, y: 20, button: 'left', clickCount: 1 }); await sleep(120); await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: 38, y: 20, button: 'left', clickCount: 1 }); }, 1500);
+    let downT = 0, upT = 0;
+    const { rows, audio } = await record(p, path.join(out, 't4'), async () => { downT = Date.now() / 1000; await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: 38, y: 20, button: 'left', clickCount: 1 }); await sleep(120); upT = Date.now() / 1000; await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: 38, y: 20, button: 'left', clickCount: 1 }); }, 1500);
     const before = rows.filter((r) => r.t < downT).at(-1) || rows[0];
-    const first = rows.find((r) => r.t > downT && AE(before.file, r.file, 0) > 640 * 480 * (G.click_visual_min_pct / 100)); // fuzz 0: dialogboks over mørk himmel er under 8 %-fuzz
+    // Biblen: tryk-feedback (inverteret bevel) på pointerdown, HANDLING på pointerup. To målinger, fuzz 0 (dialogboks over mørk himmel er under 8 %-fuzz).
+    const press = rows.find((r) => r.t > downT && AE(before.file, r.file, 0) > G.press_feedback_min_px);
+    const beforeUp = rows.filter((r) => r.t < upT).at(-1) || before;
+    const action = rows.find((r) => r.t > upT && AE(beforeUp.file, r.file, 0) > 640 * 480 * (G.click_visual_min_pct / 100));
     const sfx = audio.find((a) => a.t >= downT - 0.02 && a.t <= downT + 0.4);
-    report.tests.click_latency = { down_t: downT, first_frame: first?.i, before_frame: before.i, first_visual_ms: first ? Math.round((first.t - downT) * 1000) : null, sfx_ms: sfx ? Math.round((sfx.t - downT) * 1000) : null, sfx_url: sfx?.url, frames: rows.length };
-    report.pass.A6_click_visual_latency = first !== undefined && (first.t - downT) * 1000 <= G.click_latency_max_ms;
+    report.tests.click_latency = { down_t: downT, up_t: upT, press_feedback_ms: press ? Math.round((press.t - downT) * 1000) : null, action_after_up_ms: action ? Math.round((action.t - upT) * 1000) : null, sfx_ms: sfx ? Math.round((sfx.t - downT) * 1000) : null, sfx_url: sfx?.url, frames: rows.length };
+    report.pass.A6_click_press_feedback = !!press && (press.t - downT) * 1000 <= G.click_latency_max_ms;
+    report.pass.A6_click_action_latency = !!action && (action.t - upT) * 1000 <= G.click_latency_max_ms;
     report.pass.A6_click_has_sfx = !!sfx;
-    console.log(`T4 klik: første visuelle respons ${report.tests.click_latency.first_visual_ms} ms · lyd ${report.tests.click_latency.sfx_ms} ms (${sfx?.url})`);
+    console.log(`T4 klik: tryk-feedback ${report.tests.click_latency.press_feedback_ms} ms efter down · handling ${report.tests.click_latency.action_after_up_ms} ms efter up · lyd ${report.tests.click_latency.sfx_ms} ms (${sfx?.url})`);
     await p.close();
   }
 } finally { await b.close(); srv.kill(); }

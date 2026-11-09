@@ -43,6 +43,83 @@
       "q": "dev&scene=task&plot=quarry&name=Test",
       "liveness": false,
       "ware": true
+    },
+    {
+      "id": "ident",
+      "q": "dev&scene=ident&name=Test",
+      "liveness": false
+    },
+    {
+      "id": "task_ice",
+      "q": "dev&scene=task&plot=ice&name=Test",
+      "liveness": false,
+      "ware": true
+    },
+    {
+      "id": "task_scope",
+      "q": "dev&scene=task&plot=scope&name=Test",
+      "liveness": false,
+      "ware": true
+    },
+    {
+      "id": "task_light",
+      "q": "dev&scene=task&plot=light&name=Test",
+      "liveness": false,
+      "ware": true
+    },
+    {
+      "id": "task_hall",
+      "q": "dev&scene=task&plot=hall&name=Test",
+      "liveness": false,
+      "ware": true
+    },
+    {
+      "id": "falseEnd",
+      "q": "dev&scene=falseEnd&name=Test",
+      "liveness": false,
+      "info": true
+    },
+    {
+      "id": "fever1",
+      "q": "dev&scene=fever1&name=Test",
+      "liveness": false,
+      "info": true
+    },
+    {
+      "id": "fever2",
+      "q": "dev&scene=fever2&name=Test",
+      "liveness": false,
+      "info": true
+    },
+    {
+      "id": "jump",
+      "q": "dev&scene=jump&name=Test",
+      "liveness": false,
+      "info": true
+    },
+    {
+      "id": "logroom",
+      "q": "dev&scene=logroom&name=Test",
+      "liveness": false,
+      "info": true
+    },
+    {
+      "id": "morning",
+      "q": "dev&scene=morning&name=Test",
+      "liveness": false,
+      "info": true
+    },
+    {
+      "id": "credits",
+      "q": "dev&scene=credits&name=Test",
+      "liveness": false,
+      "info": true
+    },
+    {
+      "id": "trueEnd",
+      "q": "dev&scene=trueEnd&name=Test",
+      "liveness": false,
+      "info": true
     }
   ],
   "A1_motion": {
@@ -91,7 +168,8 @@
     "mouth_open_min_px": 10,
     "click_latency_max_ms": 100,
     "loudness_whitelist_source": "src/core/wrongness.js linjer \"// qc-whitelist: <klip> <klip> — <grund>\" FØR gate-kørsel",
-    "click_visual_min_pct": 0.1
+    "click_visual_min_pct": 0.1,
+    "press_feedback_min_px": 150
   },
   "A7_grep": {
     "css_forbidden": [
@@ -107,5 +185,6 @@
       "src/art/placeholder.js",
       "src/art/portrait.js"
     ]
-  }
+  },
+  "_scenes_note": "ware=minispil (informativ til G4), info=akt-scener (informativ, egne regler/horror-whitelist i G5)"
 }

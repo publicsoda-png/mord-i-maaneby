@@ -38,12 +38,17 @@ Ejer i parentes: B = bygge-/master-session, Q = QC, C = council, F = Frederik.
 - [ ] WP8: ét oplyst vindue pr. bygget bygning om natten (indexed sprite).
 - [ ] Baggrunde der mangler (404, procedurel fallback): `assets/bg/ice.png`, `scope.png`, `hall.png`, `title.png` + alle `*_nat.png`. Beslut: bestil renders eller behold fallback.
 
-## 6. QC og gates (Q)
-- [ ] b8's gates G1–G3 (polish.mjs/sync.mjs) på master efter 9f29789; `MB_ROOT` på et checkout med #os-fixet. tools/test har lokale ændringer fra b8 i hovedcheckoutet – tjek `git status` før commit.
-- [ ] Runde 2: minispil ice/scope/light/hall + falseEnd/fever1/fever2/jump/morning/credits (ikke i gates.json – forslag til Frederik, filen røres ikke).
-- [ ] A6: pling vs. pop-frame på buildSwap (`?dev&scene=hub&built=bakery:2`, `window.MB.fxLog`).
-- [ ] DoD-skema §4 udfyldt med hash – i chatten, ikke artifact. Kolonne C (blind side-om-side ≥7) ikke kørt.
-- [ ] sync.mjs: alle nye replikker har voice-json (lydcommit 48bd69f).
+## 6. QC og gates (Q) — opdateret af QC-sessionen b8 10-11 ~06:15 ved pause
+**Sidst gyldige domme:** G1 BESTÅET på master 82ae23f/c70b76b og polish 025c02b (8 scener). G3 BESTÅET på master 82ae23f. Alt efter retning-mergen (9270c40 → c82f200) er IKKE gyldigt målt: dev-shots var blå (#os z-40) i master-checkoutet, så A1 0 %/A3 1–3 farver på falseEnd/credits/trueEnd/fever2 er artefakter, ikke resultater.
+- [ ] **Kør G1+G3 på master c82f200+** (#os-fix er inde) fra master-checkoutet: `nice -n 10 node tools/test/polish.mjs && node tools/test/sync.mjs` (fnm node v24). Mod en anden worktree: `MB_ROOT=<sti> MB_OUT=<scratch>`.
+- [ ] **QC-filer er ucommittede i master-checkoutet** (b8's seneste): tools/test/polish.mjs (MB_ROOT/MB_OUT, A7-sinus-grep dækker src/ware, assets/raw undtaget fra PNG8, `info`-scener filtreres fra gates), tools/test/sync.mjs (T4 splittet i tryk-feedback ≥150 px fra down + handling ≥0,1 % fra up, oscillator-hook, loudness-whitelist fra src/wrongness.js), tools/test/gates.json (21 scener: + ident, task_ice/scope/light/hall som `ware`, falseEnd/fever1/fever2/jump/logroom/morning/credits/trueEnd som `info`; A6: mouth_tolerance 100 ms, helper_frames ≤13, json_rms ≥0,85, LUFS −16/−18 ±1,5, TP ≤ −1, click ≤100 ms, press ≥150 px, visual ≥0,1 %). B committer dem (gates.json-ændringerne er b8's tilføjelser, ikke tærskelændringer — Frederik godkender ved at lade dem stå).
+- [ ] **A6 T3 pling-sync fejler efter buildSwap** (målt på 9270c40 og polish 6634f5f): T3 måler pling mod første ikke-sorte hub-frame, men buildSwap spiller nu pling på POP-framen (støv → pop). Ret sync.mjs T3 til at måle mod pop-framen (slot-regionens sprite-skift eller `window.MB.fxLog.show`) via `?dev&scene=hub&built=bakery:2`. Først derefter kan G3 blive grøn igen.
+- [ ] **G2 (palette + blind side-om-side) ikke kørt.** Sidste gyldige A3 (polish 6634f5f-basis, før blå-fejl kan udelukkes helt): title 228 ✔, setup 294, landing 262, school 265, bakery 274, logroom 241, quarry 508, hub 759, hub_nat 580, fever1 407, jump 576, scope 900, hall 1025, ice 1103, light 502–1671, morning 1529. Gate ≤256 — kun title består. Nat = LUT-swap, dialogboks-rgba og ware-DOM-rester er de kendte kilder (QC-POLISH-PLAN §0).
+- [ ] Kolonne C: blind side-om-side via council design-mode (no_gpt+no_gemini, IP-veto) på title/setup/hub mod docs/research/ref-frames — ikke kørt på nogen scene. IP-veto på assets/sprites/aliens.png er kun kørt af bygge-sessionens C3, ikke af QC.
+- [ ] Runde 2-scener (ident, 4 minispil, slutscener) er nu i gates.json som ware/info — kør dem og giv Frederik tallene; ident viste 6,97 %/250 ms (sandsynligvis blink/typing — tjek om det er step-ur).
+- [ ] DoD-skema §4 (QC-POLISH-PLAN) fuldt udfyldt med hash — som skema i chatten. Sidste delvise version sendt til c8 på b2b63a0.
+- [ ] feel.mjs igen efter merge (sidst: b2b63a0, median 42 ms, p90 107, 2 langsomme klik: setup OK 111 ms, hub-hotspot 107 ms).
+- [ ] Ryd tools/test/qc/ og qc-sync/ (≈20–40 MB frames, gitignored) når der er brug for plads.
 
 ## 7. Pacing-council (C)
 - [ ] 3 blinde Claude-dommere på `tools/test/feel/pacing-judge/K01–K06` (nøgle i `tools/test/feel-key/key.json`). K01–K06 skal gen-renderes først (fra før aliens). Mål: median "første gang jeg bemærkede noget" = min 15–30, intet før min 12.

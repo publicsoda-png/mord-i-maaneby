@@ -9,9 +9,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const root = path.resolve(here, '../..');
+const root = process.env.MB_ROOT ? path.resolve(process.env.MB_ROOT) : path.resolve(here, '../..'); // MB_ROOT = kør QC mod en anden worktree
 const G = JSON.parse(fs.readFileSync(path.join(here, 'gates.json'), 'utf8'));
-const out = path.join(here, 'qc');
+const out = process.env.MB_OUT ? path.resolve(process.env.MB_OUT) : path.join(here, 'qc');
 fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(out, { recursive: true });
 const argv = process.argv.slice(2);
@@ -35,9 +35,9 @@ function grepAll(dir, re, filter = () => true) {
 {
   const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
   const cssHits = G.A7_grep.css_forbidden.filter((k) => css.includes(k));
-  // Kun TIDSDREVET sinus (bob/glid) i scener + core: Math.sin(t/600), Math.sin(tm*…), Math.sin(performance.now()…). Geometri (vinkler) er lovlig. Minispil (src/ware) tjekkes fra fase 4.
+  // Kun TIDSDREVET sinus (bob/glid) i scener + core: Math.sin(t/600), Math.sin(tm*…), Math.sin(performance.now()…). Geometri (vinkler) er lovlig. src/ware inkluderet fra 10-11 (aftalt med c8, WP5).
   const sinRe = new RegExp(G.A7_grep.sin_time_regex);
-  const sinHits = grepAll(path.join(root, 'src'), sinRe, (p) => /\.js$/.test(p) && /src\/(scenes|core)\//.test(p) && !G.A7_grep.sin_allowlist.some((a) => p.endsWith(a)));
+  const sinHits = grepAll(path.join(root, 'src'), sinRe, (p) => /\.js$/.test(p) && /src\/(scenes|core|ware)\//.test(p) && !G.A7_grep.sin_allowlist.some((a) => p.endsWith(a)));
   const blackOverrides = grepAll(path.join(root, 'src'), /black:\s*0/, (p) => /\.js$/.test(p));
   const blackBad = blackOverrides.filter((h) => !G.A2_transition.black_override_allowlist.some((a) => h.startsWith(a)));
   const procHits = grepAll(path.join(root, 'src/scenes'), /\bproc\(|placeholder\.js/, (p) => /\.js$/.test(p));
@@ -52,7 +52,7 @@ function grepAll(dir, re, filter = () => true) {
   report.pass.A6_cps_static = cpsBad.length === 0 && cps.length > 0;
   report.pass.A5_placeholder = procHits.length <= G.A5_placeholder.max_proc_calls_in_scenes; // informativt før fase 4
   // A3 assets: alle PNG i assets/ skal være PNG8 (IHDR color type 3 = byte 25)
-  const pngs = []; const walk = (d) => { if (!fs.existsSync(d)) return; for (const f of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, f.name); if (f.isDirectory()) walk(p); else if (/\.png$/i.test(p)) pngs.push(p); } }; walk(path.join(root, 'assets'));
+  const pngs = []; const walk = (d) => { if (!fs.existsSync(d)) return; for (const f of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, f.name); if (f.isDirectory()) { if (f.name === 'raw') continue; /* assets/raw = Higgsfield-kilder, skibes ikke */ walk(p); } else if (/\.png$/i.test(p)) pngs.push(p); } }; walk(path.join(root, 'assets'));
   const notPng8 = pngs.filter((p) => fs.readFileSync(p).readUInt8(25) !== 3).map((p) => path.relative(root, p));
   report.static.A3_assets_png_total = pngs.length; report.static.A3_assets_not_png8 = notPng8;
   report.pass.A3_assets = notPng8.length === 0;
@@ -163,7 +163,7 @@ try {
 
 // ---------- samlet ----------
 // Minispil ("ware": true) er informative indtil fase 4 (G4) — tæller ikke i G1-gates.
-const S = Object.values(report.scenes).filter((r) => !G.scenes.find((s) => s.id === r.id)?.ware);
+const S = Object.values(report.scenes).filter((r) => { const sc = G.scenes.find((s) => s.id === r.id); return !(sc?.ware || sc?.info); });
 report.pass.A1_max = S.every((r) => r.pass_A1_max);
 report.pass.A1_liveness = S.filter((r) => r.pass_A1_live !== null).every((r) => r.pass_A1_live);
 report.pass.A1_steprate = S.every((r) => r.pass_A1_steprate);
