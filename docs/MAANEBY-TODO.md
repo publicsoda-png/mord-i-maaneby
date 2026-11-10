@@ -40,6 +40,16 @@ Ejer i parentes: B = bygge-/master-session, Q = QC, C = council, F = Frederik.
 - [ ] (10-11 bestilt hos Higgsfield-agenten: ice/scope/hall dag ×2 + nat-edit af alle 9) Baggrunde der mangler (404, procedurel fallback): `assets/bg/ice.png`, `scope.png`, `hall.png`, `title.png` + alle `*_nat.png`. Beslut: bestil renders eller behold fallback. Nye renders → retro.py → pallock.py.
 - [ ] Setup-chips (radial-gradient) står – setup måler 173 farver, så ingen handling nødvendig medmindre A3 bliver rød igen.
 
+## 5b. QC-runde 4 (a0, efterprøvet på 43bc1a9) – rettet af c8 10-11 ~10:40
+- [x] B1 logrummet: 7 var fjernet fra tastaturet når minus var tegnet → lag 5 (12−5) kunne aldrig svares, spillet stod fast. Nu tegnes 0–9 altid, '−' har egen plads (x 112, y 420). Verificeret i dev (alle 13 taster).
+- [x] B2 hub: log_open sættes nu FØR knapperne bygges → 'Nedenunder' i samme besøg, replikken kun én gang.
+- [x] B3 morning har exit() med showHelper(false); credits kalder showHelper(false) → ingen hjælper/stol over rullen og titlen.
+- [x] B4 task 'Tilbage' kalder hideDialog() → intro-replikken følger ikke med i hubben.
+- [x] K2 fever1: spørgsmålet kun i dialogboksen (lærreds-dubletten fjernet).
+- [x] K3 titel: ingen Fortsæt efter slutningen (flags.morning); setup tom efter slutning/credits.
+- [x] K4 hub: åben, ubygget Rådhus-plads viser en lille åben dør (palettefarver) ved flaget.
+- [ ] K1 jump_hall.png 404 → B (C6-council når RAM tillader).
+
 ## 6. QC og gates (Q) — opdateret 10-11 (genoptaget efter pause)
 **Gyldige domme på master e56b61c:** **G1 BESTÅET** (gated scener: title/setup/hub/hub_nat/landing; hub 0,035 %/250 ms, live 6; sort cut 283/283 ms, 0 blends; 0 konsolfejl). **G3 BESTÅET** (12 A6-punkter: mund +27/−17 ms, 84 % åben under stemme, cps 31,2, pling mod pop-frame Δ −50 ms, slot 1,6 skift/s, tryk-feedback 45 ms, handling 38 ms efter up, lyd 2 ms, loudness med whitelist).
 - [x] G1+G3 kørt på master efter #os-fix (e56b61c).

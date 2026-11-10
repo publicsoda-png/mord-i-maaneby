@@ -151,7 +151,6 @@ register({
       drawFnug(g, f.x + (f.look ? (cur.x - f.x) * 0.01 : 0), f.y, 1, { id: this.fn.indexOf(f), frame: 0, night: true });
       if (f.look) { g.fillStyle = '#111'; g.fillRect(f.x - 4 + Math.sign(cur.x - f.x) * 1.5, f.y - 15, 2, 2); g.fillRect(f.x + 4 + Math.sign(cur.x - f.x) * 1.5, f.y - 15, 2, 2); }
     }
-    drawText(`Hvor mange bor her?`, 320, 180, { align: 'center', font: KID, color: '#fff', outline: '#000' });
   },
 });
 
@@ -302,13 +301,12 @@ register({
   keys() {
     const ui = document.getElementById('ui'); ui.querySelectorAll('.btn,.chip').forEach((b) => b.remove());
     for (let i = 0; i <= 9; i++) {
-      if (i === 7 && !save.flags.minusDrawn) continue; // the hole where 7 was — the minus key draws itself here
       button(String(i), 170 + (i % 5) * 56, 380 + Math.floor(i / 5) * 40, () => this.key(String(i)), { w: 48 });
     }
     button('Svar', 460, 380, () => this.key('ok'), { w: 80 });
     button('Slet', 460, 420, () => this.key('del'), { w: 80 });
     setTimeout(() => { if (!save.flags.minusDrawn) { save.flags.minusDrawn = true; touch(); sfx.sticker(); this.keys(); } }, 2500);
-    if (save.flags.minusDrawn) button('−', 170 + 2 * 56, 420, () => {}, { w: 48, cls: 'minus' }); // sits in the hole where 7 was
+    if (save.flags.minusDrawn) button('−', 112, 420, () => {}, { w: 48, cls: 'minus' }); // egen plads til venstre for rækken: 7 skal kunne tastes (lag 5 kræver 12−5=7) – QC r4 B1
   },
   async key(k) {
     sfx.click();
@@ -364,6 +362,7 @@ register({
     this.hs = PLOTS.map((p) => ({ x: p.x - 34, y: p.y - 44, w: 68, h: 54, cursor: 'hand', on: () => this.look(p) }));
     this.hs.push({ x: 6, y: 226, w: 130, h: 250, on: () => sfx.tick() }); // help = tick, where the helper stands
   },
+  exit() { showHelper(false); }, // QC r4 B3: hjælper + stol må ikke stå over credits/titel
   hotspots() { return this.said ? this.hs : []; },
   async look(p) {
     this.idle = performance.now(); sfx.click();
@@ -400,7 +399,7 @@ const CREDITS = ['REGN MED MÅNEBY', '', 'Idé og manuskript: Krater Multimedie 
 register({
   id: 'credits',
   async enter() {
-    lock(true); hideDialog(); applyMix({ flags: { ...save.flags, scene: 'credits' } });
+    lock(true); hideDialog(); showHelper(false); applyMix({ flags: { ...save.flags, scene: 'credits' } });
     music('assets/music/credits.ogg', { fade: 1, restart: true });
     this.t0 = performance.now();
     setTimeout(() => { lock(false); button('Luk', 290, 440, () => goto('title'), { w: 60 }); }, 38000);

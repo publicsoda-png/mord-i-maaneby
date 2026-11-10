@@ -97,7 +97,7 @@ register({
     this.t0 = performance.now();
     music(save.night ? 'assets/music/titel_nat.ogg' : 'assets/music/titel_b.ogg', { fade: 1.2 });
     button('Start', 280, 400, () => { sfx.click(); goto('setup'); }, { w: 80 });
-    if (save.name) button('Fortsæt', 280, 436, () => { sfx.click(); goto('hub'); }, { w: 80 });
+    if (save.name && !save.flags.morning) button('Fortsæt', 280, 436, () => { sfx.click(); goto('hub'); }, { w: 80 }); // QC r4 K3: ingen Fortsæt efter slutningen
     this.bgc = b;
   },
   bg(g, dt, t) {
@@ -117,7 +117,7 @@ register({
     const ui = document.getElementById('ui');
     const inp = document.createElement('input');
     inp.className = 'input'; inp.maxLength = 14; inp.style.left = '220px'; inp.style.top = '150px'; inp.style.width = '200px';
-    inp.value = save.name || ''; // aldrig forudfyldt; save.name ved fortsat spil
+    inp.value = save.flags.morning || meta.ending ? '' : save.name || ''; // QC r4 K3: tomt efter slutningen; save.name kun ved fortsat spil
     ui.appendChild(inp);
     setTimeout(() => { inp.focus(); inp.select(); }, 50);
     const chips = [];
