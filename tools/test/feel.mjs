@@ -17,7 +17,8 @@ const root = path.resolve(here, '../..');
 const argv = process.argv.slice(2);
 const arg = (k, d) => { const i = argv.indexOf(k); return i >= 0 && argv[i + 1] ? argv[i + 1] : d; };
 const PACING = argv.includes('--pacing');
-const AKT2 = argv.includes('--akt2'); // c8 10-11: efter hub-intro sættes 6 bygninger som færdige og fyrværkeripladsen klikkes → falseEnd → akt 2 (natten) testes af botten
+const AKT2 = argv.includes('--akt2');
+const AKT3 = argv.includes('--akt3'); // c8 10-11 (B's ønske): nat + rådhusdør sættes → jump → Nedenunder → logrum (7 lag løses scriptet: 11…5) → morgen → fri leg (credits) // c8 10-11: efter hub-intro sættes 6 bygninger som færdige og fyrværkeripladsen klikkes → falseEnd → akt 2 (natten) testes af botten
 const MINUTES = +arg('--minutes', 3);
 const PORT = +arg('--port', 4963);
 const SEED = +arg('--seed', 7);
@@ -291,6 +292,31 @@ async function runBot() {
       await click(320, 445, 'hotspot', 'Fyrværkeripladsen (akt2-start)');
       await waitScene('falseEnd', 8000); note('falseEnd nået');
     }
+    if (AKT3) {
+      await p.evaluate(() => { const s = window.MB.save; for (const id of ['bakery', 'ice', 'scope', 'school', 'quarry', 'light']) s.buildings[id] = 2; s.act = 3; s.night = true; s.flags.hall_door = true; s.flags.hall_answer = 11; s.flags.fever1 = true; });
+      await p.evaluate(() => { window.MB.goto('hub', { back: false }, { black: 0 }); }); // genindtræd (ikke awaitet: enter venter på dialog-klik) så nat-hubben siger sin replik og 'Nedenunder' kommer
+      await sleep(1500);
+      note('akt3: nat + rådhusdør sat'); if (firstHubFreeClick === null) firstHubFreeClick = (Date.now() - T0) / 1000; // hubben ER nået; den fri leg starter først efter kæden await readDialogs(20000); await waitFree(10000);
+      await click(320, 240, 'hotspot', 'Rådhusets dør (akt3-start)');
+      if (await waitScene('jump', 8000)) note('jump nået');
+      await sleep(4500); await click(320, 240, 'passive', 'klik i mørket efter knækket');
+      if (await waitScene('hub', 20000)) note('hub efter jump');
+      await readDialogs(30000); await waitFree(15000);
+      const ned = (await scanTargets()).dom.find((d) => d.label === 'Nedenunder');
+      if (ned) await click(ned.x, ned.y, 'button', 'Nedenunder'); else note('INGEN Nedenunder-knap');
+      if (await waitScene('logroom', 8000)) note('logrum nået');
+      await readDialogs(15000); await waitFree(10000);
+      for (let layer = 0; layer < 7; layer++) {
+        await click(380, 250, 'hotspot', 'Grav'); await sleep(900);
+        await readDialogs(15000); await waitFree(10000);
+        const ans = String(12 - (layer + 1));
+        for (const ch of ans) { const k = (await scanTargets()).dom.find((d) => d.label === ch); if (k) await click(k.x, k.y, 'button', 'tast ' + ch); await sleep(250 + rnd() * 300); }
+        const ok = (await scanTargets()).dom.find((d) => d.label === 'Svar'); if (ok) await click(ok.x, ok.y, 'button', 'Svar');
+        await sleep(1200); await readDialogs(15000); await waitFree(10000);
+        note(`logrum lag ${layer + 1} løst (${ans})`);
+      }
+      if (await waitScene('morning', 25000)) note('morgen nået'); // lag 7 løses af 'Svar' → finish → morgen (ingen ekstra Grav-klik)
+    }
     // ---- 4. fri leg ----
     const cache = new Map(); let lastScene = null; let taskEnter = 0; let taskClicks = 0;
     while (elapsedMin() < MINUTES) {
@@ -365,7 +391,7 @@ async function runBot() {
   const hot = targeted.filter((c) => c.kind === 'hotspot' && c.latency_ms !== null);
   const hotspotBreakdown = hot.length ? { n: hot.length, down_to_up_ms: median(hot.map((c) => c.down_to_up_ms).filter((v) => v !== null)), up_to_sound_ms: median(hot.map((c) => c.sound_from_up_ms).filter((v) => v !== null)), up_to_black_rAF_ms: median(hot.map((c) => c.up_to_black_rAF_ms).filter((v) => v !== null)), black_rAF_to_frame_ms: median(hot.map((c) => c.black_rAF_to_frame_ms).filter((v) => v !== null)), latency_from_down_ms: median(hot.map((c) => c.latency_ms)), latency_from_up_ms: median(hot.map((c) => c.latency_from_up_ms).filter((v) => v !== null)) } : null;
   const report = {
-    when: new Date().toISOString(), git: gitHash, mode: AKT2 ? 'bot-akt2' : 'bot', minutes: MINUTES, seed: SEED, port: PORT, targets: TARGETS,
+    when: new Date().toISOString(), git: gitHash, mode: AKT3 ? 'bot-akt3' : AKT2 ? 'bot-akt2' : 'bot', minutes: MINUTES, seed: SEED, port: PORT, targets: TARGETS,
     method: 'klik-latens = pointerdown (sidens tidsstempel) → første screencast-frame med ≥0,1 % ændrede pixels (fuzz 0, cursor-felt 44×44 maskeret) mod screenshot taget lige før klik. Lyd = hook på AudioBufferSourceNode/OscillatorNode.start. cps = median tegn-interval i renderText-kald på #dtextc (tick) og inkl. pauser, splittet i voiced (assets/voice/-buffer starter ved replikkens begyndelse; følger klippets længde) og unvoiced (måles mod 24–32). Latens rapporteres fra pointerdown (protokol) OG fra pointerup (bible: handling på up; botten holder musen 70 ms) med nedbrydning up→lyd→#ui-hidden (første sort rAF)→første screencast-frame. Afskæring = statisk ombrydning af alle replik-strenge i src/ med text1bit (dialog.js slice(0,3)).',
     summary: {
       clicks_total: clicks.length, clicks_targeted: targeted.length, clicks_passive: passive.length - clicks.filter((c) => c.kind === 'blind').length, clicks_blind: clicks.filter((c) => c.kind === 'blind').length,
