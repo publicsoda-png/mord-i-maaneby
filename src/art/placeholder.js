@@ -1,30 +1,26 @@
 // Procedural placeholder backgrounds in a "Bryce render" spirit (grey-blue moon, Earth, dark nebula sky).
 // They stand in until Higgsfield PNG8 renders land in assets/bg; API stays the same: bg(name, night) → canvas.
-import { proc, rng, W, H } from '../core/stage.js';
+import { proc, rng, W, H, stipple, bands } from '../core/stage.js';
 
 function sky(g, night, r) {
-  const grd = g.createLinearGradient(0, 0, 0, 220);
-  if (night) { grd.addColorStop(0, '#02020a'); grd.addColorStop(1, '#0a0618'); }
-  else { grd.addColorStop(0, '#0b0620'); grd.addColorStop(0.6, '#2a1140'); grd.addColorStop(1, '#4a1d4f'); }
-  g.fillStyle = grd; g.fillRect(0, 0, W, 240);
-  for (let i = 0; i < 260; i++) { g.fillStyle = `rgba(255,255,255,${0.35 + r() * 0.65})`; g.fillRect(Math.floor(r() * W), Math.floor(r() * 200), 1 + (r() < 0.1 ? 1 : 0), 1); }
+  if (night) bands(g, 0, 0, W, 240, ['#02020a', '#0a0618'], 4); else bands(g, 0, 0, W, 240, ['#0b0620', '#2a1140', '#4a1d4f'], 8);
+  const STAR = ['#808080', '#c4c5c5', '#ffffff'];
+  for (let i = 0; i < 260; i++) { g.fillStyle = STAR[Math.floor(r() * 3)]; g.fillRect(Math.floor(r() * W), Math.floor(r() * 200), 1 + (r() < 0.1 ? 1 : 0), 1); }
   // Earth
   g.fillStyle = night ? '#1b3a66' : '#3f7fd0';
   g.beginPath(); g.arc(560, 60, 26, 0, 7); g.fill();
   g.fillStyle = night ? '#21513a' : '#49a05a';
   g.beginPath(); g.ellipse(552, 56, 9, 13, 0.5, 0, 7); g.fill(); g.beginPath(); g.ellipse(570, 70, 7, 5, 0, 0, 7); g.fill();
-  g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.ellipse(566, 48, 10, 3, -0.4, 0, 7); g.fill();
-  g.fillStyle = 'rgba(255,255,255,.35)'; g.beginPath(); g.arc(548, 50, 8, 0, 7); g.fill();
+  g.fillStyle = night ? '#5a5d6a' : '#c4c5c5'; g.beginPath(); g.ellipse(566, 48, 10, 3, -0.4, 0, 7); g.fill();
+  g.fillStyle = night ? '#3b4a7a' : '#9aa0b4'; g.beginPath(); g.arc(548, 50, 8, 0, 7); g.fill();
 }
 function terrain(g, night, r, { craters = 14, band = 0 } = {}) {
   const top = 180 + band;
-  const grd = g.createLinearGradient(0, top, 0, H);
-  if (night) { grd.addColorStop(0, '#2a2e3c'); grd.addColorStop(1, '#0f1119'); }
-  else { grd.addColorStop(0, '#b9bccb'); grd.addColorStop(0.5, '#8d93a8'); grd.addColorStop(1, '#5f6478'); }
-  g.fillStyle = grd;
-  g.beginPath(); g.moveTo(0, top + 30);
+  g.save(); g.beginPath(); g.moveTo(0, top + 30);
   for (let x = 0; x <= W; x += 40) g.lineTo(x, top + 24 * Math.sin(x / 70) + r() * 14);
-  g.lineTo(W, H); g.lineTo(0, H); g.closePath(); g.fill();
+  g.lineTo(W, H); g.lineTo(0, H); g.closePath(); g.clip();
+  if (night) bands(g, 0, top, W, H - top, ['#2a2e3c', '#0f1119'], 6); else bands(g, 0, top, W, H - top, ['#b9bccb', '#8d93a8', '#5f6478'], 6);
+  g.restore();
   // far ridge
   g.fillStyle = night ? '#1a1d28' : '#6e7389';
   g.beginPath(); g.moveTo(0, top + 36);
@@ -32,15 +28,15 @@ function terrain(g, night, r, { craters = 14, band = 0 } = {}) {
   g.lineTo(W, top + 70); g.lineTo(0, top + 70); g.closePath(); g.fill();
   for (let i = 0; i < craters; i++) {
     const cx = r() * W, cy = top + 70 + r() * (H - top - 90), rr = 8 + r() * 36;
-    g.fillStyle = night ? 'rgba(0,0,0,.45)' : 'rgba(60,64,84,.55)';
+    g.fillStyle = night ? '#15171f' : '#6b7088';
     g.beginPath(); g.ellipse(cx, cy, rr, rr * 0.45, 0, 0, 7); g.fill();
-    g.fillStyle = night ? 'rgba(90,96,120,.35)' : 'rgba(230,232,240,.75)';
+    g.fillStyle = night ? '#3a3d4a' : '#d4d0c8';
     g.beginPath(); g.ellipse(cx, cy - rr * 0.1, rr * 0.9, rr * 0.3, 0, Math.PI, 2 * Math.PI); g.fill();
-    g.fillStyle = night ? 'rgba(20,22,30,.6)' : 'rgba(80,84,104,.6)';
+    g.fillStyle = night ? '#111111' : '#5a5d6a';
     g.beginPath(); g.ellipse(cx, cy + rr * 0.08, rr * 0.75, rr * 0.3, 0, 0, Math.PI); g.fill();
   }
   // hard "raytraced" shadow of the frame edge, Bryce style
-  g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(0, top + 20, W, 6);
+  g.fillStyle = stipple('#000', 1); g.fillRect(0, top + 20, W, 6);
 }
 // Rendered backgrounds (assets/bg/<name>.png, <name>_nat.png — PNG8 from tools/art/retro.py) win over the procedural ones.
 const IMGS = new Map();
@@ -82,8 +78,7 @@ export function bg(name, night = false) {
 function darken(name) {
   return proc(name + '@dark', (g) => {
     g.drawImage(IMGS.get(name), 0, 0);
-    g.fillStyle = 'rgba(6,8,24,.72)'; g.fillRect(0, 0, W, H);
-    g.globalCompositeOperation = 'saturation'; g.fillStyle = '#334'; g.fillRect(0, 0, W, H); g.globalCompositeOperation = 'source-over';
+    g.fillStyle = stipple('#000000', 3); g.fillRect(0, 0, W, H); // WP1: dither i stedet for rgba+saturation (nås kun hvis en bg mangler _nat; pallock bager altid _nat)
   });
 }
 /** Fnug: fluffy grey tuft with a helmet; frame 0..2 pose; back=true shows its back. */

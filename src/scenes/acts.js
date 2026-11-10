@@ -1,7 +1,7 @@
 // Akt 2–3: falsk slutning → nat → feberdrømme → jump scare → Rådhus/Regnerum → Regnskabet → Stille morgen → credits (+ skjult trueEnd).
 // Art is procedural until renders land. All timing is driven from wrongness.js / hub.js; these scenes are self-contained.
 import { register, goto, button, lock, cutBlack } from '../core/scene.js';
-import { ctx, W, H, drawText, paletteFlash, rng, proc } from '../core/stage.js';
+import { ctx, W, H, drawText, paletteFlash, rng, proc, stipple, bands } from '../core/stage.js';
 import { bg, hasBg, drawFnug, drawBuilding } from '../art/placeholder.js';
 import { say, helper, hideDialog, showHelper } from '../core/dialog.js';
 import { save, meta, touch, persist, persistMeta, playMin } from '../core/state.js';
@@ -37,25 +37,25 @@ function fyrBg(g, t, sc, n) {
     const age = (t - k.t) / 1000; if (age > 2.4) continue;
     const f = Math.floor(age * 4) % 4; const R = 10 + f * 14;
     g.fillStyle = k.c;
-    for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; g.fillRect(k.x + Math.cos(a) * R - 2, k.y + Math.sin(a) * R - 2, 4, 4); }
+    for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; g.fillRect(Math.round(k.x + Math.cos(a) * R) - 2, Math.round(k.y + Math.sin(a) * R) - 2, 4, 4); } // heltal: ingen AA-kanter (A3)
   }
 }
 /** headline band + rolling credits (last entry gets the player's name) */
 function fyrRoll(g, dt, sc, names, sub) {
-  g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(0, 150, W, 90);
+  g.fillStyle = stipple('#000', 2); g.fillRect(0, 150, W, 90);
   if (!sc.fall) {
-    drawText(`Tillykke, ${save.name}!`, 320, 160, { align: 'center', font: KIDBIG, color: '#ffd21f', outline: '#5a3a00' });
+    drawText(`Tillykke, ${save.name}!`, 320, 160, { align: 'center', font: KIDBIG, color: '#ffd21f', outline: '#5a4610' });
     drawText(sub, 320, 206, { align: 'center', font: KID, color: '#fff' });
   } else {
     // letters fallen: crooked, lower (2 frames)
     const s = 'TILLYKKE'; let x = 200;
-    for (let i = 0; i < s.length; i++) { const dy = (i * 37) % 23 - 5 + sc.fall * 14; drawText(s[i], x, 160 + dy, { font: KIDBIG, color: '#ffd21f', outline: '#5a3a00' }); x += 30 + (i % 3) * 4; }
+    for (let i = 0; i < s.length; i++) { const dy = (i * 37) % 23 - 5 + sc.fall * 14; drawText(s[i], x, 160 + dy, { font: KIDBIG, color: '#ffd21f', outline: '#5a4610' }); x += 30 + (i % 3) * 4; }
   }
-  sc.scroll += dt * 22;
-  g.fillStyle = 'rgba(0,0,0,.6)'; g.fillRect(0, 250, W, 230);
+  sc.scroll += dt * 22; const sy = Math.floor(sc.scroll / 2) * 2; // rullen i 2 px-trin (step-ur)
+  g.fillStyle = stipple('#000', 2); g.fillRect(0, 250, W, 230);
   const last = names.length - 1;
-  names.forEach((n, i) => { const y = 480 - sc.scroll + i * 26; if (y > 250 && y < 470) drawText(i === last ? n + save.name : n, 320, y, { align: 'center', font: KID, color: '#eee' }); });
-  if (sc.clicks > 0 && sc.clicks < 3) drawText('(klik igen for at lukke)', 320, 460, { align: 'center', font: '11px Tahoma', color: '#888' });
+  names.forEach((n, i) => { const y = 480 - sy + i * 26; if (y > 250 && y < 470) drawText(i === last ? n + save.name : n, 320, y, { align: 'center', font: KID, color: '#efeeee' }); });
+  if (sc.clicks > 0 && sc.clicks < 3) drawText('(klik igen for at lukke)', 320, 460, { align: 'center', font: '11px Tahoma', color: '#83888d' });
 }
 
 // ------------------------------------------------------------------ falsk slutning (min ~50)
@@ -141,7 +141,7 @@ register({
     this.ask();
   },
   bg(g, dt, t) {
-    const grd = g.createLinearGradient(0, 0, 0, H); grd.addColorStop(0, '#0b0620'); grd.addColorStop(1, '#4a1d4f'); g.fillStyle = grd; g.fillRect(0, 0, W, H);
+    bands(g, 0, 0, W, H, ['#0b0620', '#4a1d4f'], 8);
     // checker test floor in perspective-ish rows
     for (let y = 0; y < 6; y++) for (let x = -2; x < 20; x++) { g.fillStyle = (x + y) % 2 ? '#c8c8d8' : '#55556a'; const s = 24 + y * 10; g.fillRect(320 + (x - 9) * s, 250 + y * 38, s, 38); }
     for (const f of this.fn) {
@@ -206,7 +206,7 @@ export function drawHall(g) {
     while (x < W) {
       const w = 60 + Math.floor(r() * 36);
       const lit = Math.max(0, 1 - x / W);
-      const v = Math.floor(34 + lit * 70 + (r() * 10 - 5));
+      const v = Math.round((34 + lit * 70 + (r() * 10 - 5)) / 8) * 8; // 8-trins grå (A3)
       g.fillStyle = `rgb(${v},${v},${v + 4})`; g.fillRect(x + 1, y + 1, w - 1, Math.min(rowH, WALL_B - y) - 1);
       x += w;
     }
@@ -230,7 +230,7 @@ export function drawHall(g) {
   // 4 columns, lit edge left / dark right
   for (const cx of [90, 230, 410, 550]) {
     const lit = Math.max(0, 1 - cx / W);
-    const v = Math.floor(50 + lit * 90);
+    const v = Math.round((50 + lit * 90) / 8) * 8;
     g.fillStyle = `rgb(${v},${v},${v + 6})`; g.fillRect(cx - 17, 0, 34, WALL_B + 12);
     g.fillStyle = `rgb(${v + 40},${v + 40},${v + 44})`; g.fillRect(cx - 17, 0, 6, WALL_B + 12);
     g.fillStyle = '#0c0c10'; g.fillRect(cx + 9, 0, 8, WALL_B + 12);
@@ -341,7 +341,7 @@ register({
     for (let i = 0; i < 7; i++) { g.fillStyle = i < this.layer ? '#0a0806' : ['#5a3d22', '#4b321c', '#3f2a18', '#352314', '#2c1d10', '#24170d', '#1c110a'][i]; g.fillRect(160, 120 + i * 44, 440, 44); if (i < this.layer) drawText(LOG[i], 172, 134 + i * 44, { font: '12px "Lucida Console", Menlo, monospace', color: '#cfc3a8' }); }
     drawText('Regnskabet', 160, 96, { font: '700 14px Tahoma', color: '#cfc3a8' });
     if (this.task) {
-      g.fillStyle = 'rgba(0,0,0,.7)'; g.fillRect(120, 330, 400, 40);
+      g.fillStyle = stipple('#000', 3); g.fillRect(120, 330, 400, 40);
       drawText(`${this.task.q.replace('?', this.input || '_')}`, 320, 338, { align: 'center', font: '700 22px "Comic Neue",sans-serif', color: '#fff' });
     }
   },
@@ -377,15 +377,14 @@ register({
     for (const p of PLOTS) {
       if (p.special) continue;
       if (p.id === 'hall') {
-        g.fillStyle = '#c9ccd8'; g.fillRect(p.x - 44, p.y - 12, 88, 16);
-        g.fillStyle = '#e4e6ee'; g.fillRect(p.x - 44, p.y - 12, 88, 3);
+        g.fillStyle = '#cdcdce'; g.fillRect(p.x - 44, p.y - 12, 88, 16); // dag-palettefarver (A3)
+        g.fillStyle = '#d6d5d7'; g.fillRect(p.x - 44, p.y - 12, 88, 3);
         drawBuilding(g, p.x, p.y, 0, p.kind);
         drawFnug(g, p.x, p.y - 6, 0.75, { frame: 0, id: 6 });
         // small dented helmet, askew (~-15°)
-        g.save(); g.translate(p.x + 1, p.y - 38); g.rotate(-0.26);
-        g.fillStyle = '#ffd21f'; g.beginPath(); g.ellipse(0, 0, 9, 5, 0, Math.PI, 2 * Math.PI); g.fill(); g.fillRect(-10, -1, 20, 2);
-        g.fillStyle = '#b08a10'; g.fillRect(2, -4, 4, 2); // the dent
-        g.restore();
+        const hx = p.x + 1, hy = p.y - 38; g.fillStyle = '#ffd21f'; // pixelhjelm, skæv (bremmen hælder mod højre), kun heltals-rekter: ingen rotate/AA (A3)
+        g.fillRect(hx - 5, hy - 6, 11, 2); g.fillRect(hx - 8, hy - 4, 16, 3); g.fillRect(hx - 10, hy - 1, 20, 2); g.fillRect(hx + 7, hy + 1, 5, 1);
+        g.fillStyle = '#c9a516'; g.fillRect(hx + 2, hy - 5, 4, 2); // the dent
         continue;
       }
       drawBuilding(g, p.x, p.y, 1, p.kind);
@@ -408,7 +407,7 @@ register({
   },
   bg(g, dt, t) {
     g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
-    const y0 = 480 - ((t - this.t0) / 1000) * 20;
+    const y0 = 480 - Math.floor((t - this.t0) / 100) * 2; // 10 trin/s à 2 px (step-ur), ikke glidende
     CREDITS.forEach((l, i) => { const y = y0 + i * 28; if (y > -30 && y < H) drawText(l, 320, y, { align: 'center', font: i === CREDITS.length - 1 ? '11px Tahoma' : i === 0 ? KIDBIG : KID, color: i === CREDITS.length - 1 ? '#666' : i === 0 ? '#ffd21f' : '#ddd' }); });
   },
 });
