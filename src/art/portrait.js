@@ -13,10 +13,10 @@ export function drawPortrait(g, h, transparent = false) {
     return;
   }
   // rendered helper (assets/sprites/helper.png): one frame, or a sheet of 4 mouth frames side by side
-  const im = sprite('helper');
+  const im = (h.night && sprite('helper_nat')) || sprite('helper'); // WP1: bagt nat-sprite, intet canvas-filter
   if (im) {
     const n = Math.max(1, Math.round(im.width / im.height * (H / W))), fw = im.width / n, f = Math.min(n - 1, h.mouth || 0);
-    g.save(); if (h.night) g.filter = 'brightness(.5) saturate(.5)';
+    g.save();
     g.imageSmoothingEnabled = false; g.drawImage(im, f * fw, 0, fw, im.height, 0, 0, W, H); g.restore();
     if (h.mood === 'stare' || h.mood === 'off') { g.fillStyle = h.mood === 'off' ? 'rgba(0,0,0,.35)' : 'rgba(255,255,255,.08)'; g.fillRect(0, 0, W, H); }
     return;
