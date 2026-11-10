@@ -2,12 +2,14 @@
 
 Samlet 10-11-2026 kl. ~06:15, da Frederik satte Måneby på pause ("pause det her, sæt alt der mangler på en måneby to do"). Erstatter docs/TODO.md (retning) og den første udgave fra polish-sessionen; alle tre sessioner (retning, polish c8, QC a0/b8) er lukket. Master er sandheden.
 
-**Live:** https://publicsoda-png.github.io/mord-i-maaneby/ = master f0f0d22 (retning "Regnskabet" + polish + 12 Fnug-sprites + bygninger + bagte nat-sprites). Demo-artifact (akt 1) republiceret som version 3 af samme build: https://claude.ai/artifact/6sKCTCbDutE5ejoRGierRK. Efter f0f0d22 ligger c8's nat-stol-fix (9f29789), feel.mjs (64a4997) og denne fil på master, men er IKKE deployet – ingen funktionel forskel ud over den tomme stol om natten.
+**Live 10-11 ~14:10:** https://publicsoda-png.github.io/mord-i-maaneby/ = master 85c781c (alle bg + 7 nat-renders, kolonne C r3-skygger, C6-jump hall_6, a0's QC4-rettelser, morgen-idle). Demo-artifact (akt 1) = version 9 af samme build: https://claude.ai/artifact/6sKCTCbDutE5ejoRGierRK.
+
+**GODKENDT af Frederik 10-11 ~14:20:** "det ser godt ud jeg godkender alt på siden" = alle 16 kort på Regnskabet-review (§1 første punkt) på live 85c781c. Kendt rest (§6 titel/setup-liv, C6 ny render, §6b titel-render) er dermed valgfrit, ikke krævet.
 
 Ejer i parentes: B = bygge-/master-session, Q = QC, C = council, F = Frederik.
 
 ## 1. Venter på Frederik (F)
-- [ ] Review af retningen "Regnskabet", 15 skærme, Ja/Måske/Nej: https://claude.ai/artifact/3No1m5SAokVQpusGEsRrmp
+- [x] Review af retningen "Regnskabet", 16 skærme: https://claude.ai/artifact/3No1m5SAokVQpusGEsRrmp – **ALT GODKENDT 10-11 ~14:20** (v4 af siden bærer stemplet).
 - [ ] Review af sprites (12 Fnugger, bygninger, hub dag/nat): https://claude.ai/artifact/8E5bcHNr1sZix6oVEwkuUN
 - [ ] Review af polish-natten, 8 kort (v4 10-11: status master 4758716, akt 2+3-tal, isværk/kikkert/rådhus-skærme): https://claude.ai/artifact/BPisAUgwqVJriXfHZgGWfT (svar i artifactets db, collection `dom`)
 - [ ] Spil den deployede version igennem selv – ingen menneskelig playtest er kørt.
