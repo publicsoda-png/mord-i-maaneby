@@ -19,9 +19,9 @@ Ejer i parentes: B = bygge-/master-session, Q = QC, C = council, F = Frederik.
 - [x] Worktree -retning fjernet 10-11. -polish bruges af c8 igen (aktiv).
 
 ## 3. QC-runde 3 fra a0 (BØR, ingen blokerer) (B)
-- [ ] `src/main.js`: `loadState()` kører FØR `localStorage.clear()` ved `?reset` → gammel save overlever. Byt rækkefølgen (dev-only, men ødelægger repro).
-- [ ] `src/scenes/task.js` ca. linje 50/62: quarry dag – ok-replikken lander oven i en uafsluttet wrong-replik (auto:1000); to replikker klistrer. Annullér/afvent wrong-say før ok-say.
-- [ ] `src/ware/games/scope.js` 122–128: rigtig stjerne registreres først ved 2. klik, derefter "Ikke den stjerne" på korrekt felt – muligvis kun testkoordinater; kræver et menneskeklik.
+- [x] `src/main.js`: `?reset` rydder nu LS+IDB før loadState (c8 8bb8f71, merget c860c09).
+- [x] `src/scenes/task.js`: ok-replikken venter nu på wrong-replikken (c8 8bb8f71).
+- [x] scope 1. klik: fejlen lå i `src/ware/engine.js` (`local()` læste forrige frames cursor) – alle minispil bruger nu eventets egen position (c8 8bb8f71, verificeret med syntetisk klik uden mousemove).
 - [ ] KAN: hall nat viser "Fnugger: 12" mens svaret er 11 (fnugShown – forventet?). 14 bg-404 pr. load (se pkt. 5).
 - Scores runde 3: krom 9, minispil 6, akt 3 delvist 4, sammenhæng 9, konsol 8, sprites/buildSwap 7. 0 % blå i ægte rute.
 
@@ -32,12 +32,12 @@ Ejer i parentes: B = bygge-/master-session, Q = QC, C = council, F = Frederik.
 - [ ] Vinder → assets/photos/jump_hall.png → deploy + artifact-republish.
 
 ## 5. Palette og nat – WP1/WP8 (B)
-- [ ] Gjort: aliens/bld/helper/stol har bagte `*_nat.png` (tools/art/nightlut.py), canvas-filtre fjernet i placeholder.js + dialog.js. Genbyg `*_nat.png` når et dag-sprite ændres.
-- [ ] `src/art/portrait.js` linje 19 bruger stadig et canvas-filter (fallback-portræt, lav prioritet).
-- [ ] A3 ≤256 farver i hub dag/nat – mål igen på f0f0d22 (sidst 1564/963 før sprites).
-- [ ] Resten af WP1: dialogboks rgba(0,0,0,.72) (style.css), setup-chips radial-gradient, natvagtens farver.
+- [x] **Palette-lås (c8, polish d7d2b5e):** `tools/art/pallock.py` låser alle bg + sprites til én masterpalette pr. fase (dag/nat, 255 + transparent). Nat-bg bages som `assets/bg/*_nat.png` (darken() er død kode). Grund-plader uden rgba, dialogboks som 2×2-dither. Ulåste kilder i `assets/unlocked/`; låste filer bærer PNG-tEXt `pallock=1`. **Regel:** efter bld.py/aliens.py/helper.py/chair.py/nightlut.py køres altid `~/Documents/tools/pyimg/bin/python -I tools/art/pallock.py`. Diagnose: `tools/art/offpal.py <skud> assets/pal/dag.png <maske>` viser off-palette-pixels.
+- [x] A3 målt i dev-skud efter låsen: hub 194, hub_nat 182, hub+dialog 194, setup 173, landing 183, bakery 188, school 209, quarry 139, light 170, title 108 (før: hub 759, hub_nat 523, setup 294). Q bekræfter med polish.mjs efter merge.
+- [x] `src/art/portrait.js`: nat via bagt helper_nat-sprite, canvas-filter væk (c8 2e7a66c).
 - [ ] WP8: ét oplyst vindue pr. bygget bygning om natten (indexed sprite).
-- [ ] (10-11 bestilt hos Higgsfield-agenten: ice/scope/hall dag ×2 + nat-edit af alle 9) Baggrunde der mangler (404, procedurel fallback): `assets/bg/ice.png`, `scope.png`, `hall.png`, `title.png` + alle `*_nat.png`. Beslut: bestil renders eller behold fallback.
+- [ ] (10-11 bestilt hos Higgsfield-agenten: ice/scope/hall dag ×2 + nat-edit af alle 9) Baggrunde der mangler (404, procedurel fallback): `assets/bg/ice.png`, `scope.png`, `hall.png`, `title.png` + alle `*_nat.png`. Beslut: bestil renders eller behold fallback. Nye renders → retro.py → pallock.py.
+- [ ] Setup-chips (radial-gradient) står – setup måler 173 farver, så ingen handling nødvendig medmindre A3 bliver rød igen.
 
 ## 6. QC og gates (Q) — opdateret af QC-sessionen b8 10-11 ~06:15 ved pause
 **Sidst gyldige domme:** G1 BESTÅET på master 82ae23f/c70b76b og polish 025c02b (8 scener). G3 BESTÅET på master 82ae23f. Alt efter retning-mergen (9270c40 → c82f200) er IKKE gyldigt målt: dev-shots var blå (#os z-40) i master-checkoutet, så A1 0 %/A3 1–3 farver på falseEnd/credits/trueEnd/fever2 er artefakter, ikke resultater.
@@ -55,8 +55,9 @@ Ejer i parentes: B = bygge-/master-session, Q = QC, C = council, F = Frederik.
 - [ ] Titlen bruger hub-renderen (retningens valg). Der findes en særskilt titel-render (assets/raw/title/title_2.png: kupler i stillads på måneslette) – Frederik afgør om den skal bruges; retro.py-konvertering er triviel.
 
 ## 7. Pacing-council (C)
-- [ ] 3 blinde Claude-dommere på `tools/test/feel/pacing-judge/K01–K06` (nøgle i `tools/test/feel-key/key.json`). K01–K06 skal gen-renderes først (fra før aliens). Mål: median "første gang jeg bemærkede noget" = min 15–30, intet før min 12.
-- [ ] Feel-bot lang kørsel `--minutes 10`, 2–3 seeds, på deployet kode.
+- [x] **Kørt 10-11 ~10:05 (c8):** K01–K06 gen-renderet på palette-låst kode (feel.mjs --pacing seed 7, git 2e7a66c; nøgle i `tools/test/feel-key/key.json`). 3 blinde Claude-dommere, alle tre: FØRST_BEMÆRKET = K04 = **minut 18** (navnet nederst t.v. skifter fra "Test" til "Syv" – name_syv). Intet før minut 12 ✔, median 18 inden for 15–30 ✔. Sikkerhed høj/høj/mellem.
+- [ ] **Begrænsning (ærligt):** kontaktarkene er stille hub-frames uden dialogklik, så kun synlig hub-wrongness testes. Ved minut 30 fyrede save_lies uden synligt spor i stillbilledet, og ved minut 24 fyrede intet (seed 7). Dialog-, lyd- og minispil-wrongness (QUALITY-PLAN wrongness.js) er IKKE dækket af denne test – kræver enten gif'er med dialogklik i --pacing eller en menneskelig gennemspilning (§1).
+- [ ] Feel-bot lang kørsel `--minutes 10` seed 21 kører på 0dc0a6a (c8, resultat i tools/test/feel/feel-report.json når den er færdig); 2.–3. seed mangler.
 
 ## Faste regler for næste runde
 - Ingen bygger i main-checkout; B merger og deployer; QC af anden agent end byggeren; `tools/test/gates.json` røres ikke.
