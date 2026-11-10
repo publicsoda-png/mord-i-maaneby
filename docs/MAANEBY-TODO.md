@@ -90,7 +90,7 @@ Ejer i parentes: B = bygge-/master-session, Q = QC, C = council, F = Frederik.
 
 ## 7b. a0 run 7 (109d0cb) – rettet af c8 10-11 ~13:10
 - [x] BLOKKER: dør-stien i hub.js satte kun flags.jumped → wrongness 'jump' fyrede igen ved min 68 (2. jump scare), raadhus_melder/stemme_rum ventede. Fix: `save.seen.jump = Date.now(); touch()` i dør-stien.
-- [x] BØR: morgen → credits-tomgang tælles nu fra spilleren er fri (efter "Udmærket."), ikke fra enter; `hideDialog()` før `goto('credits')` i idle-vejen (acts.js). a0's 155,6 s var målt fra enter.
+- [x] BØR: morgen → credits-tomgang. a0 run 9 viste at say('Udmærket.') uden `auto` venter på ▼-klik, så timeren aldrig startede uden klik. Nu sættes `free`/`idle` FØR replikken (120 s fra "Udmærket." vises), `hideDialog()` før `goto('credits')`; hotspots stadig først efter replikken (`said`).
 
 ## 8. QC-runde 4 (a0) – BESTÅET 10-11 ~12:45 (B)
 Kørt på live 208a6e5 → 109d0cb med ægte museklik (puppeteer-core), ingen DOM-workaround. Screenshots: `~/Documents/claude-samtaler/mord-i-maaneby/qc-screenshots/qc4/` (run1–run7). Pacing-kontaktark K01–K06 + key.json: `…/mord-i-maaneby/pace/` (ubrugte – c8 kørte councillet, §7).
