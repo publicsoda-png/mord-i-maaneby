@@ -81,6 +81,48 @@ function darken(name) {
     g.fillStyle = stipple('#000000', 3); g.fillRect(0, 0, W, H); // WP1: dither i stedet for rgba+saturation (nås kun hvis en bg mangler _nat; pallock bager altid _nat)
   });
 }
+// Kolonne C runde 3 (b8 10-11): ÉN lysretning. Bænken i renderen kaster en lang hård skygge mod højre/opad (grundplanet bagud),
+// så alle sprites får deres alfa-maske projiceret samme vej: shear SHX mod højre, højde SHY af figuren, palette-sort 2×2-dither,
+// alfa snappet til 0/255 (ingen AA-farver, A3). Cache pr. kilde/celle/størrelse/nat.
+const SHX = 1.2, SHY = 0.4;
+const shadowCache = new Map();
+/** Projiceret skygge af billedcellen (im, sx, sy, sw, sh) tegnet i størrelsen w×h med foden i (x0, y) (x0 = venstre kant). */
+export function castShadow(g, im, sx, sy, sw, sh, x0, y, w, h, night = false, flip = false) {
+  const key = [im.src || im.__id || 'c', sx, sy, sw, sh, w, h, night ? 1 : 0, flip ? 1 : 0].join('|');
+  let c = shadowCache.get(key);
+  if (!c) {
+    const cw = Math.ceil(w + h * SHX) + 2, chh = Math.ceil(h * SHY) + 2;
+    c = document.createElement('canvas'); c.width = cw; c.height = chh;
+    const cg = c.getContext('2d'); cg.imageSmoothingEnabled = false;
+    cg.setTransform(flip ? -1 : 1, 0, -SHX, SHY, flip ? w : 0, chh - 1);
+    cg.drawImage(im, sx, sy, sw, sh, 0, -h, w, h);
+    cg.setTransform(1, 0, 0, 1, 0, 0);
+    const d = cg.getImageData(0, 0, cw, chh), px = d.data;
+    for (let i = 0; i < px.length; i += 4) { px[i] = px[i + 1] = px[i + 2] = 0; px[i + 3] = px[i + 3] < 128 ? 0 : 255; }
+    cg.putImageData(d, 0, 0);
+    cg.globalCompositeOperation = 'source-in'; cg.fillStyle = stipple('#000000', night ? 3 : 2); cg.fillRect(0, 0, cw, chh);
+    shadowCache.set(key, c);
+  }
+  g.drawImage(c, Math.round(x0), Math.round(y) - c.height + 1);
+}
+/** Flagplade (tom byggeplads) som stenflise: lys top, 2 px bevel, mørk kontur (klikmål), flagstang 2 px. Tegnes i et lille canvas pr. (nat, skala),
+ *  så fliserne kan kaste samme retningsskygge som alt andet. Foden = flisens underkant. */
+const tileCache = new Map();
+function tileCanvas(night, s) {
+  const key = (night ? 'n' : 'd') + s;
+  let c = tileCache.get(key); if (c) return c;
+  const pw = Math.round(52 * s), ph = Math.round(12 * s), fh = Math.round(20 * s), fl = Math.round(12 * s), fhh = Math.round(8 * s);
+  c = document.createElement('canvas'); c.width = pw + 2; c.height = ph + fh + 2; c.__id = 'tile' + key;
+  const g = c.getContext('2d'), x0 = 1, y0 = fh + 1;
+  g.fillStyle = night ? '#15171f' : '#5a5d6a'; g.fillRect(x0 - 1, y0 - 1, pw + 2, ph + 2); // kontur
+  g.fillStyle = night ? '#3a3d4a' : '#dfe1ea'; g.fillRect(x0, y0, pw, ph); // top
+  g.fillStyle = night ? '#5a5d6a' : '#ffffff'; g.fillRect(x0, y0, pw, 2); g.fillRect(x0, y0, 2, ph); // bevel lys
+  g.fillStyle = night ? '#2c2f3a' : '#8d93a8'; g.fillRect(x0, y0 + ph - 2, pw, 2); g.fillRect(x0 + pw - 2, y0, 2, ph); // bevel mørk
+  const mx = x0 + Math.round(pw / 2);
+  g.fillStyle = night ? '#5a5d6a' : '#ffffff'; g.fillRect(mx - 1, y0 - fh + 1, 2, fh); // flagstang 2 px
+  g.fillStyle = night ? '#5a4610' : '#ffbf2f'; g.fillRect(mx + 1, y0 - fh + 1, fl, fhh); // flag
+  tileCache.set(key, c); return c;
+}
 /** Fnug: fluffy grey tuft with a helmet; frame 0..2 pose; back=true shows its back. */
 // Rendered sprites (assets/sprites/<name>.png, chroma-keyed PNG8 from retro.py --mode sprite). Fnug sheet = frames side by side, each frame square-ish.
 const SPR = new Map();
@@ -102,17 +144,18 @@ export function contactShadow(g, x, y, w, night = false, { ry } = {}) {
 }
 /** Fnug = one of a flock of different retro aliens: assets/sprites/aliens.png is a grid (3×3 per sheet, several sheets stacked
  *  vertically or side by side); `id` picks the species. frame 1 = step (1 px up), frame 2 = look (flipped). */
-export function drawFnug(g, x, y, s = 1, { frame = 0, back = false, fringe = false, night = false, id = 0 } = {}) {
+export function drawFnug(g, x, y, s = 1, { frame = 0, back = false, fringe = false, night = false, id = 0, shadow = true } = {}) {
   const im = (night && SPR.get('aliens_nat')) || SPR.get('aliens'); // bagt nat-ark (WP1: ingen canvas-filtre)
   if (im) {
     // sheet is always 3 columns of square cells, any number of rows (sheets stacked vertically by tools/art/aliens.py)
     const cols = 3, cw = im.width / cols, rows = Math.max(1, Math.round(im.height / cw)), ch = im.height / rows, cells = cols * rows;
     const c = ((id % cells) + cells) % cells, sx = (c % cols) * cw, sy = Math.floor(c / cols) * ch;
-    const h = 48 * s, w = h * cw / ch, dy = frame === 1 ? -1 : 0;
-    contactShadow(g, x, y, w, night);
+    const h = Math.round(48 * s), w = Math.round(h * cw / ch), dy = frame === 1 ? -1 : 0;
+    const flip = back || frame === 2;
+    if (shadow) castShadow(g, im, sx, sy, cw, ch, x - w / 2, y, w, h, night, flip);
     g.save();
     if (back || frame === 2) { g.translate(x, y); g.scale(-1, 1); g.translate(-x, -y); }
-    g.drawImage(im, sx, sy, cw, ch, Math.round(x - w / 2), Math.round(y - h) + dy, Math.round(w), Math.round(h));
+    g.drawImage(im, sx, sy, cw, ch, Math.round(x - w / 2), Math.round(y - h) + dy, w, h);
     g.restore();
     if (fringe) { g.strokeStyle = '#ff00ff'; g.lineWidth = 1; g.strokeRect(Math.round(x - w / 2) + 0.5, Math.round(y - h) + 0.5, Math.round(w) - 1, Math.round(h) - 1); }
     return;
@@ -139,22 +182,19 @@ export function drawBuilding(g, x, y, stage, kind, night = false, s = 1) {
   const im = stage > 0 && ((night && SPR.get('bld_' + kind + '_nat')) || SPR.get('bld_' + kind));
   if (im) {
     const fw = im.width / 3, fh = im.height, h = Math.round(72 * s), w = Math.round(h * fw / fh), f = Math.min(2, stage - 1);
-    contactShadow(g, x, y + 4, Math.round(w * 0.9), night);
+    castShadow(g, im, f * fw, 0, fw, fh, x - w / 2, y + 4, w, h, night);
     g.save();
     g.drawImage(im, f * fw, 0, fw, fh, Math.round(x - w / 2), y - h + 4, w, h); g.restore();
     if (kind === 'dome') { g.fillStyle = stipple('#3b4a7a', 2); g.fillRect(Math.round(x - w * 0.28), y + 2, Math.round(w * 0.56), 2); } // svag blålig jordrefleks ved kuplens fod (én palettefarve, dither)
     return;
   }
-  if (stage === 0) contactShadow(g, x, y + 6, Math.round(44 * s), night, { ry: 3 }); // pladen
+  if (stage === 0) { // stenflise med retningsskygge (kolonne C r3)
+    const c = tileCanvas(night, s), x0 = Math.round(x - c.width / 2), yb = y + 6;
+    castShadow(g, c, 0, 0, c.width, c.height, x0, yb, c.width, c.height, night);
+    g.drawImage(c, x0, yb - c.height + 1); return;
+  }
   g.save(); g.translate(x, y);
   const base = night ? '#2c2f3a' : '#dfe1ea', dark = night ? '#15171f' : '#8d93a8', accent = night ? '#5a4610' : '#ffbf2f';
-  if (stage === 0) {
-    // heltals-mål (ingen g.scale → ingen AA-kanter, A3); s = perspektiv
-    const pw = Math.round(52 * s), ph = Math.round(10 * s), fh = Math.round(18 * s), fl = Math.round(12 * s), fhh = Math.round(8 * s), x0 = -Math.round(pw / 2);
-    g.fillStyle = night ? '#2a2d3a' : '#9aa0b4'; g.fillRect(x0, -4, pw, ph); g.fillStyle = night ? '#15171f' : '#6b7088'; g.fillRect(x0, -4 + ph, pw, 1); // WP1: faste palettefarver, ingen rgba (A3)
-    g.fillStyle = night ? '#5a5d6a' : '#fff'; g.fillRect(-1, -4 - fh, 2, fh); g.fillStyle = accent; g.fillRect(1, -4 - fh, fl, fhh); // flagstang 2 px (kolonne C)
-    g.restore(); return;
-  }
   contactShadow(g, x, y + 2, Math.round((40 + stage * 6) * s), night);
   const lean = stage === 1 ? -0.12 : 0;
   g.rotate(lean);

@@ -103,10 +103,11 @@ export function pressable(el, { down, up, enabled = () => !locked } = {}) {
 export function button(label, x, y, on, opts = {}) {
   const b = document.createElement('div');
   b.className = 'btn' + (opts.cls ? ' ' + opts.cls : '');
-  b.appendChild(text1bit(label.toUpperCase(), '700 12px "Comic Neue","Comic Sans MS",sans-serif', '#111'));
+  b.appendChild(text1bit(label.toUpperCase(), opts.font || '700 12px "Comic Neue","Comic Sans MS",sans-serif', '#111'));
   b.dataset.label = label;
   b.style.left = x + 'px'; b.style.top = y + 'px';
   if (opts.w) b.style.width = opts.w + 'px';
+  if (opts.h) b.style.height = opts.h + 'px'; // større knapper på titlen (kolonne C r3)
   const snd = opts.sound === false ? null : opts.sound || sfx.click;
   pressable(b, { down: () => snd && snd(), up: (e) => on(e) });
   ui.appendChild(b);
