@@ -90,6 +90,16 @@ export function loadSprites(names) {
   })));
 }
 export const sprite = (name) => SPR.get(name);
+/** Kolonne C (b8 10-11): hård kontaktskygge under alle hub-sprites, samme retning/hårdhed som bænken i renderen (lys fra øverst
+ *  venstre → skyggen ligger mod nederste højre). 2×2-dither af palette-sort (k 2 dag, 3 nat), tegnet som heltals-scanlinjer, så
+ *  ingen AA-kanter giver nye farver (A3). (x, y) = sprite-fod, w = sprite-bredde. */
+export function contactShadow(g, x, y, w, night = false, { ry } = {}) {
+  const rx = Math.max(6, Math.round(w * 0.55)), r2 = Math.max(3, ry || Math.round(w * 0.13));
+  const cx = Math.round(x + w * 0.28), cy = Math.round(y) - 1;
+  g.save(); g.fillStyle = stipple('#000000', night ? 3 : 2);
+  for (let dy = -r2; dy <= r2; dy++) { const hw = Math.round(rx * Math.sqrt(1 - (dy * dy) / (r2 * r2))); if (hw > 0) g.fillRect(cx - hw, cy + dy, hw * 2, 1); }
+  g.restore();
+}
 /** Fnug = one of a flock of different retro aliens: assets/sprites/aliens.png is a grid (3×3 per sheet, several sheets stacked
  *  vertically or side by side); `id` picks the species. frame 1 = step (1 px up), frame 2 = look (flipped). */
 export function drawFnug(g, x, y, s = 1, { frame = 0, back = false, fringe = false, night = false, id = 0 } = {}) {
@@ -99,6 +109,7 @@ export function drawFnug(g, x, y, s = 1, { frame = 0, back = false, fringe = fal
     const cols = 3, cw = im.width / cols, rows = Math.max(1, Math.round(im.height / cw)), ch = im.height / rows, cells = cols * rows;
     const c = ((id % cells) + cells) % cells, sx = (c % cols) * cw, sy = Math.floor(c / cols) * ch;
     const h = 48 * s, w = h * cw / ch, dy = frame === 1 ? -1 : 0;
+    contactShadow(g, x, y, w, night);
     g.save();
     if (back || frame === 2) { g.translate(x, y); g.scale(-1, 1); g.translate(-x, -y); }
     g.drawImage(im, sx, sy, cw, ch, Math.round(x - w / 2), Math.round(y - h) + dy, Math.round(w), Math.round(h));
@@ -123,22 +134,28 @@ export function drawFnug(g, x, y, s = 1, { frame = 0, back = false, fringe = fal
   g.restore();
 }
 /** Building sprite by stage 0..3 (0 = empty plot, 1 wobbly, 2 plain, 3 fine). */
-export function drawBuilding(g, x, y, stage, kind, night = false) {
-  // rendered building: assets/sprites/bld_<kind>.png = 3 stages side by side (2:3 cells), ground line at the bottom
+export function drawBuilding(g, x, y, stage, kind, night = false, s = 1) {
+  // rendered building: assets/sprites/bld_<kind>.png = 3 stages side by side (2:3 cells), ground line at the bottom. s = perspektiv-skala (hub)
   const im = stage > 0 && ((night && SPR.get('bld_' + kind + '_nat')) || SPR.get('bld_' + kind));
   if (im) {
-    const fw = im.width / 3, fh = im.height, h = 72, w = Math.round(h * fw / fh), f = Math.min(2, stage - 1);
+    const fw = im.width / 3, fh = im.height, h = Math.round(72 * s), w = Math.round(h * fw / fh), f = Math.min(2, stage - 1);
+    contactShadow(g, x, y + 4, Math.round(w * 0.9), night);
     g.save();
     g.drawImage(im, f * fw, 0, fw, fh, Math.round(x - w / 2), y - h + 4, w, h); g.restore();
+    if (kind === 'dome') { g.fillStyle = stipple('#3b4a7a', 2); g.fillRect(Math.round(x - w * 0.28), y + 2, Math.round(w * 0.56), 2); } // svag blålig jordrefleks ved kuplens fod (én palettefarve, dither)
     return;
   }
+  if (stage === 0) contactShadow(g, x, y + 6, Math.round(44 * s), night, { ry: 3 }); // pladen
   g.save(); g.translate(x, y);
   const base = night ? '#2c2f3a' : '#dfe1ea', dark = night ? '#15171f' : '#8d93a8', accent = night ? '#5a4610' : '#ffbf2f';
   if (stage === 0) {
-    g.fillStyle = night ? '#2a2d3a' : '#9aa0b4'; g.fillRect(-26, -4, 52, 10); g.fillStyle = night ? '#15171f' : '#6b7088'; g.fillRect(-26, 5, 52, 1); // WP1: faste palettefarver, ingen rgba (A3)
-    g.fillStyle = night ? '#5a5d6a' : '#fff'; g.fillRect(-2, -22, 4, 18); g.fillStyle = accent; g.fillRect(2, -22, 14, 9);
+    // heltals-mål (ingen g.scale → ingen AA-kanter, A3); s = perspektiv
+    const pw = Math.round(52 * s), ph = Math.round(10 * s), fh = Math.round(18 * s), fl = Math.round(12 * s), fhh = Math.round(8 * s), x0 = -Math.round(pw / 2);
+    g.fillStyle = night ? '#2a2d3a' : '#9aa0b4'; g.fillRect(x0, -4, pw, ph); g.fillStyle = night ? '#15171f' : '#6b7088'; g.fillRect(x0, -4 + ph, pw, 1); // WP1: faste palettefarver, ingen rgba (A3)
+    g.fillStyle = night ? '#5a5d6a' : '#fff'; g.fillRect(-1, -4 - fh, 2, fh); g.fillStyle = accent; g.fillRect(1, -4 - fh, fl, fhh); // flagstang 2 px (kolonne C)
     g.restore(); return;
   }
+  contactShadow(g, x, y + 2, Math.round((40 + stage * 6) * s), night);
   const lean = stage === 1 ? -0.12 : 0;
   g.rotate(lean);
   const h = 26 + stage * 10, w = 40 + stage * 6;

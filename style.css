@@ -85,7 +85,7 @@ body { font-family: var(--ui-font); -webkit-font-smoothing: none; font-smooth: n
 /* Setup screen widgets drawn in DOM for real text input */
 .input { pointer-events: auto; position: absolute; font: 16px var(--kid-font); font-weight: 700; padding: 4px 8px; border: 2px solid; border-color: #404040 #fff #fff #404040; background: #fff; color: #000; outline: none; }
 .chip { pointer-events: auto; position: absolute; width: 34px; height: 30px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff 0 12%, #86c8f0 12% 60%, #2f6fb0 60%); border: 2px solid #1b3f6b; color: #fff; font: 700 14px var(--kid-font); text-align: center; line-height: 26px; text-shadow: 1px 1px 0 #000; }
-.chip.on { background: radial-gradient(circle at 35% 30%, #fff 0 12%, #ffd34a 12% 60%, #c8870a 60%); border-color: #6b4a0b; }
+.chip.on { background: radial-gradient(circle at 35% 30%, #fff 0 12%, #ffd34a 12% 60%, #c8870a 60%); border-color: #6b4a0b; outline: 2px solid #fff; outline-offset: 2px; } /* tydelig valgt-ramme (kolonne C) */
 
 /* Letterbox: fills the rest of the viewport */
 #letter { position: absolute; inset: 0; background: #000; z-index: -1; }

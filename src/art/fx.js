@@ -49,12 +49,12 @@ const active = new Map(); // plot id → { shown(): {step, dy} }
 let hooked = false; // true once hub.js draws buildings through drawPlot() → no background patch needed
 
 /** Drop-in for drawBuilding(g, p.x, p.y, step, p.kind, night) that honours a running buildSwap on this plot. */
-export function drawPlot(g, p, actualStep, night = false) {
+export function drawPlot(g, p, actualStep, night = false, s = 1) {
   hooked = true;
   const a = active.get(p.id);
-  if (!a) return drawBuilding(g, p.x, p.y, actualStep, p.kind, night);
+  if (!a) return drawBuilding(g, p.x, p.y, actualStep, p.kind, night, s);
   const { step, dy } = a.shown();
-  drawBuilding(g, p.x, p.y + dy, step, p.kind, night);
+  drawBuilding(g, p.x, p.y + dy, step, p.kind, night, s);
 }
 /** True while a swap runs on the plot (hub may e.g. ignore clicks on it). */
 export const swapping = (id) => active.has(id);

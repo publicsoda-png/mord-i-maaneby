@@ -5,7 +5,8 @@ import { W, H, drawText } from '../core/stage.js';
 import { showOS, osEl, progressBox, fakeProgress, sleep } from '../core/os.js';
 import { ensureAudio, audioCtx, sfx, music, stopMusic, preload as preloadAudio } from '../core/audio.js';
 import { save, meta, persist, persistMeta, resetSave } from '../core/state.js';
-import { bg } from '../art/placeholder.js';
+import { bg, drawFnug } from '../art/placeholder.js';
+import { stipple } from '../core/stage.js';
 import { showCursor } from '../core/cursor.js';
 
 const IDENT_MUSIC = 'assets/music/ident.ogg';
@@ -104,8 +105,13 @@ register({
     g.drawImage(this.bgc, 0, 0);
     // title logo: big kid-font with hard shadow (placeholder for the real logo render)
     const bob = 0; // era rule: no continuous motion on the title
-    drawText('REGN MED', 320, 70 + bob, { align: 'center', font: '700 34px "Comic Neue","Comic Sans MS",sans-serif', color: '#ffd21f', outline: '#5a3a00' });
-    drawText('MÅNEBY', 320, 108 + bob, { align: 'center', font: '700 58px "Comic Neue","Comic Sans MS",sans-serif', color: '#ffd21f', outline: '#5a3a00' });
+    // Kolonne C (b8 10-11): logoet rykket mod højre, så Jorden (x 205–265) står fri af "REGN"
+    drawText('REGN MED', 400, 56 + bob, { align: 'center', font: '700 34px "Comic Neue","Comic Sans MS",sans-serif', color: '#ffd21f', outline: '#5a3a00' });
+    drawText('MÅNEBY', 400, 92 + bob, { align: 'center', font: '700 58px "Comic Neue","Comic Sans MS",sans-serif', color: '#ffd21f', outline: '#5a3a00' });
+    // liv på titlen: en lille by-silhuet i horisonten (dither-sort, kun rektangler) og én Fnug ved bænken, med kontaktskygge
+    g.fillStyle = stipple('#000000', 3);
+    g.fillRect(96, 177, 4, 14); g.fillRect(94, 175, 8, 3); g.fillRect(112, 185, 36, 6); g.fillRect(118, 181, 24, 4); g.fillRect(124, 178, 12, 3); g.fillRect(152, 183, 10, 8); g.fillRect(156, 179, 2, 4);
+    drawFnug(g, 398, 452, 1.15, { id: 3, night: save.night });
     drawText('Krater Multimedie ApS, Valby · 2005', 320, 468, { align: 'center', font: '11px Tahoma, sans-serif', color: '#ccc' });
     drawText('Ver. 1.3.63', 8, 464, { font: '11px Tahoma, sans-serif', color: '#aaa' });
   },
@@ -116,7 +122,7 @@ register({
   async enter() {
     const ui = document.getElementById('ui');
     const inp = document.createElement('input');
-    inp.className = 'input'; inp.maxLength = 14; inp.style.left = '220px'; inp.style.top = '150px'; inp.style.width = '200px';
+    inp.className = 'input'; inp.maxLength = 14; inp.style.left = '212px'; inp.style.top = '150px'; inp.style.width = '200px';
     inp.value = save.flags.morning || meta.ending ? '' : save.name || ''; // QC r4 K3: tomt efter slutningen; save.name kun ved fortsat spil
     ui.appendChild(inp);
     setTimeout(() => { inp.focus(); inp.select(); }, 50);
@@ -124,15 +130,15 @@ register({
     let grade = save.grade || 3, sixClicks = 0;
     for (let i = 1; i <= 6; i++) {
       const c = document.createElement('div'); c.className = 'chip' + (grade === i ? ' on' : ''); c.textContent = String(i); c.title = 'Byggetrin ' + i;
-      c.style.left = 200 + (i - 1) * 42 + 'px'; c.style.top = '240px';
+      c.style.left = 192 + (i - 1) * 38 + 'px'; c.style.top = '240px'; // panelet er 280 bredt (kolonne C), 7. kugle ender på 420
       c.addEventListener('pointerdown', (e) => {
         e.stopPropagation(); sfx.pop();
-        if (i === 6) { sixClicks++; if (sixClicks === 7 && !chips[6]) { const s = document.createElement('div'); s.className = 'chip'; s.textContent = '7'; s.title = 'Byggetrin 7'; s.style.left = '452px'; s.style.top = '240px'; s.addEventListener('pointerdown', (ev) => { ev.stopPropagation(); grade = 7; chips.forEach((x) => x && x.classList.remove('on')); s.classList.add('on'); sfx.bzzt(); }); ui.appendChild(s); chips[6] = s; } } else sixClicks = 0;
+        if (i === 6) { sixClicks++; if (sixClicks === 7 && !chips[6]) { const s = document.createElement('div'); s.className = 'chip'; s.textContent = '7'; s.title = 'Byggetrin 7'; s.style.left = '420px'; s.style.top = '240px'; s.addEventListener('pointerdown', (ev) => { ev.stopPropagation(); grade = 7; chips.forEach((x) => x && x.classList.remove('on')); s.classList.add('on'); sfx.bzzt(); }); ui.appendChild(s); chips[6] = s; } } else sixClicks = 0;
         grade = i; chips.forEach((x) => x && x.classList.remove('on')); c.classList.add('on');
       });
       ui.appendChild(c); chips.push(c);
     }
-    button('OK', 300, 330, () => {
+    button('OK', 290, 330, () => {
       const name = inp.value.trim() || 'Bygmester';
       if (meta.ending || save.flags.morning || save.flags.log_open) resetSave(); // nyt spil efter credits: rent save (a0 QC 09-11)
       if (meta.ending) { save.flags.hall_open = true; save.flags.minus_known = true; } // 2. gennemspilning: rent save, DAG, byen husker (Rådhus åbent, minus-tast kendt)
@@ -145,12 +151,14 @@ register({
   },
   bg(g) {
     g.drawImage(this.bgc, 0, 0);
-    // opaque Director-style panel (no alpha blend over the render → stays inside a 256-colour budget)
-    g.fillStyle = '#1a1230'; g.fillRect(150, 100, 340, 280);
-    g.fillStyle = '#4a3f70'; g.fillRect(150, 100, 340, 2); g.fillRect(150, 100, 2, 280);
-    g.fillStyle = '#0b0818'; g.fillRect(150, 378, 340, 2); g.fillRect(488, 100, 2, 280);
-    drawText('Skriv dit navn:', 220, 124, { font: '700 16px "Comic Neue","Comic Sans MS",sans-serif', color: '#fff' });
-    drawText('Hvilket byggetrin?', 220, 212, { font: '700 16px "Comic Neue","Comic Sans MS",sans-serif', color: '#fff' });
-    drawText('Byggetrin', 200, 272, { font: '11px Tahoma, sans-serif', color: '#bbb' });
+    // opaque Director-style panel (no alpha blend over the render → stays inside a 256-colour budget). Kolonne C: 280 bred (var 340), 2 px dobbelt bevel, intet Tahoma-label
+    const px = 180, py = 100, pw = 280, ph = 280;
+    g.fillStyle = '#1a1230'; g.fillRect(px, py, pw, ph);
+    g.fillStyle = '#4a3f70'; g.fillRect(px, py, pw, 2); g.fillRect(px, py, 2, ph); // ydre lys
+    g.fillStyle = '#0b0818'; g.fillRect(px, py + ph - 2, pw, 2); g.fillRect(px + pw - 2, py, 2, ph); // ydre mørk
+    g.fillStyle = '#0b0818'; g.fillRect(px + 2, py + 2, pw - 4, 2); g.fillRect(px + 2, py + 2, 2, ph - 4); // indre mørk
+    g.fillStyle = '#4a3f70'; g.fillRect(px + 2, py + ph - 4, pw - 4, 2); g.fillRect(px + pw - 4, py + 2, 2, ph - 4); // indre lys
+    drawText('Skriv dit navn:', 212, 124, { font: '700 16px "Comic Neue","Comic Sans MS",sans-serif', color: '#fff' });
+    drawText('Hvilket byggetrin?', 212, 212, { font: '700 16px "Comic Neue","Comic Sans MS",sans-serif', color: '#fff' });
   },
 });

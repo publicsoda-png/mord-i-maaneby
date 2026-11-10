@@ -1,7 +1,7 @@
 // Bykortet: 9 byggepladser, Fnugger, helper portrait corner, HUD. Fires wrongness events between tasks.
 import { register, goto, button, lock } from '../core/scene.js';
 import { drawText } from '../core/stage.js';
-import { bg, drawFnug } from '../art/placeholder.js';
+import { bg, drawFnug, contactShadow } from '../art/placeholder.js';
 import { buildSwap, drawPlot } from '../art/fx.js';
 import { say, helper, countHelpClick, hideDialog, sleep, showHelper } from '../core/dialog.js';
 import { save, meta, persist, persistMeta, touch } from '../core/state.js';
@@ -24,7 +24,10 @@ export const PLOTS = [
   { id: 'light', name: 'Fyrtårnet', x: 590, y: 340, kind: 'tower' },
   { id: 'fire', name: 'Fyrværkeripladsen', x: 320, y: 450, kind: 'pad', special: true },
 ];
-export const FNUG_POS = [[190, 440], [300, 395], [420, 360], [560, 420], [170, 370], [240, 280], [470, 300], [360, 440], [250, 450], [600, 290], [520, 460]]; // 11 visible, sign says 12
+// Kolonne C (b8 10-11): tre grupper i stedet for jævn spredning – venstre (skolen/bageriet), midten bagved (isværket), højre ved bænken. 11 visible, sign says 12
+export const FNUG_POS = [[190, 440], [232, 418], [172, 382], [262, 452], [418, 352], [388, 382], [428, 322], [340, 395], [556, 428], [612, 452], [520, 462]];
+/** Perspektiv: ting længere bagude (lavere y) tegnes lidt mindre. 0,84 ved horisonten (y 250) → 1,0 forrest (y 460). */
+export const persp = (y) => Math.round((0.84 + 0.16 * Math.min(1, Math.max(0, (y - 250) / 210))) * 100) / 100;
 
 // Rådhusets dør (tegnes i stedet for "?" når save.flags.hall_door) — på pladsens grundlinje
 const HALL = PLOTS.find((p) => p.id === 'hall');
@@ -145,10 +148,11 @@ register({
     g.drawImage(this.bgc, 0, 0);
     // bench_gone: renderens bænk (x 416–639, y 310–443) dækkes med overfladen ved siden af, spejlet så sømmen passer
     if (save.flags.bench_gone) { g.save(); g.translate(640, 0); g.scale(-1, 1); g.drawImage(this.bgc, 188, 306, 226, 140, 0, 306, 226, 140); g.restore(); }
+    if (helper.visible) contactShadow(g, 66, 472, 110, save.night, { ry: 10 }); // månemanden/stolen (DOM-canvas ovenpå) får sin kontaktskygge på scenen (kolonne C)
     const showDoor = save.flags.hall_door && save.night && !save.flags.jumped && !save.flags.hall_open && !meta.ending;
     for (const p of PLOTS) {
       if (p.special) continue;
-      drawPlot(g, p, save.buildings[p.id] || 0, save.night);
+      drawPlot(g, p, save.buildings[p.id] || 0, save.night, persp(p.y));
       if (p.locked && !save.flags.hall_open && !meta.ending) {
         if (showDoor) drawDoor(g, save.night);
         else drawText('?', p.x, p.y - 60, { align: 'center', font: '700 28px "Comic Neue","Comic Sans MS",sans-serif', color: '#ffd21f', outline: '#000' });
@@ -164,7 +168,7 @@ register({
     FNUG_POS.forEach(([x, y], i) => {
       if (nv >= 0 && i === 10) return; // Elleve er på vagt
       const frame = lookOn && i === 1 ? 2 : (i === stepper ? stepPhase : 0);
-      drawFnug(g, x, y, 1, { id: i, frame, back: save.flags.fnug_fringe && i === 4, fringe: save.flags.fnug_fringe && i === 4, night: save.night });
+      drawFnug(g, x, y, persp(y), { id: i, frame, back: save.flags.fnug_fringe && i === 4, fringe: save.flags.fnug_fringe && i === 4, night: save.night });
       if (save.flags.peeked && i === 6) { g.fillStyle = '#111'; g.fillRect(x - 4, y - 16, 3, 3); g.fillRect(x + 3, y - 16, 3, 3); } // one of them looks into the camera
     });
     // Natvagt: Fnuggen Elleve med lygte, tre faste trin, flad lyskegle (ingen alpha over renderen — hård farve)
