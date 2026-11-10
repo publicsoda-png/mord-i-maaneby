@@ -17,7 +17,7 @@ const q = new URLSearchParams(location.search);
 if (q.has('reset')) { localStorage.clear(); const { idbSet } = await import('./core/state.js'); await idbSet('save', null); } // QC a0: skal køre FØR loadState, ellers overlever det gamle save
 await loadState();
 await loadGames();
-await loadBgs(['hub', 'landing', 'bakery', 'ice', 'scope', 'school', 'quarry', 'hall', 'light', 'title']);
+await loadBgs(['hub', 'landing', 'bakery', 'ice', 'scope', 'school', 'quarry', 'hall', 'light']); // 'title' fjernet: titlen bruger bg('hub'), title.png gav kun 404 (B 10-11)
 await loadSprites(['aliens', 'aliens_nat', 'helper', 'helper_nat', ...['pad', 'dome', 'tower', 'box', 'pit', 'hall'].flatMap((k) => ['bld_' + k, 'bld_' + k + '_nat'])]);
 if (q.has('min')) { gameApi.devMin = +q.get('min'); globalThis.MB_DEV_MIN = gameApi.devMin; if (q.has('dev') && !q.has('allev')) { const { EVENTS } = await import('./wrongness.js'); for (const e of EVENTS) if (e.min < gameApi.devMin && !(e.id in save.seen)) save.seen[e.id] = 1; } } // mix.js reads MB_DEV_MIN so ?min= drives the sound phase too
 if (q.has('nat')) save.night = true;
