@@ -4,7 +4,7 @@
 // act on pointerup, animation runs on the 10 fps step clock (api.steps) — no Web Animations, no CSS tweens.
 import { sfx, play } from '../core/audio.js';
 import { cur } from '../core/cursor.js';
-import { text1bit } from '../core/stage.js';
+import { text1bit, toStage } from '../core/stage.js';
 
 const field = document.getElementById('field');
 const KID = '"Comic Neue","Comic Sans MS",sans-serif';
@@ -37,10 +37,10 @@ function finish(me, result) {
   field.innerHTML = ''; field.style.pointerEvents = 'none';
   me.resolve(result);
 }
-const local = () => ({ x: cur.x, y: cur.y });
-field.addEventListener('pointerdown', (e) => { if (!curG || curG.done) return; e.preventDefault(); e.stopPropagation(); curG.down = local(); curG.tap && curG.tap(e, curG.down); });
-field.addEventListener('pointermove', (e) => { if (!curG || curG.done || !curG.move) return; if (e.pointerType === 'mouse' && !e.buttons && !curG.hover) return; curG.move(e, local()); });
-const up = (e) => { if (!curG || curG.done) return; curG.up && curG.up(e, local()); curG.down = null; };
+const local = (e) => (e ? toStage(e) : { x: cur.x, y: cur.y }); // QC a0: cur er forrige rAF-frame – et klik uden forudgående mousemove ramte den gamle position (scope 1. klik)
+field.addEventListener('pointerdown', (e) => { if (!curG || curG.done) return; e.preventDefault(); e.stopPropagation(); curG.down = local(e); curG.tap && curG.tap(e, curG.down); });
+field.addEventListener('pointermove', (e) => { if (!curG || curG.done || !curG.move) return; if (e.pointerType === 'mouse' && !e.buttons && !curG.hover) return; curG.move(e, local(e)); });
+const up = (e) => { if (!curG || curG.done) return; curG.up && curG.up(e, local(e)); curG.down = null; };
 field.addEventListener('pointerup', up); field.addEventListener('pointercancel', up);
 field.addEventListener('contextmenu', (e) => e.preventDefault());
 
@@ -117,7 +117,7 @@ export function playGame(G, opts = {}) {
         b.disable = () => { b.disabled = true; b.style.pointerEvents = 'none'; b.style.background = '#a9a39a'; b.style.borderColor = '#8c877c'; setLabel('#5e5a52'); };
         return b;
       },
-      on(node, fn) { node.style.pointerEvents = 'auto'; node.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); if (curG === me && !me.done) fn(e, local(), e.button); }); },
+      on(node, fn) { node.style.pointerEvents = 'auto'; node.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); if (curG === me && !me.done) fn(e, local(e), e.button); }); },
       every(t, fn) { me.iv.push(setInterval(() => !me.done && fn(), t)); },
       after(t, fn) { me.to.push(setTimeout(() => !me.done && fn(), t)); },
       /** Step animation on the 10 fps clock: fn(i) for i = 1..n every STEP ms, then end(). */

@@ -38,7 +38,7 @@ async function idbGet(k) {
   const db = await idb(); if (!db) return null;
   return new Promise((res) => { try { const q = db.transaction(STORE).objectStore(STORE).get(k); q.onsuccess = () => res(q.result ?? null); q.onerror = () => res(null); } catch { res(null); } });
 }
-async function idbSet(k, v) {
+export async function idbSet(k, v) {
   const db = await idb(); if (!db) return;
   try { db.transaction(STORE, 'readwrite').objectStore(STORE).put(JSON.parse(JSON.stringify(v)), k); } catch {}
 }
