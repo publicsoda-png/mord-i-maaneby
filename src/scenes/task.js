@@ -1,7 +1,7 @@
 // A building plot: intro line → minigame → result → building stage → back to hub.
 import { register, goto, lock, button, current } from '../core/scene.js';
 import { bg } from '../art/placeholder.js';
-import { say, sleep } from '../core/dialog.js';
+import { say, sleep, hideDialog } from '../core/dialog.js';
 import { save, touch, persist, playMin } from '../core/state.js';
 import { music, sfx, loopHak, musicDetune } from '../core/audio.js';
 import { gameApi } from '../game.js';
@@ -34,7 +34,7 @@ register({
     const m = gameApi.devMin ?? playMin();
     if (m >= 30 && m < 50 && !save.night) { clearTimeout(this.hak); this.hak = setTimeout(() => loopHak(), 15000 + Math.random() * 20000); } // one loop stutter per visit (deniable)
     if (m >= 30 && (p.id === 'ice' || p.id === 'scope')) setTimeout(() => musicDetune(-3), 1200);
-    button('Tilbage', 8, 448, () => { stopGame(); sfx.click(); goto('hub', { back: true }); }, { w: 90 });
+    button('Tilbage', 8, 448, () => { stopGame(); hideDialog(); sfx.click(); goto('hub', { back: true }); }, { w: 90 }); // QC r4 B4: intro-replikken må ikke følge med ind i hubben
     const G = GAMES[p.id];
     if (save.flags.progress_back && !save.flags.progress_back_shown) {
       // the loading bar goes 71 % → 44 % once (deniable: "it just reloaded something")

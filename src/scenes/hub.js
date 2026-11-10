@@ -52,6 +52,8 @@ register({
     music(save.night ? null : `assets/music/${save.flags.bench_gone ? 'byen_11' : 'byen'}.ogg`, { fade: 1.5, startDelay: (save.flags.musicDelayMs || 0) / 1000 });
     save.flags.musicDelayMs = 0;
     const jb = save.flags.justBuilt; if (jb) { delete save.flags.justBuilt; touch(); } // belønningen køres efter knapperne er sat (buildSwap spiller selv ui_bygning_opN på pop-framen)
+    // QC r4 B2: Nedenunder-knappen skal med i SAMME hub-besøg som replikken, og replikken kun én gang
+    const sayNeden = save.flags.fever1 && !save.flags.morning && !save.flags.log_open; if (sayNeden) { save.flags.log_open = true; touch(); }
     button('Gem', 8, 8, async () => { (save.flags.save_lies ? sfx.okFlat : sfx.ok)(); persist(true); await say(save.flags.save_lies ? 'Gemt!' : 'Dit byggeri er gemt.', { auto: 900, noPortrait: true }); }, { w: 60 });
     const luk = async () => {
       const os = document.getElementById('os'); showOS(true); os.style.background = 'transparent'; os.innerHTML = '';
@@ -78,7 +80,7 @@ register({
       save.flags.hall_open = true; save.flags.hallHint = 'Rådhuset er åbent.'; touch();
     }
     else if (save.flags.hall_answer !== undefined && !save.flags.fever1) { goto('fever1'); return; } // 0 is an answer too
-    else if (save.flags.fever1 && !save.flags.morning) { await say('Der er ét sted til. Nedenunder.', { hold: 400 }); save.flags.log_open = true; touch(); }
+    else if (sayNeden) { await say('Der er ét sted til. Nedenunder.', { hold: 400 }); }
     else if (save.flags.fever_madpakke && !save.flags.fever2) { save.flags.fever_madpakke = false; goto('fever2'); return; }
     else if (arg.back) {
       // Between tasks: let the curve speak, otherwise a normal line
@@ -150,6 +152,9 @@ register({
       if (p.locked && !save.flags.hall_open && !meta.ending) {
         if (showDoor) drawDoor(g, save.night);
         else drawText('?', p.x, p.y - 60, { align: 'center', font: '700 28px "Comic Neue","Comic Sans MS",sans-serif', color: '#ffd21f', outline: '#000' });
+      } else if (p.locked && !save.buildings[p.id]) {
+        // QC r4 K4: Rådhuset er åbent men ikke bygget – en åben dør på pladsen (palettefarver, heltal)
+        g.fillStyle = save.night ? '#5a4610' : '#ffbf2f'; g.fillRect(p.x - 7, p.y - 24, 14, 20); g.fillStyle = '#15171f'; g.fillRect(p.x - 5, p.y - 22, 10, 18);
       }
     }
     const nv = this.nvStep(tm);
