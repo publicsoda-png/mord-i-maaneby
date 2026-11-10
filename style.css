@@ -24,7 +24,7 @@ body { font-family: var(--ui-font); -webkit-font-smoothing: none; font-smooth: n
 
 /* Era text box: top of screen, white text on translucent black */
 /* Era text box: top of screen, 1-bit text rasterised on the 640 grid (canvas, never DOM text) */
-#dialog { position: absolute; left: 0; top: 0; width: 640px; height: 76px; padding: 8px 12px; background: rgba(0,0,0,.72); pointer-events: auto; }
+#dialog { position: absolute; left: 0; top: 0; width: 640px; height: 76px; padding: 8px 12px; background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEUlEQVR4nGNkYGD4z4AE/gMADxUCAJS9O7cAAAAASUVORK5CYII=) 0 0/2px 2px repeat; image-rendering: pixelated; pointer-events: auto; } /* WP1: 2×2-dither (3 sorte + 1 gennemsigtig) i stedet for rgba(0,0,0,.72) – ingen nye farver (A3) */
 #dialog[hidden] { display: none; }
 #dialog .text canvas { display: block; image-rendering: pixelated; }
 #dmore { position: absolute; right: 10px; bottom: 2px; font: 12px var(--ui-font); color: #fff; font-style: normal; animation: blink 1s steps(2) infinite; }
