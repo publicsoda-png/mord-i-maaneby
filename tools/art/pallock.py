@@ -93,6 +93,9 @@ for phase in ('dag', 'nat'):
     print(f'\n== {phase} ==')
     bg_rgb = {}
     for p in bgs:
+        # nat: en RENDERET natkilde i assets/unlocked/bg/<navn>_nat.png (Higgsfield image-to-image, 10-11) vinder over LUT-bagningen
+        natsrc = os.path.join(UNL, 'bg', os.path.basename(p)[:-4] + '_nat.png')
+        if phase == 'nat' and os.path.exists(natsrc): bg_rgb[p] = Image.open(natsrc).convert('RGB'); print(f'  natkilde: {natsrc}'); continue
         im = Image.open(source(p)).convert('RGB'); bg_rgb[p] = nightlut(im) if phase == 'nat' else im
     spr_src = sprs if phase == 'dag' else sprs_nat
     spr_rgba = {p: Image.open(source(p)).convert('RGBA') for p in spr_src}
