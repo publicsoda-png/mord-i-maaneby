@@ -17,6 +17,7 @@ const root = path.resolve(here, '../..');
 const argv = process.argv.slice(2);
 const arg = (k, d) => { const i = argv.indexOf(k); return i >= 0 && argv[i + 1] ? argv[i + 1] : d; };
 const PACING = argv.includes('--pacing');
+const AKT2 = argv.includes('--akt2'); // c8 10-11: efter hub-intro sættes 6 bygninger som færdige og fyrværkeripladsen klikkes → falseEnd → akt 2 (natten) testes af botten
 const MINUTES = +arg('--minutes', 3);
 const PORT = +arg('--port', 4963);
 const SEED = +arg('--seed', 7);
@@ -284,6 +285,12 @@ async function runBot() {
     // ---- 3. intro læses ----
     await readDialogs(60000);
     await waitFree(15000);
+    if (AKT2) {
+      await p.evaluate(() => { for (const id of ['bakery', 'ice', 'scope', 'school', 'quarry', 'light']) window.MB.save.buildings[id] = 2; });
+      note('akt2: 6 bygninger sat som færdige');
+      await click(320, 445, 'hotspot', 'Fyrværkeripladsen (akt2-start)');
+      await waitScene('falseEnd', 8000); note('falseEnd nået');
+    }
     // ---- 4. fri leg ----
     const cache = new Map(); let lastScene = null; let taskEnter = 0; let taskClicks = 0;
     while (elapsedMin() < MINUTES) {
@@ -358,7 +365,7 @@ async function runBot() {
   const hot = targeted.filter((c) => c.kind === 'hotspot' && c.latency_ms !== null);
   const hotspotBreakdown = hot.length ? { n: hot.length, down_to_up_ms: median(hot.map((c) => c.down_to_up_ms).filter((v) => v !== null)), up_to_sound_ms: median(hot.map((c) => c.sound_from_up_ms).filter((v) => v !== null)), up_to_black_rAF_ms: median(hot.map((c) => c.up_to_black_rAF_ms).filter((v) => v !== null)), black_rAF_to_frame_ms: median(hot.map((c) => c.black_rAF_to_frame_ms).filter((v) => v !== null)), latency_from_down_ms: median(hot.map((c) => c.latency_ms)), latency_from_up_ms: median(hot.map((c) => c.latency_from_up_ms).filter((v) => v !== null)) } : null;
   const report = {
-    when: new Date().toISOString(), git: gitHash, mode: 'bot', minutes: MINUTES, seed: SEED, port: PORT, targets: TARGETS,
+    when: new Date().toISOString(), git: gitHash, mode: AKT2 ? 'bot-akt2' : 'bot', minutes: MINUTES, seed: SEED, port: PORT, targets: TARGETS,
     method: 'klik-latens = pointerdown (sidens tidsstempel) → første screencast-frame med ≥0,1 % ændrede pixels (fuzz 0, cursor-felt 44×44 maskeret) mod screenshot taget lige før klik. Lyd = hook på AudioBufferSourceNode/OscillatorNode.start. cps = median tegn-interval i renderText-kald på #dtextc (tick) og inkl. pauser, splittet i voiced (assets/voice/-buffer starter ved replikkens begyndelse; følger klippets længde) og unvoiced (måles mod 24–32). Latens rapporteres fra pointerdown (protokol) OG fra pointerup (bible: handling på up; botten holder musen 70 ms) med nedbrydning up→lyd→#ui-hidden (første sort rAF)→første screencast-frame. Afskæring = statisk ombrydning af alle replik-strenge i src/ med text1bit (dialog.js slice(0,3)).',
     summary: {
       clicks_total: clicks.length, clicks_targeted: targeted.length, clicks_passive: passive.length - clicks.filter((c) => c.kind === 'blind').length, clicks_blind: clicks.filter((c) => c.kind === 'blind').length,
