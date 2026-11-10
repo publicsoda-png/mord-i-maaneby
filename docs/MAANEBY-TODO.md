@@ -14,9 +14,9 @@ Ejer i parentes: B = bygge-/master-session, Q = QC, C = council, F = Frederik.
 
 ## 2. Næste deploy (B) – små ting der er klar
 - [ ] Deploy master (9f29789 nat-stol-fix + TODO) med `bash tools/deploy.sh`, republicér artifact fra `node tools/build.mjs --artifact` (220 filer, `root: dist-artifact`).
-- [ ] Nye Higgsfield-renders ligger klar, ikke bygget ind: `assets/raw/bld/pad_plain_2.png` (kuplen skulle ikke svæve) og `pit_deco_2.png` (spøgelses-spil fjernet). Kør `~/Documents/tools/pyimg/bin/python -I tools/art/bld.py pad pit`, derefter `tools/art/nightlut.py assets/sprites/bld_pad.png assets/sprites/bld_pit.png`, kig på kontaktark, commit.
+- [x] (10-11 09:50) bld_pad/pit/box genbygget og deployet 211de49. Var: `assets/raw/bld/pad_plain_2.png` (kuplen skulle ikke svæve) og `pit_deco_2.png` (spøgelses-spil fjernet). Kør `~/Documents/tools/pyimg/bin/python -I tools/art/bld.py pad pit`, derefter `tools/art/nightlut.py assets/sprites/bld_pad.png assets/sprites/bld_pit.png`, kig på kontaktark, commit.
 - [ ] Commit eller ryd op i ucommittede rå renders (assets/raw/jump/hall_*.png, assets/raw/bld/*_2.png, assets/raw/LISTING.md).
-- [ ] Worktrees: `~/Documents/mord-i-maaneby-retning` (branch retning) og `~/Documents/mord-i-maaneby-polish` (branch polish) er begge merget – fjern med `git worktree remove`.
+- [x] Worktree -retning fjernet 10-11. -polish bruges af c8 igen (aktiv).
 
 ## 3. QC-runde 3 fra a0 (BØR, ingen blokerer) (B)
 - [ ] `src/main.js`: `loadState()` kører FØR `localStorage.clear()` ved `?reset` → gammel save overlever. Byt rækkefølgen (dev-only, men ødelægger repro).
@@ -26,7 +26,8 @@ Ejer i parentes: B = bygge-/master-session, Q = QC, C = council, F = Frederik.
 - Scores runde 3: krom 9, minispil 6, akt 3 delvist 4, sammenhæng 9, konsol 8, sprites/buildSwap 7. 0 % blå i ægte rute.
 
 ## 4. Jump-motivet – council C6 (B + C)
-- [ ] hall_1–5 viser en lodden kugle, ikke Syv (Syv = celle 6 i aliens.png, grøn slim-alien m. ringe). hall_6–8 med grøn Syv var submittet på Higgsfield Unlimited (3 submits, 4:3) da pausen kom, og agenten blev stoppet før download – tjek Higgsfield-biblioteket først, ellers bestil igen (reference: celle `alien_3_1`, samme pose/lys som hall_1, gul bulet hjelm på skrå, åbne øjne, lille smil, ingen tekst/UI).
+- [x] (10-11) hall_6–8 med grøn Syv hentet fra Higgsfield-biblioteket, retro-konverteret og blindet sammen med fallbacken (scratchpad c6-blind). Council C6 venter på fri RAM ≥ 8 GB.
+- [x] hall_1–5 viser en lodden kugle, ikke Syv (Syv = celle 6 i aliens.png, grøn slim-alien m. ringe). hall_6–8 med grøn Syv var submittet på Higgsfield Unlimited (3 submits, 4:3) da pausen kom, og agenten blev stoppet før download – tjek Higgsfield-biblioteket først, ellers bestil igen (reference: celle `alien_3_1`, samme pose/lys som hall_1, gul bulet hjelm på skrå, åbne øjne, lille smil, ingen tekst/UI).
 - [ ] Retro-konvertér (`/usr/bin/python3 tools/art/retro.py <in> <out> --mode bg`), design-council C6 (kun Claude-linser, no_gpt+no_gemini, precheck ≥ 8 GB fri RAM) mod den procedurelle fallback (drawHall i src/scenes/acts.js).
 - [ ] Vinder → assets/photos/jump_hall.png → deploy + artifact-republish.
 
@@ -36,7 +37,7 @@ Ejer i parentes: B = bygge-/master-session, Q = QC, C = council, F = Frederik.
 - [ ] A3 ≤256 farver i hub dag/nat – mål igen på f0f0d22 (sidst 1564/963 før sprites).
 - [ ] Resten af WP1: dialogboks rgba(0,0,0,.72) (style.css), setup-chips radial-gradient, natvagtens farver.
 - [ ] WP8: ét oplyst vindue pr. bygget bygning om natten (indexed sprite).
-- [ ] Baggrunde der mangler (404, procedurel fallback): `assets/bg/ice.png`, `scope.png`, `hall.png`, `title.png` + alle `*_nat.png`. Beslut: bestil renders eller behold fallback.
+- [ ] (10-11 bestilt hos Higgsfield-agenten: ice/scope/hall dag ×2 + nat-edit af alle 9) Baggrunde der mangler (404, procedurel fallback): `assets/bg/ice.png`, `scope.png`, `hall.png`, `title.png` + alle `*_nat.png`. Beslut: bestil renders eller behold fallback.
 
 ## 6. QC og gates (Q) — opdateret af QC-sessionen b8 10-11 ~06:15 ved pause
 **Sidst gyldige domme:** G1 BESTÅET på master 82ae23f/c70b76b og polish 025c02b (8 scener). G3 BESTÅET på master 82ae23f. Alt efter retning-mergen (9270c40 → c82f200) er IKKE gyldigt målt: dev-shots var blå (#os z-40) i master-checkoutet, så A1 0 %/A3 1–3 farver på falseEnd/credits/trueEnd/fever2 er artefakter, ikke resultater.
@@ -49,6 +50,9 @@ Ejer i parentes: B = bygge-/master-session, Q = QC, C = council, F = Frederik.
 - [ ] DoD-skema §4 (QC-POLISH-PLAN) fuldt udfyldt med hash — som skema i chatten. Sidste delvise version sendt til c8 på b2b63a0.
 - [ ] feel.mjs igen efter merge (sidst: b2b63a0, median 42 ms, p90 107, 2 langsomme klik: setup OK 111 ms, hub-hotspot 107 ms).
 - [ ] Ryd tools/test/qc/ og qc-sync/ (≈20–40 MB frames, gitignored) når der er brug for plads.
+
+## 6b. Titelskærm (F)
+- [ ] Titlen bruger hub-renderen (retningens valg). Der findes en særskilt titel-render (assets/raw/title/title_2.png: kupler i stillads på måneslette) – Frederik afgør om den skal bruges; retro.py-konvertering er triviel.
 
 ## 7. Pacing-council (C)
 - [ ] 3 blinde Claude-dommere på `tools/test/feel/pacing-judge/K01–K06` (nøgle i `tools/test/feel-key/key.json`). K01–K06 skal gen-renderes først (fra før aliens). Mål: median "første gang jeg bemærkede noget" = min 15–30, intet før min 12.
