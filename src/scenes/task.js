@@ -34,7 +34,7 @@ register({
     const m = gameApi.devMin ?? playMin();
     if (m >= 30 && m < 50 && !save.night) { clearTimeout(this.hak); this.hak = setTimeout(() => loopHak(), 15000 + Math.random() * 20000); } // one loop stutter per visit (deniable)
     if (m >= 30 && (p.id === 'ice' || p.id === 'scope')) setTimeout(() => musicDetune(-3), 1200);
-    button('Tilbage', 8, 448, () => { stopGame(); hideDialog(); sfx.click(); goto('hub', { back: true }); }, { w: 90 }); // QC r4 B4: intro-replikken må ikke følge med ind i hubben
+    const back = button('Tilbage', 8, 448, () => { stopGame(); hideDialog(); sfx.click(); goto('hub', { back: true }); }, { w: 90 }); // QC r4 B4: intro-replikken må ikke følge med ind i hubben
     const G = GAMES[p.id];
     if (save.flags.progress_back && !save.flags.progress_back_shown) {
       // the loading bar goes 71 % → 44 % once (deniable: "it just reloaded something")
@@ -50,6 +50,7 @@ register({
     const res = await playGame(G, { grade: save.grade, seed: Date.now(), night: save.night, save, say, minusKnown: !!save.flags.minus_known, onWrong: () => { wrong++; save.wrongCount = (save.wrongCount || 0) + 1; touch(); wrongSay = say(line(G, p.id + '_wrong', 'Prøv igen.'), { auto: 1000 }); } });
     await wrongSay; // QC a0: ok-replikken landede oven i en uafsluttet wrong-replik
     if (res.aborted || gone()) return;
+    back.remove(); // feel seed 33: Tilbage stod synlig men død (scenen låses under resultat-replikken) – spillet er slut, knappen væk før lock
     if (res.fever === 'madpakke') { save.flags.fever_madpakke = true; touch(); persist(true); goto('hub', { back: false }); return; } // QC B3: straight to fever2 via the hub, no day ok-line/building
     if (p.id === 'hall' && res.answer !== undefined) { save.flags.hall_answer = res.answer; touch(); persist(true); lock(true); if (res.answer === 11) await say('Ja. Elleve.', { hold: 600 }); else await sleep(2500); lock(false); goto('hub', { back: false }); return; }
     if (res.morse) { save.flags.morse_seen = true; touch(); goto('hub', { back: true }); return; }
