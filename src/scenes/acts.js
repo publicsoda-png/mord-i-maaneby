@@ -194,7 +194,7 @@ register({
 
 // ------------------------------------------------------------------ Jump scare (min 68, den eneste)
 /** Rådhusets sal i flash-lys fra døren (venstre): perspektivgulv, 4 søjler, stenvæg — og i væggen en indemuret Fnug. */
-function drawHall(g) {
+export function drawHall(g) {
   const r = rng(68);
   g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
   // back wall: big stones, 1 px mortar, lit from the left
