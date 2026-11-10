@@ -140,8 +140,8 @@ export function drawBuilding(g, x, y, stage, kind, night = false) {
   g.save(); g.translate(x, y);
   const base = night ? '#2c2f3a' : '#dfe1ea', dark = night ? '#15171f' : '#8d93a8', accent = night ? '#5a4610' : '#ffbf2f';
   if (stage === 0) {
-    g.fillStyle = night ? 'rgba(40,44,56,.9)' : 'rgba(120,124,140,.8)'; g.fillRect(-26, -4, 52, 10);
-    g.fillStyle = night ? '#555' : '#fff'; g.fillRect(-2, -22, 4, 18); g.fillStyle = accent; g.fillRect(2, -22, 14, 9);
+    g.fillStyle = night ? '#2a2d3a' : '#9aa0b4'; g.fillRect(-26, -4, 52, 10); g.fillStyle = night ? '#15171f' : '#6b7088'; g.fillRect(-26, 5, 52, 1); // WP1: faste palettefarver, ingen rgba (A3)
+    g.fillStyle = night ? '#5a5d6a' : '#fff'; g.fillRect(-2, -22, 4, 18); g.fillStyle = accent; g.fillRect(2, -22, 14, 9);
     g.restore(); return;
   }
   const lean = stage === 1 ? -0.12 : 0;
