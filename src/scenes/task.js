@@ -46,8 +46,9 @@ register({
     if (!G) { await say(`${p.name} er ikke bygget endnu i denne udgave.`, { auto: 1500 }); goto('hub', { back: true }); return; }
     await say(line(G, p.id + '_intro', 'Løs opgaven, så bygger Fnuggerne.'));
     if (gone()) return;
-    let wrong = 0;
-    const res = await playGame(G, { grade: save.grade, seed: Date.now(), night: save.night, save, say, minusKnown: !!save.flags.minus_known, onWrong: () => { wrong++; save.wrongCount = (save.wrongCount || 0) + 1; touch(); say(line(G, p.id + '_wrong', 'Prøv igen.'), { auto: 1000 }); } });
+    let wrong = 0, wrongSay = Promise.resolve();
+    const res = await playGame(G, { grade: save.grade, seed: Date.now(), night: save.night, save, say, minusKnown: !!save.flags.minus_known, onWrong: () => { wrong++; save.wrongCount = (save.wrongCount || 0) + 1; touch(); wrongSay = say(line(G, p.id + '_wrong', 'Prøv igen.'), { auto: 1000 }); } });
+    await wrongSay; // QC a0: ok-replikken landede oven i en uafsluttet wrong-replik
     if (res.aborted || gone()) return;
     if (res.fever === 'madpakke') { save.flags.fever_madpakke = true; touch(); persist(true); goto('hub', { back: false }); return; } // QC B3: straight to fever2 via the hub, no day ok-line/building
     if (p.id === 'hall' && res.answer !== undefined) { save.flags.hall_answer = res.answer; touch(); persist(true); lock(true); if (res.answer === 11) await say('Ja. Elleve.', { hold: 600 }); else await sleep(2500); lock(false); goto('hub', { back: false }); return; }
