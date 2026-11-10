@@ -1,6 +1,6 @@
 // Program-dialoger inde i 640×480 (Director 2005-krom): windows, message boxes, progress dialogs, script-error box.
 // Intet skrivebord: alt krom er dødt og bærer aldrig historie (docs/RETNING.md).
-import { play } from './audio.js';
+import { play, sfx } from './audio.js';
 const os = document.getElementById('os');
 export const osEl = os;
 let z = 10;
@@ -29,7 +29,7 @@ export function msgBox({ title, msg, icon = 'warn', buttons = [{ label: 'OK', va
     const iconHtml = icon === 'err' ? '<div class="ico err">×</div>' : icon === 'info' ? '<div class="ico info">i</div>' : '<div class="ico warn"></div>';
     const b = `<div class="body">${iconHtml}<div class="msg">${msg}</div></div><div class="btns">${buttons.map((bt, i) => `<button class="wbtn${bt.def ? ' def' : ''}" data-i="${i}" ${bt.disabled || lockMs ? 'disabled' : ''}>${bt.label}</button>`).join('')}</div>`;
     const { el, close } = win({ title, x, y, w, body: b, closable: false, parent });
-    el.querySelectorAll('.wbtn').forEach((btn) => btn.addEventListener('click', () => { const bt = buttons[+btn.dataset.i]; if (bt.noop) return; close(); res(bt.value); }));
+    el.querySelectorAll('.wbtn').forEach((btn) => { btn.addEventListener('pointerdown', () => { if (!btn.disabled) sfx.click(); }); btn.addEventListener('click', () => { const bt = buttons[+btn.dataset.i]; if (bt.noop) return; close(); res(bt.value); }); }); // kliklyd på down som alle andre knapper (feel seed 45: wbtn 'Nej' uden lyd)
     if (lockMs) setTimeout(() => el.querySelectorAll('.wbtn').forEach((btn, i) => (btn.disabled = !!buttons[i].disabled)), lockMs);
   });
 }
