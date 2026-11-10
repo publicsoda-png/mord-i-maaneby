@@ -87,3 +87,7 @@ Ejer i parentes: B = bygge-/master-session, Q = QC, C = council, F = Frederik.
 
 ## 8. QC-runde 4 (a0) – ikke verificeret
 Se docs/TODO-QC.md (a0s egen status). Vigtigst: akt 3 fra jump → credits → ægte 2. gennemspilning er ALDRIG QC-et med mus; ægte nat-stol (falsk slutning → nat, ikke &nat); scope 1. klik. a0s rapporter/screenshots lå i a0s scratchpad og er væk ved genstart.
+
+
+## C6 jump scare – AFGJORT 10-11 ~11:50
+Blindt council (3 Claude-dommere, chair): D=hall_6 7,17 · A=hall_7 6,0 · B=hall_8 6,0 · C=kodetegnet fallback 3,33. Ingen vetoer. Dommernes rettelser til vinderen: kamera frontalt, bord i forgrunden, luk blå døråbning, større ansigt, skarpere specular på sten. Udført: zoom-beskæring af råfilen (tools/art/jump_zoom.py: 400×300-udsnit → 640×480 → retro.py) → ansigtet er ~2× større og døråbningen er ude. Ikke udført (kræver ny render): frontalt kamera, bord, specular – valgfri runde. Fil: assets/photos/jump_hall.png (PNG8, uden for pallock). Raw: assets/raw/jump/hall_6.png.
