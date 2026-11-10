@@ -50,17 +50,16 @@ Ejer i parentes: B = bygge-/master-session, Q = QC, C = council, F = Frederik.
 - [x] K4 hub: åben, ubygget Rådhus-plads viser en lille åben dør (palettefarver) ved flaget.
 - [ ] K1 jump_hall.png 404 → B (C6-council når RAM tillader).
 
-## 6. QC og gates (Q) — opdateret 10-11 (genoptaget efter pause)
-**Gyldige domme på master e56b61c:** **G1 BESTÅET** (gated scener: title/setup/hub/hub_nat/landing; hub 0,035 %/250 ms, live 6; sort cut 283/283 ms, 0 blends; 0 konsolfejl). **G3 BESTÅET** (12 A6-punkter: mund +27/−17 ms, 84 % åben under stemme, cps 31,2, pling mod pop-frame Δ −50 ms, slot 1,6 skift/s, tryk-feedback 45 ms, handling 38 ms efter up, lyd 2 ms, loudness med whitelist).
-- [x] G1+G3 kørt på master efter #os-fix (e56b61c).
-- [x] sync.mjs T3 måler nu pling mod POP-framen (`?dev&scene=hub&built=bakery:2` + `window.MB.devSwap()` efter gestus; pop = største slot-skift ±300 ms om plinget; fxLog kun krydstjek). gates.json: `pop_region` (bakery 206,230 88×112), `ident` markeret `info` (loader med koreograferet ryk, 6,97 %/250 ms er bevidst).
-- [ ] **QC-filer ucommittede i master-checkoutet:** tools/test/sync.mjs + tools/test/gates.json (ovenstående). B committer.
-- [ ] **G2 — palette (gate ≤256):** b8's tal er fra FØR pallock (e56b61c). c8 målte efter pallock (d7d2b5e, live 0dc0a6a): hub 194, hub_nat 182, setup 173, landing 183, bakery 188, school 209, quarry 139, light 170, title 108 – alle ≤256. b8 skal måle igen på 05aa0bb+ for at godkende G2. Gamle tal: title 228 ✔ · logroom 241 ✔ · landing 260 · school 265 · bakery 274 · setup 294 · fever1 408 · light 502 · quarry 507 · hub_nat 523 · jump 611 · hub 759 · scope 900 · hall 1025 · ice 1103 · morning 1219. Hub'en består af flere PNG8-filer med hver sin palette (bg + aliens.png + helper.png + bld_*) → sum >256. Kræver fælles masterpalette (WP1, B). Minispil ice/scope/hall/light: DOM/gradient-rester (P).
-- [ ] Kolonne C (blind side-om-side council, IP-veto) — ikke kørt. Klar til at køre på title/setup/hub nu hvor sprites er inde; mod docs/research/ref-frames.
-- [ ] DoD-skema §4 (QC-POLISH-PLAN) med hash — i chatten.
-- [ ] feel.mjs igen på master (sidst b2b63a0: median 42 ms, p90 107).
-- [ ] Info-scener (akter): falseEnd 1 farve/10 % spike (sort + cut), credits/trueEnd 15 frames/s rul med 2–3 farver — tjek at rullen kører på step-ur (10 fps), ikke 60 fps. fever2 9 farver.
-- [ ] Ryd tools/test/qc/ + qc-sync/ (gitignored frames, ~600 MB) ved pladsmangel.
+## 6. QC og gates (Q) — opdateret af b8 10-11 ~10:40
+**Gyldige domme på master 43bc1a9 (gælder også 120c5a0/208a6e5, kun QC/docs ændret):** **G1 BESTÅET** (A1 hub 0,035 %/250 ms, live 6; sort cut 283/283 ms, 0 blends; 0 konsolfejl; A4 ≤0,07 %). **G3 BESTÅET** (12 A6-punkter: mund +27/−17 ms, 84 % åben under stemme, cps 31,2, pling mod pop-frame Δ −50 ms, slot 1,6 skift/s, tryk-feedback 45 ms, handling 38 ms efter up, lyd 2 ms, loudness med whitelist). **feel.mjs** (120c5a0, bot 3 min, 27 klik): median 30 ms, p90 93, max 99, 0 døde klik, 0 over 100 — alle 8 feel-punkter grønne.
+**G2 — palette BESTÅET efter pallock** (gate ≤256): title 107 · setup 173 · hub 194 · hub_nat 182 · landing 186 · school 215 · bakery 196 · ice 124 · scope 175 · hall 124 · fever1 178 · jump 199 · logroom 73 · morning 237 · ident 29 · fever2 9 · credits 3. Kun quarry 310 og light 396 (ware, informative) over. **G2 mangler kolonne C** (se nedenfor) før den er grøn.
+- [x] G1+G3 på master efter #os-fix; A3 igen efter pallock.
+- [x] sync.mjs T3 måler pling mod POP-framen (`?dev&scene=hub&built=bakery:2` + `window.MB.devSwap()` efter gestus); gates.json `pop_region`, `ident`=info. Committet 0c769d8. polish.mjs undtager assets/unlocked + favicon (120c5a0).
+- [x] Credits/trueEnd-rullen kører på step-uret: 10 unikke frames/s (43bc1a9). A1_max rød på credits/trueEnd/falseEnd er forventet (rul/cut) — info-scener, ikke gated.
+- [ ] **Kolonne C (blind side-om-side council, IP-veto) — KLAR, venter på RAM.** Par bygget (ref/vores, tilfældig side) for title, setup, hub_early (s_000212 vs hub m_00), hub_mid (s_034412 vs hub med 1 bygning): scratchpad `council-C/pairs/`, nøgle i `council-C-key/pairs_key.json`, script `council-C/kolonneC.js` (3 Claude-dommere æra/håndværk/spiller, chair = kode: median ≥7 pr. akse, ingen <5, IP-veto 0). Aftale med B: B's C6 kører først (Illustrator er Frederiks, 5,8 GB fri RAM → max_agents 0), B pinger b8, så kører b8 kolonne C med 3 agenter. Resultat afblindes og gives som skema i chatten.
+- [ ] **A5_placeholder rød er et måle-artefakt:** polish.mjs tæller imports fra `src/art/placeholder.js`, men det modul er nu sprite-/bg-loaderen (bg, sprite, drawFnug, drawBuilding). A5 skal i stedet måle om en scene falder tilbage på procedurel tegning (fx `hasBg()` false / manglende sprite) — b8 retter polish.mjs. Indtil da: informativ.
+- [ ] DoD-skema §4 (QC-POLISH-PLAN) med hash — som skema i chatten når kolonne C er kørt.
+- [ ] Ryd tools/test/qc/ + qc-sync/ + feel/ (gitignored frames, ~600 MB) ved pladsmangel.
 
 ## 6b. Titelskærm (F)
 - [ ] Titlen bruger hub-renderen (retningens valg). Der findes en særskilt titel-render (assets/raw/title/title_2.png: kupler i stillads på måneslette) – Frederik afgør om den skal bruges; retro.py-konvertering er triviel.
