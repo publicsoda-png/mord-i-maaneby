@@ -125,7 +125,7 @@ register({
   async pick(p, isLocked) {
     this.idleT = performance.now();
     if (isLocked) {
-      if (p.id === 'hall' && save.flags.hall_door && save.night && !save.flags.jumped) { sfx.click(); goto('jump'); return; } // døren
+      if (p.id === 'hall' && save.flags.hall_door && save.night && !save.flags.jumped) { save.seen.jump = Date.now(); touch(); sfx.click(); goto('jump'); return; } // døren. a0 run 7: markér wrongness 'jump' som set, ellers fyrer jump-scaren igen ved min 68 og raadhus_melder/stemme_rum venter
       meta.qClicks = (meta.qClicks || 0) + 1; persistMeta();
       sfx.bzzt(); await say(save.flags.hallHint || 'Ikke endnu.', { auto: 1200, noPortrait: true }); return;
     }

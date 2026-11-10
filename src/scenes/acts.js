@@ -358,7 +358,7 @@ register({
     await sleep(1500);
     helper.present = true; helper.mood = 'calm';
     await say('Udmærket.', { voice: 'assets/voice/udmaerket.ogg', mouth: 'assets/voice/udmaerket.json', hold: 800 });
-    this.said = true;
+    this.said = true; this.idle = performance.now(); // a0 run 7: 120 s tomgang tælles fra spilleren er fri (efter "Udmærket."), ikke fra enter
     this.hs = PLOTS.map((p) => ({ x: p.x - 34, y: p.y - 44, w: 68, h: 54, cursor: 'hand', on: () => this.look(p) }));
     this.hs.push({ x: 6, y: 226, w: 130, h: 250, on: () => sfx.tick() }); // help = tick, where the helper stands
   },
@@ -369,7 +369,7 @@ register({
     if (p.special) { this.rocket = performance.now(); sfx.thud(); await sleep(2500); goto('credits'); return; }
     await say(BLINES[p.id] || '…', { noPortrait: true, auto: 1800 });
   },
-  tick() { if (this.said && performance.now() - this.idle > 120000) { this.idle = Infinity; goto('credits'); } },
+  tick() { if (this.said && performance.now() - this.idle > 120000) { this.idle = Infinity; hideDialog(); goto('credits'); } }, // a0 run 7: ingen replik synlig over credits
   bg(g, dt, t) {
     g.drawImage(this.bgc, 0, 0);
     // day 31: every building stage 1; the hall is only a plot — a flat light plateau with Syv sitting on it
