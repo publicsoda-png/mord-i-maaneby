@@ -1,0 +1,374 @@
+{
+ "title": {
+  "ours_side": "left",
+  "ours": {
+   "median": {
+    "aera": 8,
+    "liv": 6,
+    "haandvaerk": 7,
+    "laesbarhed": 8
+   },
+   "min": 5,
+   "pass": false,
+   "fixes": [
+    "aera: Byens skyline i horisonten er en flad sort silhuet. Prærender den som rigtige 3D-bygninger med små oplyste vinduer, så horisonten får liv og dybde.",
+    "haandvaerk: Byskyggen på horisonten er en flad sort udklipning uden skygge/kant – giv den en belyst kant eller gentegn den som lav-poly prærenderet silhuet, så den sidder i samme 3D-verden som kratere og bænk (og gør bænkens massive skygge dithered som de øvrige).",
+    "spil: Scenen er lidt tom i midten; flyt den lille kuppel og de to figurer tættere på komposition og giv dem tydelig skygge, så der er et naturligt fokus ved siden af knapperne."
+   ]
+  },
+  "ref": {
+   "median": {
+    "aera": 6,
+    "liv": 7,
+    "haandvaerk": 7,
+    "laesbarhed": 7
+   },
+   "min": 5,
+   "pass": false,
+   "fixes": [
+    "aera: Navnefeltet er et afrundet, halvgennemsigtigt panel med glat kursiv systemfont, og det ligner moderne UI. Erstat det med en skarpkantet, affaset Win9x-dialog med uigennemsigtig baggrund og bitmap- eller Comic-agtig font.",
+    "haandvaerk: Forgrundsfigurerne er skåret af i bunden, overlapper dialogen og står oven i hinanden med blød/JPEG-udtværet kant – skær ned til én-to figurer med fødder i billedet, placeret uden for dialogen, og render i native 640×480 så kanterne bliver hårde.",
+    "spil: Den halvgennemsigtige, afrundede dialog og den glatte kursiv-skrift virker moderne; erstat med en hårdkantet, ugennemsigtig panel og pixelkantet bitmap-skrift."
+   ]
+  },
+  "ip_vetoes": [],
+  "ip_notes": [
+   "aera: Figurerne er forskellige (månemand og små rumvæsner over for troldmand og øjestilk-væsner), titelskriften er forskellig, og de prærenderede baggrunde er forskellige (grå måneslette over for orange kløft). Begge titler bruger dog bynavnet 'Måneby'. Det er ikke veto efter rubrikken, men det er en navne-/varemærkerisiko, som bør undersøges separat.",
+   "haandvaerk: Forskellige figurdesign (månemand i gyngestol vs. skægget troldmand i kappe; farvede blob-rumvæsner vs. øjestilk-rumvæsner), forskellig titelskrift (gul Comic-outline vs. orange gradient-sans), forskellig baggrund (blå månekratere vs. orange canyon). Begge bruger bynavnet 'Måneby' – det er et navne-/varemærkespørgsmål, ikke kopieret ophavsretligt udtryk; bør dog tjekkes juridisk.",
+   "spil: Forskellige figurer (rød rumvæsen/måneskæg vs. troldmand og øjenstilk-væsner), forskellig titelskrift og forskellige baggrunde; kun genre og navnet Måneby er fælles, ikke et kopieret udtryk."
+  ],
+  "raw": [
+   {
+    "lens": "aera",
+    "left": {
+     "aera": 8,
+     "liv": 5,
+     "haandvaerk": 6,
+     "laesbarhed": 8,
+     "fix": "Byens skyline i horisonten er en flad sort silhuet. Prærender den som rigtige 3D-bygninger med små oplyste vinduer, så horisonten får liv og dybde."
+    },
+    "right": {
+     "aera": 6,
+     "liv": 7,
+     "haandvaerk": 7,
+     "laesbarhed": 7,
+     "fix": "Navnefeltet er et afrundet, halvgennemsigtigt panel med glat kursiv systemfont, og det ligner moderne UI. Erstat det med en skarpkantet, affaset Win9x-dialog med uigennemsigtig baggrund og bitmap- eller Comic-agtig font."
+    }
+   },
+   {
+    "lens": "haandvaerk",
+    "left": {
+     "aera": 9,
+     "liv": 7,
+     "haandvaerk": 7,
+     "laesbarhed": 9,
+     "fix": "Byskyggen på horisonten er en flad sort udklipning uden skygge/kant – giv den en belyst kant eller gentegn den som lav-poly prærenderet silhuet, så den sidder i samme 3D-verden som kratere og bænk (og gør bænkens massive skygge dithered som de øvrige)."
+    },
+    "right": {
+     "aera": 6,
+     "liv": 5,
+     "haandvaerk": 5,
+     "laesbarhed": 7,
+     "fix": "Forgrundsfigurerne er skåret af i bunden, overlapper dialogen og står oven i hinanden med blød/JPEG-udtværet kant – skær ned til én-to figurer med fødder i billedet, placeret uden for dialogen, og render i native 640×480 så kanterne bliver hårde."
+    }
+   },
+   {
+    "lens": "spil",
+    "left": {
+     "aera": 8,
+     "liv": 6,
+     "haandvaerk": 7,
+     "laesbarhed": 8,
+     "fix": "Scenen er lidt tom i midten; flyt den lille kuppel og de to figurer tættere på komposition og giv dem tydelig skygge, så der er et naturligt fokus ved siden af knapperne."
+    },
+    "right": {
+     "aera": 5,
+     "liv": 7,
+     "haandvaerk": 7,
+     "laesbarhed": 8,
+     "fix": "Den halvgennemsigtige, afrundede dialog og den glatte kursiv-skrift virker moderne; erstat med en hårdkantet, ugennemsigtig panel og pixelkantet bitmap-skrift."
+    }
+   }
+  ],
+  "chair_note": ""
+ },
+ "setup": {
+  "ours_side": "left",
+  "ours": {
+   "median": {
+    "aera": 8,
+    "liv": 6,
+    "haandvaerk": 7,
+    "laesbarhed": 8
+   },
+   "min": 5,
+   "pass": false,
+   "fixes": [
+    "aera: Scenen bag dialogen er tom måneslette. Lad skylinen eller kuplen fra titelskærmen stå i baggrunden, så opsætningen hænger sammen med verdenen.",
+    "haandvaerk: Scenen er kun månemand + bænk – tilføj ét lille element med liv (fx et rumvæsen på bænken eller en rygende skorsten på en igloo i baggrunden) så kompositionen ikke er helt stille.",
+    "spil: Månemanden i gyngestolen er den eneste levende ting; tilføj en lille idle-figur eller bevægelse ved bænken, så scenen ikke føles stille og tom."
+   ]
+  },
+  "ref": {
+   "median": {
+    "aera": 6,
+    "liv": 7,
+    "haandvaerk": 7,
+    "laesbarhed": 7
+   },
+   "min": 5,
+   "pass": false,
+   "fixes": [
+    "aera: Samme skærm som i P1. Gør dialogen hårdkantet og uigennemsigtig med affasede knapper i 2005-stil i stedet for afrundet gennemsigtigt panel og glat font.",
+    "haandvaerk: Samme skærm som P1: alfa-blandet, afrundet dialogpanel med glat antialiaset kursiv læser som senere Flash-æra – skift til hård bevel-ramme i fuld dækning og pixel-skarp tekst, og ryd forgrunden for de halvt afskårne figurer.",
+    "spil: Dialogen dækker midten af baggrunden og har moderne blød UI; brug en solid kantet ramme med skarpe pixelkanter, og gør OK/Fortryd til stenknapper af samme slags som resten."
+   ]
+  },
+  "ip_vetoes": [],
+  "ip_notes": [
+   "aera: Månemanden i gyngestol og troldmanden har kun det hvide skæg til fælles og er tydeligt forskellige designs. Dialogerne og baggrundene er også forskellige, så der er kun fælles genretræk.",
+   "haandvaerk: Ingen deling af konkret figur, logo eller baggrund; venstre dialog (bevel-ramme, blå talknapper) og højre (gennemsigtigt afrundet panel) er visuelt uafhængige. Kun bynavnet er fælles – se P1.",
+   "spil: Ingen delte figurer, logo eller baggrund; dialogerne er generiske navneindtastninger og figurerne er helt forskellige."
+  ],
+  "raw": [
+   {
+    "lens": "aera",
+    "left": {
+     "aera": 8,
+     "liv": 5,
+     "haandvaerk": 7,
+     "laesbarhed": 8,
+     "fix": "Scenen bag dialogen er tom måneslette. Lad skylinen eller kuplen fra titelskærmen stå i baggrunden, så opsætningen hænger sammen med verdenen."
+    },
+    "right": {
+     "aera": 6,
+     "liv": 7,
+     "haandvaerk": 7,
+     "laesbarhed": 7,
+     "fix": "Samme skærm som i P1. Gør dialogen hårdkantet og uigennemsigtig med affasede knapper i 2005-stil i stedet for afrundet gennemsigtigt panel og glat font."
+    }
+   },
+   {
+    "lens": "haandvaerk",
+    "left": {
+     "aera": 9,
+     "liv": 7,
+     "haandvaerk": 8,
+     "laesbarhed": 9,
+     "fix": "Scenen er kun månemand + bænk – tilføj ét lille element med liv (fx et rumvæsen på bænken eller en rygende skorsten på en igloo i baggrunden) så kompositionen ikke er helt stille."
+    },
+    "right": {
+     "aera": 6,
+     "liv": 5,
+     "haandvaerk": 5,
+     "laesbarhed": 7,
+     "fix": "Samme skærm som P1: alfa-blandet, afrundet dialogpanel med glat antialiaset kursiv læser som senere Flash-æra – skift til hård bevel-ramme i fuld dækning og pixel-skarp tekst, og ryd forgrunden for de halvt afskårne figurer."
+    }
+   },
+   {
+    "lens": "spil",
+    "left": {
+     "aera": 8,
+     "liv": 6,
+     "haandvaerk": 7,
+     "laesbarhed": 8,
+     "fix": "Månemanden i gyngestolen er den eneste levende ting; tilføj en lille idle-figur eller bevægelse ved bænken, så scenen ikke føles stille og tom."
+    },
+    "right": {
+     "aera": 5,
+     "liv": 7,
+     "haandvaerk": 7,
+     "laesbarhed": 8,
+     "fix": "Dialogen dækker midten af baggrunden og har moderne blød UI; brug en solid kantet ramme med skarpe pixelkanter, og gør OK/Fortryd til stenknapper af samme slags som resten."
+    }
+   }
+  ],
+  "chair_note": ""
+ },
+ "hub_early": {
+  "ours_side": "right",
+  "ours": {
+   "median": {
+    "aera": 8,
+    "liv": 7,
+    "haandvaerk": 7,
+    "laesbarhed": 7
+   },
+   "min": 6,
+   "pass": true,
+   "fixes": [
+    "aera: De flade hvide plader med gule flag ligner pladsholdere. Erstat dem med prærenderede byggegrunde eller fundamenter med tal, i samme lys og perspektiv som månesletten, så scenen får mål og liv.",
+    "haandvaerk: De grå platforme med flag er flade bjælker uden sideflade – giv dem synlig tykkelse og en skygge der følger platformens perspektiv, så de står på jorden i stedet for at svæve.",
+    "spil: De små flag-plader har lav kontrast mod månegrunden; gør pladerne og flagene lidt større og lysere, så man straks ser hvad man kan klikke på."
+   ]
+  },
+  "ref": {
+   "median": {
+    "aera": 7,
+    "liv": 7,
+    "haandvaerk": 7,
+    "laesbarhed": 5
+   },
+   "min": 5,
+   "pass": false,
+   "fixes": [
+    "aera: Hotspots og byggematerialer er bittesmå og spredt ud over kløften. Saml dem i færre og større grupper med tydelig kontur eller markering, så barnet straks kan se, hvad der kan klikkes på.",
+    "haandvaerk: Alt for mange små, slørede props spredt ud over terrænet uden tydelige hotspots, og troldmanden i forgrunden har ingen slagskygge – skær ned til 4–6 klare hotspots med hover-highlight og giv troldmanden en skygge i samme lysretning som boldbanen og rumvæsnerne.",
+    "spil: Hotspots er svære at finde blandt mange små dele; giv klikbare steder en tydelig kontur eller markør og gør dem større, og gør GENTAG/VIDERE-knapperne mere kontrastfulde."
+   ]
+  },
+  "ip_vetoes": [],
+  "ip_notes": [
+   "aera: Den orange kløftverden med troldmand er en anden verden end den grå måneslette med månemand og farvede rumvæsner. Ingen fælles figurdesigns, bygningsnavne eller baggrunde.",
+   "haandvaerk: Venstre: blå måne, farvede blob-rumvæsner, flagplatforme, månemand. Højre: orange canyon, troldmand, øjestilk-rumvæsner, spredte redskaber og boldbane. Ingen fælles figur, baggrund, logo eller bygningsnavn.",
+   "spil: Mars-lignende orange terræn med troldmand og små arbejdere vs. grå måne med farvede rumvæsner og månemand: ingen kopieret figur, bygning eller baggrund."
+  ],
+  "raw": [
+   {
+    "lens": "aera",
+    "left": {
+     "aera": 8,
+     "liv": 7,
+     "haandvaerk": 7,
+     "laesbarhed": 5,
+     "fix": "Hotspots og byggematerialer er bittesmå og spredt ud over kløften. Saml dem i færre og større grupper med tydelig kontur eller markering, så barnet straks kan se, hvad der kan klikkes på."
+    },
+    "right": {
+     "aera": 7,
+     "liv": 6,
+     "haandvaerk": 6,
+     "laesbarhed": 7,
+     "fix": "De flade hvide plader med gule flag ligner pladsholdere. Erstat dem med prærenderede byggegrunde eller fundamenter med tal, i samme lys og perspektiv som månesletten, så scenen får mål og liv."
+    }
+   },
+   {
+    "lens": "haandvaerk",
+    "left": {
+     "aera": 7,
+     "liv": 5,
+     "haandvaerk": 6,
+     "laesbarhed": 5,
+     "fix": "Alt for mange små, slørede props spredt ud over terrænet uden tydelige hotspots, og troldmanden i forgrunden har ingen slagskygge – skær ned til 4–6 klare hotspots med hover-highlight og giv troldmanden en skygge i samme lysretning som boldbanen og rumvæsnerne."
+    },
+    "right": {
+     "aera": 9,
+     "liv": 7,
+     "haandvaerk": 7,
+     "laesbarhed": 9,
+     "fix": "De grå platforme med flag er flade bjælker uden sideflade – giv dem synlig tykkelse og en skygge der følger platformens perspektiv, så de står på jorden i stedet for at svæve."
+    }
+   },
+   {
+    "lens": "spil",
+    "left": {
+     "aera": 7,
+     "liv": 7,
+     "haandvaerk": 7,
+     "laesbarhed": 5,
+     "fix": "Hotspots er svære at finde blandt mange små dele; giv klikbare steder en tydelig kontur eller markør og gør dem større, og gør GENTAG/VIDERE-knapperne mere kontrastfulde."
+    },
+    "right": {
+     "aera": 8,
+     "liv": 7,
+     "haandvaerk": 7,
+     "laesbarhed": 7,
+     "fix": "De små flag-plader har lav kontrast mod månegrunden; gør pladerne og flagene lidt større og lysere, så man straks ser hvad man kan klikke på."
+    }
+   }
+  ],
+  "chair_note": "haandvaerk-dommerens left/right byttet af chair (kode) for P3/P4: dommerens fix-tekster beskriver entydigt modsat side (troldmand/boldbane = reference, grå flagplader/igloo = vores). Scorer uændrede, kun side."
+ },
+ "hub_mid": {
+  "ours_side": "right",
+  "ours": {
+   "median": {
+    "aera": 8,
+    "liv": 7,
+    "haandvaerk": 7,
+    "laesbarhed": 7
+   },
+   "min": 6,
+   "pass": true,
+   "fixes": [
+    "aera: Fremskridt ses kun som én lille kuppel, og ellers er scenen identisk med starten. Lad de færdige grunde vise flere synlige prærenderede bygninger, så byen tydeligt vokser.",
+    "haandvaerk: Igloo'ens skygge er blød mens alle andre skygger er hård dither – render den som dither også, og giv flagplatformene tykkelse/perspektivskygge som i P3, så alle lag deler samme skyggesprog.",
+    "spil: Den nye kuppel står uden forbindelse til resten og dens skygge er svag; giv den en tydelig skygge og placer den mere i komposition med pladerne, og gør flag-pladerne mere synlige."
+   ]
+  },
+  "ref": {
+   "median": {
+    "aera": 7,
+    "liv": 7,
+    "haandvaerk": 7,
+    "laesbarhed": 5
+   },
+   "min": 5,
+   "pass": false,
+   "fixes": [
+    "aera: Der er mange små ens hvide bygninger og figurer i mellemgrunden. Fremhæv den aktuelle opgave eller bygning med en tydelig markering, og skær ned på småting i forgrunden, så klikmålet bliver klart.",
+    "haandvaerk: Bygningerne er pænt renderet, men boldbanen og småprops har sorte konturer og anden skarphed end bygningerne og ser pasted-on ud – re-render dem i samme lys og opløsning, og markér hvilke af de mange elementer der er klikbare.",
+    "spil: Mange hvide bygninger smelter sammen med det småkrydrede terræn; tilføj tydelig markør eller hover-kontur på de klikbare bygninger, og gør bygningerne mere adskilte i størrelse og placering."
+   ]
+  },
+  "ip_vetoes": [],
+  "ip_notes": [
+   "aera: Begge har hvide kuppel- og modulbygninger, men det er generisk måneby-genre. Bygningsdesign, figurer og baggrund er forskellige, og der er ingen fælles navne eller kopierede renders.",
+   "haandvaerk: Hvid igloo (venstre) vs. hvide kuppelbygninger og moduler (højre) er fælles genretræk i måne-/rum-settings, ikke samme konkrete design; ingen fælles figur, titelskrift, bygningsnavne eller baggrund.",
+   "spil: Bygningerne er forskellige (flere hvide moduler vs. en enkelt kuppel), figurer og baggrunde er forskellige; ingen konkret kopiering."
+  ],
+  "raw": [
+   {
+    "lens": "aera",
+    "left": {
+     "aera": 8,
+     "liv": 7,
+     "haandvaerk": 7,
+     "laesbarhed": 6,
+     "fix": "Der er mange små ens hvide bygninger og figurer i mellemgrunden. Fremhæv den aktuelle opgave eller bygning med en tydelig markering, og skær ned på småting i forgrunden, så klikmålet bliver klart."
+    },
+    "right": {
+     "aera": 7,
+     "liv": 6,
+     "haandvaerk": 6,
+     "laesbarhed": 7,
+     "fix": "Fremskridt ses kun som én lille kuppel, og ellers er scenen identisk med starten. Lad de færdige grunde vise flere synlige prærenderede bygninger, så byen tydeligt vokser."
+    }
+   },
+   {
+    "lens": "haandvaerk",
+    "left": {
+     "aera": 7,
+     "liv": 6,
+     "haandvaerk": 6,
+     "laesbarhed": 5,
+     "fix": "Bygningerne er pænt renderet, men boldbanen og småprops har sorte konturer og anden skarphed end bygningerne og ser pasted-on ud – re-render dem i samme lys og opløsning, og markér hvilke af de mange elementer der er klikbare."
+    },
+    "right": {
+     "aera": 9,
+     "liv": 7,
+     "haandvaerk": 7,
+     "laesbarhed": 9,
+     "fix": "Igloo'ens skygge er blød mens alle andre skygger er hård dither – render den som dither også, og giv flagplatformene tykkelse/perspektivskygge som i P3, så alle lag deler samme skyggesprog."
+    }
+   },
+   {
+    "lens": "spil",
+    "left": {
+     "aera": 7,
+     "liv": 8,
+     "haandvaerk": 7,
+     "laesbarhed": 5,
+     "fix": "Mange hvide bygninger smelter sammen med det småkrydrede terræn; tilføj tydelig markør eller hover-kontur på de klikbare bygninger, og gør bygningerne mere adskilte i størrelse og placering."
+    },
+    "right": {
+     "aera": 8,
+     "liv": 7,
+     "haandvaerk": 7,
+     "laesbarhed": 7,
+     "fix": "Den nye kuppel står uden forbindelse til resten og dens skygge er svag; giv den en tydelig skygge og placer den mere i komposition med pladerne, og gør flag-pladerne mere synlige."
+    }
+   }
+  ],
+  "chair_note": "haandvaerk-dommerens left/right byttet af chair (kode) for P3/P4: dommerens fix-tekster beskriver entydigt modsat side (troldmand/boldbane = reference, grå flagplader/igloo = vores). Scorer uændrede, kun side."
+ }
+}

@@ -1,0 +1,370 @@
+{
+ "title": {
+  "ours_side": "right",
+  "ours": {
+   "median": {
+    "aera": 8,
+    "liv": 5,
+    "haandvaerk": 6,
+    "laesbarhed": 8
+   },
+   "min": 4,
+   "fixes": [
+    "aera: Scenen er tom: tilføj ét eller to tydelige prærenderede elementer i mellemgrunden, fx en lille kuppel/byskyline tættere på eller en vinkende figur, og giv den røde figur en blødere kontaktskygge, så den sidder på jorden ligesom bænken gør.",
+    "haandvaerk: Scenen er næsten tom: sæt ét ekstra tydeligt element ind (fx et skilt eller en alien nr. 2 på bænken) og gør pixel-bysilhuetten i horisonten større, så den bliver et bevidst kompositionsanker og ikke en artefakt.",
+    "spil: Gør START/FORTSÆT-knapperne større med stærkere kontrast og læg et par figurer eller en bygning i mellemgrunden, så den store tomme kratersflade får komposition."
+   ],
+   "pass": false
+  },
+  "ref": {
+   "median": {
+    "aera": 8,
+    "liv": 8,
+    "haandvaerk": 8,
+    "laesbarhed": 7
+   },
+   "min": 6,
+   "fixes": [
+    "aera: Gør navnefeltet mindre moderne: drop det helt hvide afrundede felt med kursiv sans og brug et skarpkantet, let indfældet felt med en bitmap- eller Arial-agtig skrift, så dialogen sidder i samme prærenderede verden.",
+    "haandvaerk: Giv navnedialogen en opak fyldfarve og bevel-knapper med hård kant i stedet for den halvgennemsigtige boks med bløde grå gradient-knapper over det travle terræn – så løftes både læsbarhed og æra-følelse.",
+    "spil: Gør dialogboksens halvtransparente brune panel mere dækkende, så navnefeltet ikke konkurrerer med baggrundens bygninger."
+   ],
+   "pass": true
+  },
+  "ip_vetoes": [],
+  "ip_notes": [
+   "aera: Figurer, titelskrift (orange afrundet vs. gul comic-versal), baggrunde og farveverden (okker Mars-kløft vs. grå månestøv) er forskellige. Begge titler bruger dog stednavnet 'Måneby'. Det er ikke en kopi af logo eller skrift, men et delt navn, som bør flagges til jurist/ejer.",
+   "haandvaerk: Forskellig titelskrift (gul blokskrift m. mørk outline vs. orange gradient-serif), forskellig baggrund (blå kraterslette vs. orange canyon), forskellige figurer (lille rød alien vs. troldmand/aliens). Måne, kratere og aliens er genretræk.",
+   "spil: Figurerne (troldmand/stilkøjede rumvæsner mod rød alien), titelskrift (orange gradient mod gul pixelskrift) og baggrunde (rød klippe mod grå måneflade) er helt forskellige. Kun navnet 'Måneby' og månegenren er fælles, og det er ikke veto."
+  ],
+  "raw": [
+   {
+    "lens": "aera",
+    "left": {
+     "aera": 9,
+     "liv": 8,
+     "haandvaerk": 8,
+     "laesbarhed": 7,
+     "fix": "Gør navnefeltet mindre moderne: drop det helt hvide afrundede felt med kursiv sans og brug et skarpkantet, let indfældet felt med en bitmap- eller Arial-agtig skrift, så dialogen sidder i samme prærenderede verden."
+    },
+    "right": {
+     "aera": 8,
+     "liv": 5,
+     "haandvaerk": 6,
+     "laesbarhed": 8,
+     "fix": "Scenen er tom: tilføj ét eller to tydelige prærenderede elementer i mellemgrunden, fx en lille kuppel/byskyline tættere på eller en vinkende figur, og giv den røde figur en blødere kontaktskygge, så den sidder på jorden ligesom bænken gør."
+    }
+   },
+   {
+    "lens": "haandvaerk",
+    "left": {
+     "aera": 7,
+     "liv": 6,
+     "haandvaerk": 6,
+     "laesbarhed": 6,
+     "fix": "Giv navnedialogen en opak fyldfarve og bevel-knapper med hård kant i stedet for den halvgennemsigtige boks med bløde grå gradient-knapper over det travle terræn – så løftes både læsbarhed og æra-følelse."
+    },
+    "right": {
+     "aera": 9,
+     "liv": 5,
+     "haandvaerk": 7,
+     "laesbarhed": 8,
+     "fix": "Scenen er næsten tom: sæt ét ekstra tydeligt element ind (fx et skilt eller en alien nr. 2 på bænken) og gør pixel-bysilhuetten i horisonten større, så den bliver et bevidst kompositionsanker og ikke en artefakt."
+    }
+   },
+   {
+    "lens": "spil",
+    "left": {
+     "aera": 8,
+     "liv": 8,
+     "haandvaerk": 8,
+     "laesbarhed": 8,
+     "fix": "Gør dialogboksens halvtransparente brune panel mere dækkende, så navnefeltet ikke konkurrerer med baggrundens bygninger."
+    },
+    "right": {
+     "aera": 7,
+     "liv": 4,
+     "haandvaerk": 6,
+     "laesbarhed": 7,
+     "fix": "Gør START/FORTSÆT-knapperne større med stærkere kontrast og læg et par figurer eller en bygning i mellemgrunden, så den store tomme kratersflade får komposition."
+    }
+   }
+  ]
+ },
+ "setup": {
+  "ours_side": "left",
+  "ours": {
+   "median": {
+    "aera": 8,
+    "liv": 4,
+    "haandvaerk": 6,
+    "laesbarhed": 8
+   },
+   "min": 3,
+   "fixes": [
+    "aera: Dialogen dækker næsten hele scenen, og der er intet liv. Placér en figur (fx månemanden eller en frugger) ved siden af boksen, så opsætningen får en vært, og giv boksen en tydeligere 2005-ramme (bevel eller stenkant) i stedet for den flade mørkelilla plade.",
+    "haandvaerk: Panelet står helt alene i et dødt landskab – lad guidefiguren kigge frem ved panelets kant eller stil bænken så dens skygge peger ind mod panelet, så der er ét levende element i kompositionen.",
+    "spil: Dialogen er en flad mørkeblå boks, der dækker halvdelen af scenen og bænken. Gør den mindre eller giv den en bevel-ramme i samme stil som stenknapperne, og tilføj en figur i scenen."
+   ],
+   "pass": false
+  },
+  "ref": {
+   "median": {
+    "aera": 8,
+    "liv": 8,
+    "haandvaerk": 8,
+    "laesbarhed": 7
+   },
+   "min": 6,
+   "fixes": [
+    "aera: Hæv kontrasten på 'Fortryd' og 'OK' (større, tydeligere knapper med bevel), og erstat det bløde, moderne hvide navnefelt med et kantet felt i tidens stil.",
+    "haandvaerk: Forgrundsfigurerne (troldmand, aliens) er klistret på uden kontaktskygger og i forskellig skala; tilføj ellipse-skygger under dem og skalér dem ned, så de står i samme verden som baggrunden.",
+    "spil: Gør dialogpanelet mere dækkende, så navnefeltet står renere mod baggrunden."
+   ],
+   "pass": true
+  },
+  "ip_vetoes": [],
+  "ip_notes": [
+   "aera: Ingen fælles konkret figur, baggrund eller skrift. Rammen 'navn + OK' er en genrekonvention. Stednavnet 'Måneby' går igen i titlen (se P1), og det er ikke et figur- eller grafikkopi.",
+   "haandvaerk: Venstre: mørkeblåt panel med blå glans-orbs på blå måne; højre: samme Matematik-i-Måneby-skærm som P1 venstre. Ingen fælles figurdesign, logo, bygningsnavne eller baggrund.",
+   "spil: Venstre side viser måneflade og bænk med flad dialog, højre side viser rød klippe med troldmand og rumvæsner. Ingen delt figurdesign, logo eller baggrund."
+  ],
+  "raw": [
+   {
+    "lens": "aera",
+    "left": {
+     "aera": 8,
+     "liv": 4,
+     "haandvaerk": 6,
+     "laesbarhed": 8,
+     "fix": "Dialogen dækker næsten hele scenen, og der er intet liv. Placér en figur (fx månemanden eller en frugger) ved siden af boksen, så opsætningen får en vært, og giv boksen en tydeligere 2005-ramme (bevel eller stenkant) i stedet for den flade mørkelilla plade."
+    },
+    "right": {
+     "aera": 9,
+     "liv": 8,
+     "haandvaerk": 8,
+     "laesbarhed": 7,
+     "fix": "Hæv kontrasten på 'Fortryd' og 'OK' (større, tydeligere knapper med bevel), og erstat det bløde, moderne hvide navnefelt med et kantet felt i tidens stil."
+    }
+   },
+   {
+    "lens": "haandvaerk",
+    "left": {
+     "aera": 8,
+     "liv": 5,
+     "haandvaerk": 7,
+     "laesbarhed": 9,
+     "fix": "Panelet står helt alene i et dødt landskab – lad guidefiguren kigge frem ved panelets kant eller stil bænken så dens skygge peger ind mod panelet, så der er ét levende element i kompositionen."
+    },
+    "right": {
+     "aera": 7,
+     "liv": 6,
+     "haandvaerk": 6,
+     "laesbarhed": 6,
+     "fix": "Forgrundsfigurerne (troldmand, aliens) er klistret på uden kontaktskygger og i forskellig skala; tilføj ellipse-skygger under dem og skalér dem ned, så de står i samme verden som baggrunden."
+    }
+   },
+   {
+    "lens": "spil",
+    "left": {
+     "aera": 6,
+     "liv": 3,
+     "haandvaerk": 5,
+     "laesbarhed": 7,
+     "fix": "Dialogen er en flad mørkeblå boks, der dækker halvdelen af scenen og bænken. Gør den mindre eller giv den en bevel-ramme i samme stil som stenknapperne, og tilføj en figur i scenen."
+    },
+    "right": {
+     "aera": 8,
+     "liv": 8,
+     "haandvaerk": 8,
+     "laesbarhed": 8,
+     "fix": "Gør dialogpanelet mere dækkende, så navnefeltet står renere mod baggrunden."
+    }
+   }
+  ]
+ },
+ "hub_early": {
+  "ours_side": "left",
+  "ours": {
+   "median": {
+    "aera": 8,
+    "liv": 7,
+    "haandvaerk": 6,
+    "laesbarhed": 7
+   },
+   "min": 6,
+   "fixes": [
+    "aera: Fruggerne og flagpladerne flyder lidt: de grå plader ser ud som flade UI-rektangler. Rendér dem som prærenderede stenfliser med skygge i samme lys som bænken, og stram figurernes kontaktskygger, så alt står i samme lysretning.",
+    "haandvaerk: Lysretningen er inkonsekvent: bænken kaster en lang, hård skygge mod højre, mens aliens og plinte kun har små bløde ellipser lige under sig – forkort bænkens skygge (eller giv aliens en retningsbestemt skygge), så alt sidder i samme lys.",
+    "spil: Hotspot-pladerne (grå bjælker med små flag) er for små og ens, så giv dem tydeligere kontur eller glød og gør spørgsmålstegnet større. Skyggerne er flade ovaler, så giv dem blødere kanter og en fælles lysretning."
+   ],
+   "pass": false
+  },
+  "ref": {
+   "median": {
+    "aera": 9,
+    "liv": 6,
+    "haandvaerk": 8,
+    "laesbarhed": 5
+   },
+   "min": 4,
+   "fixes": [
+    "aera: De små figurer og bygge-props drukner i den okkerfarvede kløft. Giv hotspots en diskret kontur eller lys-rim, eller gør dem lidt større, så barnet straks kan se, hvad der kan klikkes på.",
+    "haandvaerk: De små figurer og genstande svæver uden kontaktskygger og er for små til at aflæse som hotspots; tilføj små skygger og gør hotspots større/fremhævede (fx lys kant ved hover), så man kan se hvad der kan klikkes.",
+    "spil: De klikbare objekter er bittesmå og spredt, så forstør dem eller giv dem en tydelig hover-markering. Troldmanden står stort i forgrunden, men der er ingen synlig indikation af hvad man skal gøre."
+   ],
+   "pass": false
+  },
+  "ip_vetoes": [],
+  "ip_notes": [
+   "aera: Den gamle mand er forskellig: troldmand i kutte med stav vs. halvmåne-hovedet i gyngestol. Begge har hvidt skæg, men det er et arketype-træk. Rumvæsnerne er også forskellige (lilla-hårede humanoider vs. farvede klatfigurer). Terræn og baggrund er helt adskilte.",
+   "haandvaerk: Guidefigurerne er tydeligt forskellige (månemand med halvmånehoved i gyngestol vs. gråklædt troldmand med stav). Baggrund, palet, HUD (GEM/LUK pixelknapper vs. GENTAG/VIDERE stenknapper) og aliens deler kun genre.",
+   "spil: Månefladen med mange farvede små rumvæsner og en gammel mand i gyngestol er en anden figurfamilie end troldmanden og de gråhudede arbejdere på Mars-lignende klippe. Ingen kopi af design eller baggrund."
+  ],
+  "raw": [
+   {
+    "lens": "aera",
+    "left": {
+     "aera": 8,
+     "liv": 7,
+     "haandvaerk": 6,
+     "laesbarhed": 7,
+     "fix": "Fruggerne og flagpladerne flyder lidt: de grå plader ser ud som flade UI-rektangler. Rendér dem som prærenderede stenfliser med skygge i samme lys som bænken, og stram figurernes kontaktskygger, så alt står i samme lysretning."
+    },
+    "right": {
+     "aera": 9,
+     "liv": 7,
+     "haandvaerk": 8,
+     "laesbarhed": 6,
+     "fix": "De små figurer og bygge-props drukner i den okkerfarvede kløft. Giv hotspots en diskret kontur eller lys-rim, eller gør dem lidt større, så barnet straks kan se, hvad der kan klikkes på."
+    }
+   },
+   {
+    "lens": "haandvaerk",
+    "left": {
+     "aera": 8,
+     "liv": 7,
+     "haandvaerk": 7,
+     "laesbarhed": 7,
+     "fix": "Lysretningen er inkonsekvent: bænken kaster en lang, hård skygge mod højre, mens aliens og plinte kun har små bløde ellipser lige under sig – forkort bænkens skygge (eller giv aliens en retningsbestemt skygge), så alt sidder i samme lys."
+    },
+    "right": {
+     "aera": 9,
+     "liv": 6,
+     "haandvaerk": 6,
+     "laesbarhed": 5,
+     "fix": "De små figurer og genstande svæver uden kontaktskygger og er for små til at aflæse som hotspots; tilføj små skygger og gør hotspots større/fremhævede (fx lys kant ved hover), så man kan se hvad der kan klikkes."
+    }
+   },
+   {
+    "lens": "spil",
+    "left": {
+     "aera": 7,
+     "liv": 7,
+     "haandvaerk": 6,
+     "laesbarhed": 6,
+     "fix": "Hotspot-pladerne (grå bjælker med små flag) er for små og ens, så giv dem tydeligere kontur eller glød og gør spørgsmålstegnet større. Skyggerne er flade ovaler, så giv dem blødere kanter og en fælles lysretning."
+    },
+    "right": {
+     "aera": 8,
+     "liv": 6,
+     "haandvaerk": 8,
+     "laesbarhed": 4,
+     "fix": "De klikbare objekter er bittesmå og spredt, så forstør dem eller giv dem en tydelig hover-markering. Troldmanden står stort i forgrunden, men der er ingen synlig indikation af hvad man skal gøre."
+    }
+   }
+  ]
+ },
+ "hub_mid": {
+  "ours_side": "left",
+  "ours": {
+   "median": {
+    "aera": 8,
+    "liv": 7,
+    "haandvaerk": 6,
+    "laesbarhed": 7
+   },
+   "min": 6,
+   "fixes": [
+    "aera: Den nye hvide kuppel er det eneste byggeri og virker indsat. Byg den ind med samme skyggevinkel og -længde som bænken, og lad flagpladerne blive til egentlige byggefelter, så fremskridt kan læses i selve landskabet.",
+    "haandvaerk: Samme skyggeproblem som P3: bænkens lange hårde skygge matcher ikke alien-ellipserne; ensret skyggelængde og -retning, og giv den nye kuppelbygning samme skyggetype som bænken, så bygninger og figurer får samme lyskilde.",
+    "spil: Den nye hvide kuppel flyder på fladen uden kontaktskygge, der matcher bænkens. Tilføj en forankret skygge, og gør flag-pladerne tydeligere som klikmål."
+   ],
+   "pass": false
+  },
+  "ref": {
+   "median": {
+    "aera": 9,
+    "liv": 8,
+    "haandvaerk": 8,
+    "laesbarhed": 6
+   },
+   "min": 5,
+   "fixes": [
+    "aera: Byen er blevet travl, og hotspots blander sig med husene. Fremhæv næste klikbare mål (fx et blinkende skilt eller en pil) og fjern et par løse props i forgrunden, så øjet ledes.",
+    "haandvaerk: Bygningerne sidder godt i terrænet, men figurerne i forgrunden er stadig uden skygger og meget små; tilføj kontaktskygger og gør de klikbare figurer/objekter en anelse større eller mere kontrastrige mod det orange.",
+    "spil: Bygningerne klumper sammen i midten, og de bittesmå figurer og værktøj er svære at tyde. Spred hotspots mere ud og forstør klikbare ting, så man ser hvad der kan trykkes på."
+   ],
+   "pass": false
+  },
+  "ip_vetoes": [],
+  "ip_notes": [
+   "aera: Bygningerne er generiske hvide kupler/moduler mod en okker kløft vs. en enkelt iglo-kuppel på grå måne. Der er ingen fælles bygningsnavne, figurer eller baggrund. Kuppelhuse er et genretræk.",
+   "haandvaerk: Begge har hvide kuppel-/modulbygninger på en måne, men det er et generisk månebase-udtryk; bygningerne er forskelligt formet, ingen fælles navne, figurer, titelskrift eller prærenderet baggrund. Intet veto.",
+   "spil: Venstre har en hvid kuppel, bænk og farvede rumvæsner på grå måne. Højre har en gråhvid base med antenner på rød klippe. Forskellige bygninger, figurer og baggrund, så ingen kopiering."
+  ],
+  "raw": [
+   {
+    "lens": "aera",
+    "left": {
+     "aera": 8,
+     "liv": 7,
+     "haandvaerk": 6,
+     "laesbarhed": 7,
+     "fix": "Den nye hvide kuppel er det eneste byggeri og virker indsat. Byg den ind med samme skyggevinkel og -længde som bænken, og lad flagpladerne blive til egentlige byggefelter, så fremskridt kan læses i selve landskabet."
+    },
+    "right": {
+     "aera": 9,
+     "liv": 8,
+     "haandvaerk": 8,
+     "laesbarhed": 6,
+     "fix": "Byen er blevet travl, og hotspots blander sig med husene. Fremhæv næste klikbare mål (fx et blinkende skilt eller en pil) og fjern et par løse props i forgrunden, så øjet ledes."
+    }
+   },
+   {
+    "lens": "haandvaerk",
+    "left": {
+     "aera": 8,
+     "liv": 7,
+     "haandvaerk": 7,
+     "laesbarhed": 7,
+     "fix": "Samme skyggeproblem som P3: bænkens lange hårde skygge matcher ikke alien-ellipserne; ensret skyggelængde og -retning, og giv den nye kuppelbygning samme skyggetype som bænken, så bygninger og figurer får samme lyskilde."
+    },
+    "right": {
+     "aera": 9,
+     "liv": 7,
+     "haandvaerk": 7,
+     "laesbarhed": 6,
+     "fix": "Bygningerne sidder godt i terrænet, men figurerne i forgrunden er stadig uden skygger og meget små; tilføj kontaktskygger og gør de klikbare figurer/objekter en anelse større eller mere kontrastrige mod det orange."
+    }
+   },
+   {
+    "lens": "spil",
+    "left": {
+     "aera": 7,
+     "liv": 7,
+     "haandvaerk": 6,
+     "laesbarhed": 6,
+     "fix": "Den nye hvide kuppel flyder på fladen uden kontaktskygge, der matcher bænkens. Tilføj en forankret skygge, og gør flag-pladerne tydeligere som klikmål."
+    },
+    "right": {
+     "aera": 8,
+     "liv": 8,
+     "haandvaerk": 8,
+     "laesbarhed": 5,
+     "fix": "Bygningerne klumper sammen i midten, og de bittesmå figurer og værktøj er svære at tyde. Spred hotspots mere ud og forstør klikbare ting, så man ser hvad der kan trykkes på."
+    }
+   }
+  ]
+ }
+}
