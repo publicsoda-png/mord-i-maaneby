@@ -1,6 +1,6 @@
 {
-  "when": "2026-11-09T04:14:17.490Z",
-  "git": "82ae23f",
+  "when": "2026-11-10T08:50:28.725Z",
+  "git": "9e1f2c3+dirty",
   "gates": {
     "cps_min": 24,
     "cps_max": 32,
@@ -16,12 +16,21 @@
     "mouth_open_min_px": 10,
     "click_latency_max_ms": 100,
     "loudness_whitelist_source": "src/core/wrongness.js linjer \"// qc-whitelist: <klip> <klip> — <grund>\" FØR gate-kørsel",
-    "click_visual_min_pct": 0.1
+    "click_visual_min_pct": 0.1,
+    "press_feedback_min_px": 150,
+    "pop_region": {
+      "plot": "bakery",
+      "x": 206,
+      "y": 230,
+      "w": 88,
+      "h": 112,
+      "_": "slot-region p.x-44,p.y-100 88×112 (fx.js)"
+    }
   },
   "tests": {
     "mouth_json_vs_rms": {
-      "clips": 36,
-      "min_agreement": 0.959,
+      "clips": 44,
+      "min_agreement": 0.917,
       "failing": []
     },
     "loudness_whitelist": [
@@ -100,30 +109,34 @@
       }
     ],
     "loudness": {
-      "voice_n": 36,
+      "voice_n": 44,
       "voice_I_range": [
         -70,
         -15.8
       ],
-      "music_n": 22,
+      "music_n": 23,
       "music_I_range": [
         -26,
-        -17.8
+        -17
       ],
       "voice_failing": [],
       "music_failing": []
     },
     "mouth_vs_voice": {
       "voice_found": true,
-      "voice_start": 1794197665.797,
+      "voice_start": 1794300637.87,
       "voice_dur": 5.8100226757369615,
       "frames": 534,
       "open_outside_voice_frames": 0,
       "open_during_voice_pct": 84.2,
-      "helper_changes_per_s": 4.6,
-      "mouth_first_open_ms_after_voice": 42,
-      "mouth_last_open_ms_after_voice_end": -18,
+      "helper_changes_per_s": 4.7,
+      "mouth_first_open_ms_after_voice": 27,
+      "mouth_last_open_ms_after_voice_end": -17,
       "audio_events": [
+        {
+          "url": "synth:osc",
+          "dur": 0
+        },
         {
           "url": "assets/voice/intro1.ogg",
           "dur": 5.81
@@ -132,11 +145,24 @@
     },
     "text_cps": {
       "chars": 66,
-      "visible_changes": 44,
+      "visible_changes": 57,
       "change_times_rel": [
         0,
+        0.033,
+        0.083,
+        0.117,
+        0.15,
+        0.183,
+        0.217,
         0.267,
         0.3,
+        0.333,
+        0.367,
+        0.4,
+        0.45,
+        0.483,
+        0.517,
+        0.55,
         0.633,
         0.667,
         0.733,
@@ -146,60 +172,67 @@
         0.883,
         0.917,
         0.95,
-        1,
+        0.983,
         1.067,
         1.1,
         1.133,
-        1.183,
-        1.217,
+        1.167,
+        1.2,
         1.283,
         1.317,
-        1.367,
+        1.35,
         1.433,
         1.5,
-        1.55,
-        1.583,
+        1.533,
+        1.567,
         1.617,
         1.65,
         1.683,
-        1.733,
+        1.717,
         1.883,
-        1.933,
-        1.967,
-        2.033,
-        2.067,
-        2.117,
-        2.15,
-        2.217,
-        2.25,
-        2.333,
-        2.367,
-        2.4,
-        2.45,
-        2.483,
-        3.05
+        1.917,
+        1.95,
+        2.017,
+        2.05,
+        2.1,
+        2.133,
+        2.2,
+        2.233,
+        2.317,
+        2.35,
+        2.383,
+        2.433,
+        2.467,
+        3.033
       ],
-      "typing_s": 2.48,
+      "typing_s": 2.47,
       "pauses_s": 0.38,
-      "cps_measured": 30.9,
+      "cps_measured": 31.2,
       "note": "screencast fanger ikke nødvendigvis hvert tegn ved 60 Hz → cps er en nedre grænse hvis visible_changes < chars"
     },
     "pling_vs_swap": {
-      "swap_frame": 42,
-      "swap_t": 1794197705.45422,
+      "method": "built=bakery:2, pop = største slot-skift ±300 ms om pling",
+      "frames": 308,
       "pling_found": true,
-      "pling_url": "assets/sfx/ui_bygning_op1.ogg",
-      "delta_ms": -34,
-      "black_frames": 17
+      "pling_url": "assets/sfx/ui_bygning_op2.ogg",
+      "pop_frame": 70,
+      "pop_region_diff_px": 753.125,
+      "delta_ms": -50,
+      "slot_changes_per_s": 1.6,
+      "fxLog": [
+        "start",
+        "show+ui_bygning_op2",
+        "end"
+      ]
     },
     "click_latency": {
-      "down_t": 1794197714.01,
-      "first_frame": 25,
-      "before_frame": 22,
-      "first_visual_ms": 44,
+      "down_t": 1794300695.118,
+      "up_t": 1794300695.243,
+      "press_feedback_ms": 43,
+      "action_after_up_ms": 35,
       "sfx_ms": 1,
       "sfx_url": "synth:osc",
-      "frames": 121
+      "frames": 122
     }
   },
   "pass": {
@@ -211,7 +244,9 @@
     "A6_helper_steprate": true,
     "A6_cps_visual": true,
     "A6_pling_sync": true,
-    "A6_click_visual_latency": true,
+    "A6_swap_steprate": true,
+    "A6_click_press_feedback": true,
+    "A6_click_action_latency": true,
     "A6_click_has_sfx": true
   },
   "notes": [],
@@ -249,7 +284,15 @@
       "pass": true
     },
     {
-      "gate": "A6_click_visual_latency",
+      "gate": "A6_swap_steprate",
+      "pass": true
+    },
+    {
+      "gate": "A6_click_press_feedback",
+      "pass": true
+    },
+    {
+      "gate": "A6_click_action_latency",
       "pass": true
     },
     {

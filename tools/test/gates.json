@@ -47,7 +47,9 @@
     {
       "id": "ident",
       "q": "dev&scene=ident&name=Test",
-      "liveness": false
+      "liveness": false,
+      "info": true,
+      "note": "loader med koreograferet ryk (QUALITY-PLAN §1) — måles, gates ikke på A1"
     },
     {
       "id": "task_ice",
@@ -169,7 +171,15 @@
     "click_latency_max_ms": 100,
     "loudness_whitelist_source": "src/core/wrongness.js linjer \"// qc-whitelist: <klip> <klip> — <grund>\" FØR gate-kørsel",
     "click_visual_min_pct": 0.1,
-    "press_feedback_min_px": 150
+    "press_feedback_min_px": 150,
+    "pop_region": {
+      "plot": "bakery",
+      "x": 206,
+      "y": 230,
+      "w": 88,
+      "h": 112,
+      "_": "slot-region p.x-44,p.y-100 88×112 (fx.js)"
+    }
   },
   "A7_grep": {
     "css_forbidden": [

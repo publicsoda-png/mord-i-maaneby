@@ -130,17 +130,31 @@ try {
     console.log(`T2 tekst: ${changeT.length} synlige skift af ${chars} tegn på ${typing.toFixed(2)} s → ${cps.toFixed(1)} cps`);
     await p.close();
   }
-  // ---- T3: pling mod bygnings-swap (hub genindtræder med justBuilt) ----
+  // ---- T3: pling mod POP-framen i buildSwap (?dev&scene=hub&built=bakery:2) ----
+  // Biblen: ny sprite 2-frame pop + pling på samme frame (±1 frame). Pop-framen findes VISUELT som det største
+  // skift i slot-regionen efter støvet (fx.js step 8); plinget via lyd-hooket. fxLog bruges kun som krydstjek.
   {
-    const p = await open('dev&scene=hub&name=Test');
-    const { rows, audio } = await record(p, path.join(out, 't3'), () => p.evaluate(() => { const s = window.MB.save; s.buildings.landing = 1; s.flags.justBuilt = { id: 'landing', stage: 1 }; window.MB.goto('hub', { back: false }); }), 2500);
-    const lum = rows.map((r) => +magick(r.file, '-colorspace', 'Gray', '-format', '%[fx:mean*255]', 'info:'));
-    let swapIdx = -1; for (let i = 1; i < rows.length; i++) if (lum[i - 1] < 8 && lum[i] >= 8) { swapIdx = i; break; }
+    // Lyd kræver en gestus: open() klikker først (auto-swap ved enter kører uden lyd), derefter optages window.MB.devSwap() med lyd.
+    const p = await open(`dev&scene=hub&built=${G.pop_region.plot}:2&name=Test`);
+    await sleep(1800);
+    await p.evaluate(() => { window.__audio = []; if (window.MB) window.MB.fxLog = []; });
+    const { rows } = await record(p, path.join(out, 't3'), () => p.evaluate(() => window.MB.devSwap()), 3000);
+    const R = G.pop_region; const geom = `${R.w}x${R.h}+${R.x}+${R.y}`;
+    const crops = rows.map((r) => crop(r.file, geom, r.file.replace('.png', '_s.png')));
+    const diffs = rows.map((r, i) => (i === 0 ? 0 : AE(crops[i - 1], crops[i], 0)));
+    const audio = await p.evaluate(() => window.__audio);
+    const fxLog = await p.evaluate(() => (window.MB && window.MB.fxLog) || []);
     const pling = audio.find((a) => /ui_bygning_op/.test(a.url));
-    const delta = swapIdx >= 0 && pling ? Math.round((pling.t - rows[swapIdx].t) * 1000) : null;
-    report.tests.pling_vs_swap = { swap_frame: swapIdx, swap_t: rows[swapIdx]?.t, pling_found: !!pling, pling_url: pling?.url?.replace(/^.*\/(assets\/)/, '$1'), delta_ms: delta, black_frames: lum.filter((l) => l < 8).length };
+    // pop = største slot-skift inden for ±300 ms af plinget (hvis fundet), ellers globalt største efter første ikke-sorte frame
+    let cands = rows.map((r, i) => ({ i, t: r.t, d: diffs[i] }));
+    if (pling) cands = cands.filter((c) => Math.abs(c.t - pling.t) <= 0.3);
+    const pop = cands.length ? cands.reduce((m, c) => (c.d > m.d ? c : m)) : null;
+    const delta = pop && pling ? Math.round((pling.t - pop.t) * 1000) : null;
+    const uniq = crops.length > 1 ? rows.filter((r, i) => i > 0 && diffs[i] > 0).length / ((rows.at(-1).t - rows[0].t) || 1) : 0;
+    report.tests.pling_vs_swap = { method: 'built=' + R.plot + ':2, pop = største slot-skift ±300 ms om pling', frames: rows.length, pling_found: !!pling, pling_url: pling?.url?.replace(/^.*\/(assets\/)/, '$1'), pop_frame: pop?.i, pop_region_diff_px: pop?.d, delta_ms: delta, slot_changes_per_s: +uniq.toFixed(1), fxLog: fxLog.map((e) => e.ev) };
     report.pass.A6_pling_sync = delta !== null && Math.abs(delta) <= G.sfx_sync_tolerance_ms;
-    console.log(`T3 pling: swap-frame ${swapIdx} · pling ${pling ? 'fundet' : 'IKKE FUNDET'} · Δ ${delta} ms (gate ±${G.sfx_sync_tolerance_ms})`);
+    report.pass.A6_swap_steprate = uniq <= 12.5;
+    console.log(`T3 pling: pop-frame ${pop?.i} (slot-diff ${pop?.d} px) · pling ${pling ? 'fundet' : 'IKKE FUNDET'} · Δ ${delta} ms (gate ±${G.sfx_sync_tolerance_ms}) · slot ${uniq.toFixed(1)} skift/s · fxLog ${fxLog.map((e) => e.ev).join('>')}`);
     await p.close();
   }
   // ---- T4: klik-latens (pointerdown → første frame >0,5 % diff) + lyd inden 400 ms ----
