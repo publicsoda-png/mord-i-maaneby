@@ -40,7 +40,7 @@ function grepAll(dir, re, filter = () => true) {
   const sinHits = grepAll(path.join(root, 'src'), sinRe, (p) => /\.js$/.test(p) && /src\/(scenes|core|ware)\//.test(p) && !G.A7_grep.sin_allowlist.some((a) => p.endsWith(a)));
   const blackOverrides = grepAll(path.join(root, 'src'), /black:\s*0/, (p) => /\.js$/.test(p));
   const blackBad = blackOverrides.filter((h) => !G.A2_transition.black_override_allowlist.some((a) => h.startsWith(a)));
-  const procHits = grepAll(path.join(root, 'src/scenes'), /\bproc\(|placeholder\.js/, (p) => /\.js$/.test(p));
+  const procHits = grepAll(path.join(root, 'src/scenes'), /\bproc\(|drawSyv\(|drawGround\(/, (p) => /\.js$/.test(p)); // 10-11: placeholder.js er nu sprite-/bg-loaderen (bg/sprite/drawFnug/drawBuilding), så kun ægte procedurelle fallback-kald tæller
   const cps = grepAll(path.join(root, 'src'), /cps\s*[:=]\s*\d+/, (p) => /\.js$/.test(p)).map((h) => +h.match(/cps\s*[:=]\s*(\d+)/)[1]);
   const defCps = (fs.readFileSync(path.join(root, 'src/core/dialog.js'), 'utf8').match(/opts\.cps\s*\?\?\s*(\d+)/) || [])[1];
   if (defCps) cps.push(+defCps);
