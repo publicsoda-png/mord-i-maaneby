@@ -9,7 +9,7 @@ Ejer i parentes: B = bygge-/master-session, Q = QC, C = council, F = Frederik.
 ## 1. Venter på Frederik (F)
 - [ ] Review af retningen "Regnskabet", 15 skærme, Ja/Måske/Nej: https://claude.ai/artifact/3No1m5SAokVQpusGEsRrmp
 - [ ] Review af sprites (12 Fnugger, bygninger, hub dag/nat): https://claude.ai/artifact/8E5bcHNr1sZix6oVEwkuUN
-- [ ] Review af polish-natten, 7 kort: https://claude.ai/artifact/BPisAUgwqVJriXfHZgGWfT (svar i artifactets db, collection `dom`)
+- [ ] Review af polish-natten, 8 kort (v4 10-11: status master 4758716, akt 2+3-tal, isværk/kikkert/rådhus-skærme): https://claude.ai/artifact/BPisAUgwqVJriXfHZgGWfT (svar i artifactets db, collection `dom`)
 - [ ] Spil den deployede version igennem selv – ingen menneskelig playtest er kørt.
 
 ## 2. Næste deploy (B) – små ting der er klar
@@ -72,7 +72,7 @@ Ejer i parentes: B = bygge-/master-session, Q = QC, C = council, F = Frederik.
 - [x] Feel seed 33 (c8 ~10:55): 6/8 pass; latens median 31 ms, p90 97, maks 118, 0 konsolfejl. RØDT: ét dødt målrettet klik = 'Tilbage' i task under resultat-replikken (scenen er låst, knappen stod synlig uden respons) → rettet: Tilbage fjernes når spillet er løst, før lock (task.js). 'lyd pr. handling' 34/35 var samme klik.
 - [x] 3. feel-seed 45 (c58674d): 89 klik, 0 døde målrettede, latens median 31 ms, 7/8 gates. Rød: lyd_pr_handling 35/36 – msgBox-knappen 'Nej' (Luk-dialogen i hubben) havde ingen kliklyd → os.js: sfx.click() på pointerdown for .wbtn. Verificeret i dev (1 lydstart). Akt 2 dækket: feel.mjs har fået `--akt2` (efter hub-intro sættes 6 bygninger færdige og fyrværkeripladsen klikkes → falseEnd → nat). Seed 61, 12 min på c872226: 103 klik, 0 døde målrettede, latens median 50 ms / p90 120, lyd 60/60, 8/8 gates; scener ident→title→setup→hub→falseEnd→nat-hub↔opgaver. 404 på hall.png var kun fordi worktree'en lå før 9d6c482.
 - [x] 4. `--akt3` (B's ønske): nat + hall_door/hall_answer/fever1 sættes → dør → jump → hub (afterJump) → Nedenunder → logrum (7 lag løses scriptet 11…5, '−' til stede) → morgen → credits → titel. Seed 73 på 4c9dab9+hall.png: 1. kørsel 69 klik, median 47 ms, 0 ægte døde klik, lyd på alle (de to røde gates var scriptets: overflødigt Grav-klik + hub-tidsmål før kæden, rettet). Bekræftelse: 74 klik, 0 døde, lyd 42/42, hub 66,6 s, p90 118.
-- [ ] 5. Informativt (ikke rettet): latens-median i MORGEN-scenen er ~115 ms (hub 46, logrum 48). Klik på en bygning svarer med lyd straks + `say()`-skrivemaskine, men botten ser først ≥0,1 % ændrede pixels efter ca. 3 tegn. Samlet median faldt derfor under/over 100 alt efter hvor mange morgen-klik der kom (47 vs 104). Hvis det skal være grønt: giv dialogen en synlig ramme/plade i samme frame som `box.hidden=false`, eller undtag skrivemaskine-svar i feel.mjs. Council-spørgsmål, ikke c8's kald. (botten nåede kun hub/task på 10 min – kræver `--minutes 30+` eller dev-start i falseEnd).
+- [x] 5. Morgen-latens: B afgjorde 10-11 at dialogen ikke røres (lyd straks, skrivemaskine er æra-rigtig). I stedet er målingen rettet: `latency_ms` = tidligste af første lyd-event og første frame med ≥0,1 % ændrede pixels (`visual_ms` = kun pixels, bevaret separat). Bekræftet med `--akt3 --seed 73 --minutes 6`: alle 8 mål grønne, median 1 ms, p90/max 72 ms, 0 over 100, morgen-median 71 ms (visual 96), 0 døde målrettede klik, lyd 35/35, 0 konsolfejl (kun jump_hall.png 404 = B's C6).
 
 ## Faste regler for næste runde
 - Ingen bygger i main-checkout; B merger og deployer; QC af anden agent end byggeren; `tools/test/gates.json` røres ikke.
