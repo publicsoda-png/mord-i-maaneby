@@ -10,7 +10,7 @@ const dist = path.join(root, artifact ? 'dist-artifact' : 'dist');
 fs.rmSync(dist, { recursive: true, force: true });
 fs.mkdirSync(dist, { recursive: true });
 
-const skip = (rel) => rel.startsWith('assets/raw') || rel.endsWith('.DS_Store') || rel.endsWith('.pal.json') || rel.endsWith('.txt') && rel.startsWith('assets/')
+const skip = (rel) => rel.startsWith('assets/raw') || rel.startsWith('assets/unlocked') || rel.endsWith('.DS_Store') || rel.endsWith('.pal.json') || rel.endsWith('.txt') && rel.startsWith('assets/')
   || (artifact && rel.endsWith('.m4a'));
 let total = 0; const rows = [];
 function copy(rel) {
