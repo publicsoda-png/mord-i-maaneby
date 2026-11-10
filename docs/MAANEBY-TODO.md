@@ -58,7 +58,8 @@ Ejer i parentes: B = bygge-/master-session, Q = QC, C = council, F = Frederik.
 ## 7. Pacing-council (C)
 - [x] **Kørt 10-11 ~10:05 (c8):** K01–K06 gen-renderet på palette-låst kode (feel.mjs --pacing seed 7, git 2e7a66c; nøgle i `tools/test/feel-key/key.json`). 3 blinde Claude-dommere, alle tre: FØRST_BEMÆRKET = K04 = **minut 18** (navnet nederst t.v. skifter fra "Test" til "Syv" – name_syv). Intet før minut 12 ✔, median 18 inden for 15–30 ✔. Sikkerhed høj/høj/mellem.
 - [ ] **Begrænsning (ærligt):** kontaktarkene er stille hub-frames uden dialogklik, så kun synlig hub-wrongness testes. Ved minut 30 fyrede save_lies uden synligt spor i stillbilledet, og ved minut 24 fyrede intet (seed 7). Dialog-, lyd- og minispil-wrongness (QUALITY-PLAN wrongness.js) er IKKE dækket af denne test – kræver enten gif'er med dialogklik i --pacing eller en menneskelig gennemspilning (§1).
-- [ ] Feel-bot lang kørsel `--minutes 10` seed 21 kører på 0dc0a6a (c8, resultat i tools/test/feel/feel-report.json når den er færdig); 2.–3. seed mangler.
+- [x] Feel-bot `--minutes 10` seed 21 på 0dc0a6a+pallock (c8 10-11 ~10:20): alle 8 pass (klik-latens median 50 ms, p90 116, 6 klik >100 ms, maks 449; dead clicks ok; lyd pr. handling ok; cps unvoiced 27,4; ingen afskåret tekst; 0 konsolfejl; 0 bot-fejl; 74 klik, scener ident/title/setup/hub/task). 404 kun de kendte 8 (ice/scope/hall/title ±_nat). Seed 33 kører som 2. kørsel.
+- [ ] 3. feel-seed + en kørsel der når akt 2 (botten nåede kun hub/task på 10 min – kræver `--minutes 30+` eller dev-start i falseEnd).
 
 ## Faste regler for næste runde
 - Ingen bygger i main-checkout; B merger og deployer; QC af anden agent end byggeren; `tools/test/gates.json` røres ikke.
