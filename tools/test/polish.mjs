@@ -52,7 +52,7 @@ function grepAll(dir, re, filter = () => true) {
   report.pass.A6_cps_static = cpsBad.length === 0 && cps.length > 0;
   report.pass.A5_placeholder = procHits.length <= G.A5_placeholder.max_proc_calls_in_scenes; // informativt før fase 4
   // A3 assets: alle PNG i assets/ skal være PNG8 (IHDR color type 3 = byte 25)
-  const pngs = []; const walk = (d) => { if (!fs.existsSync(d)) return; for (const f of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, f.name); if (f.isDirectory()) { if (f.name === 'raw') continue; /* assets/raw = Higgsfield-kilder, skibes ikke */ walk(p); } else if (/\.png$/i.test(p)) pngs.push(p); } }; walk(path.join(root, 'assets'));
+  const pngs = []; const walk = (d) => { if (!fs.existsSync(d)) return; for (const f of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, f.name); if (f.isDirectory()) { if (f.name === 'raw' || f.name === 'unlocked') continue; /* assets/raw = Higgsfield-kilder, assets/unlocked = pallock-kilder — ingen af dem skibes (0dc0a6a) */ walk(p); } else if (/\.png$/i.test(p) && !/favicon/.test(f.name)) pngs.push(p); /* favicon er browser-krom, ikke spilgrafik */ } }; walk(path.join(root, 'assets'));
   const notPng8 = pngs.filter((p) => fs.readFileSync(p).readUInt8(25) !== 3).map((p) => path.relative(root, p));
   report.static.A3_assets_png_total = pngs.length; report.static.A3_assets_not_png8 = notPng8;
   report.pass.A3_assets = notPng8.length === 0;
