@@ -5,8 +5,10 @@ import { W, H, drawText } from '../core/stage.js';
 import { showOS, osEl, progressBox, fakeProgress, sleep } from '../core/os.js';
 import { ensureAudio, audioCtx, sfx, music, stopMusic, preload as preloadAudio } from '../core/audio.js';
 import { save, meta, persist, persistMeta, resetSave } from '../core/state.js';
-import { bg, drawFnug } from '../art/placeholder.js';
+import { bg, drawFnug, drawBuilding } from '../art/placeholder.js';
 import { stipple } from '../core/stage.js';
+import { helper, showHelper } from '../core/dialog.js';
+import { helperShadow } from './hub.js';
 import { showCursor } from '../core/cursor.js';
 
 const IDENT_MUSIC = 'assets/music/ident.ogg';
@@ -97,8 +99,9 @@ register({
     const b = bg('hub');
     this.t0 = performance.now();
     music(save.night ? 'assets/music/titel_nat.ogg' : 'assets/music/titel_b.ogg', { fade: 1.2 });
-    button('Start', 280, 400, () => { sfx.click(); goto('setup'); }, { w: 80 });
-    if (save.name && !save.flags.morning) button('Fortsæt', 280, 436, () => { sfx.click(); goto('hub'); }, { w: 80 }); // QC r4 K3: ingen Fortsæt efter slutningen
+    const BF = { w: 124, h: 30, font: '700 16px "Comic Neue","Comic Sans MS",sans-serif' }; // større/mere kontrast (kolonne C r3)
+    button('Start', 258, 392, () => { sfx.click(); goto('setup'); }, BF);
+    if (save.name && !save.flags.morning) button('Fortsæt', 258, 430, () => { sfx.click(); goto('hub'); }, BF); // QC r4 K3: ingen Fortsæt efter slutningen
     this.bgc = b;
   },
   bg(g, dt, t) {
@@ -108,9 +111,12 @@ register({
     // Kolonne C (b8 10-11): logoet rykket mod højre, så Jorden (x 205–265) står fri af "REGN"
     drawText('REGN MED', 400, 56 + bob, { align: 'center', font: '700 34px "Comic Neue","Comic Sans MS",sans-serif', color: '#ffd21f', outline: '#5a3a00' });
     drawText('MÅNEBY', 400, 92 + bob, { align: 'center', font: '700 58px "Comic Neue","Comic Sans MS",sans-serif', color: '#ffd21f', outline: '#5a3a00' });
-    // liv på titlen: en lille by-silhuet i horisonten (dither-sort, kun rektangler) og én Fnug ved bænken, med kontaktskygge
+    // liv på titlen (kolonne C r2+r3): by-silhuet som anker i horisonten (dither-sort, kun rektangler, dobbelt størrelse),
+    // mellemgrund = kuppel til venstre + Fnug nr. 2 på bænken, forgrund = Fnug ved bænken med projiceret skygge
     g.fillStyle = stipple('#000000', 3);
-    g.fillRect(96, 177, 4, 14); g.fillRect(94, 175, 8, 3); g.fillRect(112, 185, 36, 6); g.fillRect(118, 181, 24, 4); g.fillRect(124, 178, 12, 3); g.fillRect(152, 183, 10, 8); g.fillRect(156, 179, 2, 4);
+    g.fillRect(84, 163, 8, 28); g.fillRect(80, 159, 16, 5); g.fillRect(116, 179, 72, 12); g.fillRect(128, 171, 48, 8); g.fillRect(140, 165, 24, 6); g.fillRect(196, 175, 20, 16); g.fillRect(204, 167, 4, 8); g.fillRect(222, 183, 30, 8);
+    drawBuilding(g, 118, 326, 3, 'dome', save.night, 0.9);
+    drawFnug(g, 505, 388, 0.9, { id: 7, night: save.night, shadow: false }); // sidder/står på bænken – skyggen ville falde på sædet
     drawFnug(g, 398, 452, 1.15, { id: 3, night: save.night });
     drawText('Krater Multimedie ApS, Valby · 2005', 320, 468, { align: 'center', font: '11px Tahoma, sans-serif', color: '#ccc' });
     drawText('Ver. 1.3.63', 8, 464, { font: '11px Tahoma, sans-serif', color: '#aaa' });
@@ -138,7 +144,8 @@ register({
       });
       ui.appendChild(c); chips.push(c);
     }
-    button('OK', 290, 330, () => {
+    helper.present = true; helper.night = save.night; showHelper(true); // vært ved panelet (kolonne C r3)
+    button('OK', 290, 318, () => {
       const name = inp.value.trim() || 'Bygmester';
       if (meta.ending || save.flags.morning || save.flags.log_open) resetSave(); // nyt spil efter credits: rent save (a0 QC 09-11)
       if (meta.ending) { save.flags.hall_open = true; save.flags.minus_known = true; } // 2. gennemspilning: rent save, DAG, byen husker (Rådhus åbent, minus-tast kendt)
@@ -149,15 +156,19 @@ register({
     }, { w: 60 });
     this.bgc = bg('hub');
   },
+  exit() { showHelper(false); },
   bg(g) {
     g.drawImage(this.bgc, 0, 0);
-    // opaque Director-style panel (no alpha blend over the render → stays inside a 256-colour budget). Kolonne C: 280 bred (var 340), 2 px dobbelt bevel, intet Tahoma-label
-    const px = 180, py = 100, pw = 280, ph = 280;
-    g.fillStyle = '#1a1230'; g.fillRect(px, py, pw, ph);
-    g.fillStyle = '#4a3f70'; g.fillRect(px, py, pw, 2); g.fillRect(px, py, 2, ph); // ydre lys
-    g.fillStyle = '#0b0818'; g.fillRect(px, py + ph - 2, pw, 2); g.fillRect(px + pw - 2, py, 2, ph); // ydre mørk
-    g.fillStyle = '#0b0818'; g.fillRect(px + 2, py + 2, pw - 4, 2); g.fillRect(px + 2, py + 2, 2, ph - 4); // indre mørk
-    g.fillStyle = '#4a3f70'; g.fillRect(px + 2, py + ph - 4, pw - 4, 2); g.fillRect(px + pw - 4, py + 2, 2, ph - 4); // indre lys
+    helperShadow(g, save.night);
+    // opaque Director-style panel (no alpha blend over the render → ≤256). Kolonne C r3: ægte 2005-stenramme som knapperne (.btn-farver) om det mørkeblå felt, 280×264
+    const px = 180, py = 100, pw = 280, ph = 264, fr = 8;
+    g.fillStyle = '#2a2824'; g.fillRect(px + 2, py + 2, pw, ph); // hård slagskygge som .btn
+    g.fillStyle = '#c9c3b3'; g.fillRect(px, py, pw, ph); // sten
+    g.fillStyle = '#f4f1ea'; g.fillRect(px, py, pw, 2); g.fillRect(px, py, 2, ph); // ydre bevel lys
+    g.fillStyle = '#5e5a52'; g.fillRect(px, py + ph - 2, pw, 2); g.fillRect(px + pw - 2, py, 2, ph); // ydre bevel mørk
+    g.fillStyle = '#5e5a52'; g.fillRect(px + fr - 2, py + fr - 2, pw - 2 * fr + 4, 2); g.fillRect(px + fr - 2, py + fr - 2, 2, ph - 2 * fr + 4); // indre bevel (nedsænket felt)
+    g.fillStyle = '#f4f1ea'; g.fillRect(px + fr - 2, py + ph - fr, pw - 2 * fr + 4, 2); g.fillRect(px + pw - fr, py + fr - 2, 2, ph - 2 * fr + 4);
+    g.fillStyle = '#1a1230'; g.fillRect(px + fr, py + fr, pw - 2 * fr, ph - 2 * fr); // feltet
     drawText('Skriv dit navn:', 212, 124, { font: '700 16px "Comic Neue","Comic Sans MS",sans-serif', color: '#fff' });
     drawText('Hvilket byggetrin?', 212, 212, { font: '700 16px "Comic Neue","Comic Sans MS",sans-serif', color: '#fff' });
   },

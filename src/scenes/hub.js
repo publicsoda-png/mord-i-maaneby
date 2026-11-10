@@ -1,7 +1,7 @@
 // Bykortet: 9 byggepladser, Fnugger, helper portrait corner, HUD. Fires wrongness events between tasks.
 import { register, goto, button, lock } from '../core/scene.js';
 import { drawText } from '../core/stage.js';
-import { bg, drawFnug, contactShadow } from '../art/placeholder.js';
+import { bg, drawFnug, castShadow, sprite } from '../art/placeholder.js';
 import { buildSwap, drawPlot } from '../art/fx.js';
 import { say, helper, countHelpClick, hideDialog, sleep, showHelper } from '../core/dialog.js';
 import { save, meta, persist, persistMeta, touch } from '../core/state.js';
@@ -43,6 +43,16 @@ function drawDoor(g, night) {
   g.fillStyle = night ? '#111318' : '#2a2d3a'; g.fillRect(x, y, w, h); // blad
   g.fillStyle = night ? '#3a3d4a' : '#6b7088'; g.fillRect(x + w - 5, y + Math.floor(h / 2), 2, 2); // håndtag
   if (save.flags.chalk7) { g.fillStyle = '#e8e4d8'; const cx = x + Math.floor(w / 2) - 2, cy = y + 9; g.fillRect(cx, cy, 5, 1); g.fillRect(cx + 4, cy + 1, 1, 2); g.fillRect(cx + 3, cy + 3, 1, 2); g.fillRect(cx + 2, cy + 5, 1, 2); }
+}
+
+/** Månemanden/stolen står i DOM-canvasset #helper (6,226 130×250, bundforankret, skala 1). Skyggen tegnes på scenen med samme projektion som alt andet. */
+export function helperShadow(g, night) {
+  if (!helper.visible) return;
+  const im = sprite(night ? 'helper_nat' : 'helper') || sprite('helper'); if (!im) return;
+  const n = Math.max(1, Math.round(im.width / (im.height / 2))), fw = im.width / n;
+  const k = Math.min(130 / fw, 250 / im.height), w = Math.round(fw * k), h = Math.round(im.height * k), x0 = 6 + Math.round((130 - w) / 2);
+  if (helper.present) castShadow(g, im, 0, 0, fw, im.height, x0, 476, w, h, night);
+  else { const ch = sprite('helper_chair'); if (ch) castShadow(g, ch, 0, 0, ch.width, ch.height, x0, 476, Math.round(ch.width * k), Math.round(ch.height * k), night); }
 }
 
 register({
@@ -148,14 +158,14 @@ register({
     g.drawImage(this.bgc, 0, 0);
     // bench_gone: renderens bænk (x 416–639, y 310–443) dækkes med overfladen ved siden af, spejlet så sømmen passer
     if (save.flags.bench_gone) { g.save(); g.translate(640, 0); g.scale(-1, 1); g.drawImage(this.bgc, 188, 306, 226, 140, 0, 306, 226, 140); g.restore(); }
-    if (helper.visible) contactShadow(g, 66, 472, 110, save.night, { ry: 10 }); // månemanden/stolen (DOM-canvas ovenpå) får sin kontaktskygge på scenen (kolonne C)
+    helperShadow(g, save.night);
     const showDoor = save.flags.hall_door && save.night && !save.flags.jumped && !save.flags.hall_open && !meta.ending;
     for (const p of PLOTS) {
       if (p.special) continue;
       drawPlot(g, p, save.buildings[p.id] || 0, save.night, persp(p.y));
       if (p.locked && !save.flags.hall_open && !meta.ending) {
         if (showDoor) drawDoor(g, save.night);
-        else drawText('?', p.x, p.y - 60, { align: 'center', font: '700 28px "Comic Neue","Comic Sans MS",sans-serif', color: '#ffd21f', outline: '#000' });
+        else drawText('?', p.x, p.y - 68, { align: 'center', font: '700 36px "Comic Neue","Comic Sans MS",sans-serif', color: '#ffd21f', outline: '#000' }); // større klikmål (kolonne C r3)
       } else if (p.locked && !save.buildings[p.id]) {
         // QC r4 K4: Rådhuset er åbent men ikke bygget – en åben dør på pladsen (palettefarver, heltal)
         g.fillStyle = save.night ? '#5a4610' : '#ffbf2f'; g.fillRect(p.x - 7, p.y - 24, 14, 20); g.fillStyle = '#15171f'; g.fillRect(p.x - 5, p.y - 22, 10, 18);
