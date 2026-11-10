@@ -100,6 +100,29 @@ function hex(c) {
   return [255, 255, 255];
 }
 
+// ---------- palette-safe fills (WP1: ingen rgba/gradienter — dither og bånd, så en frame holder ≤256 farver) ----------
+const stipples = new Map();
+/** 2×2-dither af én fast farve: k = 1, 2 eller 3 af 4 pixels (≈ 25/50/75 % dækning). Erstatter rgba-overlays. */
+export function stipple(color, k = 2) {
+  const key = color + k;
+  if (stipples.has(key)) return stipples.get(key);
+  const c = document.createElement('canvas'); c.width = c.height = 2; const g = c.getContext('2d');
+  g.fillStyle = color; const px = [[0, 0], [1, 1], [1, 0]];
+  for (let i = 0; i < k; i++) g.fillRect(px[i][0], px[i][1], 1, 1);
+  const pat = ctx.createPattern(c, 'repeat'); stipples.set(key, pat); return pat;
+}
+/** Lodret farveforløb som n hårde bånd mellem faste hex-stop (erstatter createLinearGradient). */
+export function bands(g, x, y, w, h, stops, n = 8) {
+  const rgb = (c) => hex(c), cols = stops.map(rgb);
+  for (let i = 0; i < n; i++) {
+    const t = (i / (n - 1)) * (cols.length - 1), j = Math.min(cols.length - 2, Math.floor(t)), f = t - j;
+    const c = cols[j].map((v, k) => Math.round(v + (cols[j + 1][k] - v) * f));
+    g.fillStyle = `rgb(${c[0]},${c[1]},${c[2]})`;
+    const y0 = y + Math.floor((h * i) / n), y1 = y + Math.floor((h * (i + 1)) / n);
+    g.fillRect(x, y0, w, y1 - y0);
+  }
+}
+
 // ---------- palette tricks ----------
 /** Snapshot of the stage as ImageData (for palette-flash / glitch). */
 export const snap = () => ctx.getImageData(0, 0, W, H);
