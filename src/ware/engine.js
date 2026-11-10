@@ -15,6 +15,11 @@ const mcv = document.createElement('canvas');
 const mctx = mcv.getContext('2d');
 const measure = (str, font) => { mctx.font = font; return mctx.measureText(str).width; };
 /** Copy of a cached text1bit canvas (the cache owns its element; DOM needs its own). */
+function snapAlpha(g, w, h) {
+  const im = g.getImageData(0, 0, w, h), d = im.data;
+  for (let i = 3; i < d.length; i += 4) d[i] = d[i] < 128 ? 0 : 255;
+  g.putImageData(im, 0, 0);
+}
 const clone = (c) => { const o = document.createElement('canvas'); o.width = c.width; o.height = c.height; o.getContext('2d').drawImage(c, 0, 0); return o; };
 function wrap(str, font, width) {
   const out = [];
@@ -63,7 +68,8 @@ export function playGame(G, opts = {}) {
         const d = api.add('', '', { width: w + 'px', height: h + 'px', left: cx - w / 2 + 'px', top: cy - h / 2 + 'px', ...css });
         const c = document.createElement('canvas'); c.width = w; c.height = h; c.style.cssText = 'width:100%;height:100%;image-rendering:pixelated';
         d.appendChild(c); d.g = c.getContext('2d'); d.g.imageSmoothingEnabled = false;
-        d.redraw = (...a) => { d.g.clearRect(0, 0, w, h); draw(d.g, ...a); };
+        // A3: kanter uden antialias – efter hver tegning snappes alpha til 0/255, så skrå polygoner, buer og streger bliver hårde pixels (ingen halvgennemsigtige blandingsfarver)
+        d.redraw = (...a) => { d.g.clearRect(0, 0, w, h); draw(d.g, ...a); snapAlpha(d.g, w, h); };
         d.at = (x, y) => { d.style.left = Math.round(x - w / 2) + 'px'; d.style.top = Math.round(y - h / 2) + 'px'; };
         d.redraw(0); return d;
       },
